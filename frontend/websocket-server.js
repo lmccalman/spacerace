@@ -38,4 +38,4 @@ subscriber.on('message', function(msg){
 });
 
 console.log('Websocket server trying to connect to ZMQ pub socket on port 3000');
-subscriber.connect('tcp://127.0.0.1:3000');
+subscriber.connect('tcp://127.0.0.1:5556');

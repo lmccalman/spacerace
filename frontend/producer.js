@@ -1,8 +1,7 @@
 var zmq = require('zmq');
 var sock = zmq.socket('pub');
 
-sock.bindSync('tcp://127.0.0.1:3000');
-sock.bindSync("ipc://spacerace-gamestate.ipc");
+sock.bindSync('tcp://127.0.0.1:5556');
 
 console.log('Dummy Game State producer bound to port 3000');
 
