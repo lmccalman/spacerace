@@ -23,15 +23,15 @@ void initialiseSignalHandler()
 
 int main(int ac, char* av[])
 {
-  zmq::context_t context(1);
+  zmq::context_t* context = new zmq::context_t(1);
 
   initialiseSignalHandler();
   BOOST_LOG_TRIVIAL(info) << "An informational severity message";
 
 
-  zmq::socket_t logSocket(context, ZMQ_PUB);
-  zmq::socket_t stateSocket(context, ZMQ_PUB);
-  zmq::socket_t controlSocket(context, ZMQ_PULL);
+  zmq::socket_t logSocket(*context, ZMQ_PUB);
+  zmq::socket_t stateSocket(*context, ZMQ_PUB);
+  zmq::socket_t controlSocket(*context, ZMQ_PULL);
 
 
   logSocket.bind("tcp://*:5555");
@@ -42,7 +42,25 @@ int main(int ac, char* av[])
   while(!interruptedBySignal)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    // load a map
+    // spend 2 minutes getting connections and replying with the map, and
+    // sending ready signals
+    // start the match
+    //
+    // while (game is running)
+    //  update game state
+    //  broadcast game state
+    //  receive control inputs
+    // send finish message
+
   }
+
+  logSocket.close();
+  stateSocket.close();
+  controlSocket.close();
+
+  delete context;
 
   return 0;
 
