@@ -35,8 +35,8 @@ int main(int ac, char* av[])
 
 
   logSocket.bind("tcp://*:5555");
-  logSocket.bind("tcp://*:5556");
-  logSocket.bind("tcp://*:5557");
+  stateSocket.bind("tcp://*:5556");
+  controlSocket.bind("tcp://*:5557");
 
 
   while(!interruptedBySignal)
