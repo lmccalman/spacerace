@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+    <title>Socket.IO chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font: 13px Helvetica, Arial;
+        }
+
+        form {
+            background: whitesmoke;
+            padding: 3px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        form label {
+            width: 10%;
+        }
+
+        form input {
+            border: 0;
+            padding: 10px;
+            width: 80%;
+            margin-right: .5%;
+        }
+
+        form button {
+            width: 9%;
+            background: rgb(130, 224, 255);
+            border: none;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game"></div>
+
+<ul id="messages"></ul>
+<form action="">
+    <label for="m">DEBUG:</label>
+    <input id="m" autocomplete="off"/>
+    <button>Send</button>
+</form>
+
+<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+<script src="//socket.io/socket.io.js"></script>
+<script>
+    var socket = io();
+
+    $('form').submit(function () {
+        socket.emit('debug', $('#m').val());
+        $('#m').val('');
+        return false;
+    });
+
+
+    socket.on('GameState', function (msg) {
+        console.log("received:" + msg);
+        $('#messages').append($('<li>').text(msg));
+    });
+
+</script>
+</body>
+</html>
