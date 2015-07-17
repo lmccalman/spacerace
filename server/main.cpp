@@ -3,13 +3,13 @@
 #include <thread>
 #include <chrono>
 #include "zmq.hpp"
+#include "json.hpp"
 #include "easylogging++.h"
 
 INITIALIZE_EASYLOGGINGPP
 
-
-
 std::atomic<bool> interruptedBySignal;
+using json = nlohmann::json;
 
 void handleSignal(int sig)
 {
