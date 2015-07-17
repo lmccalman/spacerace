@@ -16,9 +16,7 @@ SET(DESIRED_BOOST_VERSION "1_58_0")
 SET(Boost_USE_STATIC_LIBS ON)
 SET(Boost_USE_STATIC_RUNTIME ON)
 
-FIND_PACKAGE(Boost REQUIRED COMPONENTS log
-                                       thread
-                                       program_options
+FIND_PACKAGE(Boost REQUIRED COMPONENTS program_options
                                        system
                                        filesystem)
 

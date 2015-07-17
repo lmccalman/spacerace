@@ -1,16 +1,18 @@
-#include <boost/log/trivial.hpp>
 #include <atomic>
 #include <csignal>
 #include <thread>
 #include <chrono>
 #include "zmq.hpp"
+#include "easylogging++.h"
+
+INITIALIZE_EASYLOGGINGPP
+
 
 
 std::atomic<bool> interruptedBySignal;
 
 void handleSignal(int sig)
 {
-  BOOST_LOG_TRIVIAL(debug) << "Caught signal of type " << sig;
   interruptedBySignal = true;
 }
 
@@ -26,8 +28,8 @@ int main(int ac, char* av[])
   zmq::context_t* context = new zmq::context_t(1);
 
   initialiseSignalHandler();
-  BOOST_LOG_TRIVIAL(info) << "An informational severity message";
 
+  LOG(INFO) << "Initialising sockets";
 
   zmq::socket_t logSocket(*context, ZMQ_PUB);
   zmq::socket_t stateSocket(*context, ZMQ_PUB);
@@ -55,13 +57,17 @@ int main(int ac, char* av[])
     // send finish message
 
   }
+  
+  LOG(INFO) << "Closing sockets";
 
   logSocket.close();
   stateSocket.close();
   controlSocket.close();
 
+  LOG(INFO) << "Deleting context";
   delete context;
 
+  LOG(INFO) << "Thankyou for playing spacerace!";
   return 0;
 
 }
