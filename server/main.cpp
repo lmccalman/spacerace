@@ -32,18 +32,27 @@ void initialiseSignalHandler()
 void collectClients(zmq::context_t& context, std::set<std::string>& ids,
     std::mutex& mutex, const std::string& mapData)
 {
-  uint msWait = 1;
-  zmq::socket_t socket(context, ZMQ_ROUTER);
-  socket.bind("tcp://*:5557");
-  std::vector<zmq::pollitem_t> pollList = { {&socket, 0, ZMQ_POLLIN, 0} };
+  LOG(INFO) << "starting player management thread";
+  // -1 implies wait until message
+  int msWait = -1;
+  int linger = 0;
   
-  auto newMsg = [&]() {return pollList[0].revents & ZMQ_POLLIN;};
-        
+  zmq::socket_t socket(context, ZMQ_ROUTER);
+  socket.setsockopt(ZMQ_LINGER, &linger, sizeof(int));
+  std::string address = "tcp://*:5557";
+  socket.bind(address.c_str());
+
+  // note the void* cast is a weird part of the zmq api
+  zmq::pollitem_t pollList [] = {{(void*)socket, 0, ZMQ_POLLIN, 0}};
   while (!interruptedBySignal)
   {
-    zmq::poll(&(pollList[0]), pollList.size(), msWait);
-    while (newMsg())
+    LOG(INFO) << "polling...";
+    zmq::poll(pollList, 1, msWait);
+  
+    bool newMsg = pollList[0].revents & ZMQ_POLLIN;
+    if (newMsg)
     {
+      LOG(INFO) << "New message received!!";
       auto msg = receive(socket);
       if (msg.size() == 3)
       {
@@ -71,8 +80,6 @@ void collectClients(zmq::context_t& context, std::set<std::string>& ids,
 
 int main(int ac, char* av[])
 {
-  int major, minor, patch;
-  zmq::version (&major, &minor, &patch); printf ("Current ØMQ version is %d.%d.%d\n", major, minor, patch);
   zmq::context_t* context = new zmq::context_t(1);
 
   initialiseSignalHandler();
@@ -102,6 +109,7 @@ int main(int ac, char* av[])
   while(!interruptedBySignal)
   {
     // waiting period between games
+    // need to do lots of short sleeps in a loop else ctrlc doesn't work
     std::this_thread::sleep_for(std::chrono::seconds(30));
 
     //get the game started
