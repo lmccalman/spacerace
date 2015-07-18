@@ -6,3 +6,5 @@ SET_TARGET_PROPERTIES(spacerace-server PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${SPA
 TARGET_LINK_LIBRARIES(spacerace-server ${ZMQ_LIBRARY}
                                        ${Boost_SYSTEM_LIBRARY_RELEASE}
                                        ${Boost_PROGRAM_OPTIONS_LIBRARY_RELEASE})
+
+
