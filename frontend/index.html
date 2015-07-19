@@ -89,11 +89,22 @@
     var x = d3.scale.linear().domain([0, 100]).range([0, width]);
     var y = d3.scale.linear().domain([0, 100]).range([0, height]);
 
-    var shipG = svgContainer.append("defs").append("g");
+    var shipG = svgContainer.append("defs")
+            .append("symbol")
+            .attr("viewBox", "0 0 10 10")
+            .attr("id", "ship")
+            .attr("class", "ship");
+
     shipG.append("circle")
-        .attr('r', function (d, i) { return 4; })
-        .attr("id", "ship")
-        .attr("class", "ship");
+        .attr('r', function (d, i) { return 8; });
+
+    shipG.append("line")
+            .attr("stroke", "black")
+            .attr("stroke-width", 2)
+            .attr("x1", 0)
+            .attr("y1", 0)
+            .attr("x2", 10)
+            .attr("y2", 10);
 
     var shipGroup = svgContainer.append("g");
     var map = svgContainer.append("g");
@@ -156,6 +167,8 @@
             .enter()
             .append('use')
             .attr("xlink:href", "#ship")
+            .attr("width", "10")
+            .attr("height", "10")
             .attr('fill', function () {
                 return "hsl(" + Math.random() * 360 + ",100%, 50%)"
             });
@@ -192,7 +205,9 @@
         ships
             .attr('x', function (d, i) { return x(newState[i].position[0]); })
             .attr('y', function (d, i) { return y(newState[i].position[1]); })
-
+//            .attr("transform", function(d, i){
+//                   return "rotate(" + 90 + ")";
+//                });
 
     }
 
