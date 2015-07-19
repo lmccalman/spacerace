@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-    <title>Socket.IO chat</title>
+    <title>Spacerace</title>
     <style>
         * {
             margin: 0;
@@ -13,61 +13,180 @@
             font: 13px Helvetica, Arial;
         }
 
-        form {
-            background: whitesmoke;
-            padding: 3px;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
+        path.mapBorder {
+            stroke: steelblue;
+            stroke-width: 10px;
+            fill: none;
+        }
+        path.startLine {
+            stroke: black;
+            stroke-width: 2px;
+            stroke-dasharray: 5px;
+            fill: none;
+        }
+        path.finishLine {
+            stroke: red;
+            stroke-width: 2px;
+            stroke-dasharray: 5px;
+            fill: none;
         }
 
-        form label {
-            width: 10%;
+        polygon.startZone {
+            opacity: 0.2;
+            stroke: black;
+            stroke-width: 5px;
+            fill: none;
         }
 
-        form input {
-            border: 0;
-            padding: 10px;
-            width: 80%;
-            margin-right: .5%;
-        }
-
-        form button {
-            width: 9%;
-            background: rgb(130, 224, 255);
-            border: none;
-            padding: 10px;
-        }
     </style>
+
 </head>
 <body>
 
-<div id="game"></div>
+<svg id="game"></svg>
+<div id="leaderboard"></div>
 
-<ul id="messages"></ul>
-<form action="">
-    <label for="m">DEBUG:</label>
-    <input id="m" autocomplete="off"/>
-    <button>Send</button>
-</form>
+<script src="socket.io/socket.io.js"></script>
+<script src="d3/d3.min.js"></script>
 
-<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
-<script src="//socket.io/socket.io.js"></script>
 <script>
     var socket = io();
 
-    $('form').submit(function () {
-        socket.emit('debug', $('#m').val());
-        $('#m').val('');
-        return false;
-    });
-
+    var updates = 0;
 
     socket.on('GameState', function (msg) {
-        console.log("received:" + msg);
-        $('#messages').append($('<li>').text(msg));
+        var data = JSON.parse(msg).data;
+        updates += 1;
+        if(updates % 100 == 0){
+            console.log("Tick")
+        }
+
+        if(updates == 1){
+            setupGame(data)
+        }
+
+        updateState(data);
     });
+
+    //socket.on('GameMap', function (msg) {
+    //    var data = JSON.parse(msg).data;
+    //    setupGame(data)
+    //}
+
+
+</script>
+<script>
+    var width = 720,
+        height = 500;
+
+    var svgContainer = d3.select('#game')
+            .attr("width", width)
+            .attr("height", height);
+
+    // Assume positions are between 0 and 100 for now
+    var x = d3.scale.linear().domain([0, 100]).range([0, width]);
+    var y = d3.scale.linear().domain([0, 100]).range([0, height]);
+
+    var circleGroup = svgContainer.append("g");
+    var map = svgContainer.append("g");
+    var ships;
+
+    var splineFunction = d3.svg.line()
+        .x(function(d) { return x(d.x); })
+        .y(function(d) { return y(d.y); })
+        .interpolate("basis");
+
+    var lineFunction = d3.svg.line()
+        .x(function(d) { return x(d.x); })
+        .y(function(d) { return y(d.y); })
+        .interpolate("linear");
+
+
+    /**
+     * Still have to work out how we will do maps...
+     * But for now lets draw two splines
+     */
+    var startZone = [
+        {"x": 0,   "y": 0},
+        {"x": 0,   "y": 25},
+        {"x": 25.0,"y": 25},
+        {"x": 25.0,"y": 0}];
+
+    var startLineData = [
+        { "x": 25,   "y": 5},
+        { "x": 25,   "y": 25}
+    ];
+    var finishLineData = [
+        { "x": 90,   "y": 80},
+        { "x": 80,   "y": 80}
+    ];
+
+    var lineDataTop = [
+        { "x": 25,   "y": 5},
+        { "x": 27,   "y": 5},
+        { "x": 28,  "y": 20},
+        { "x": 40,  "y": 10},
+        { "x": 60,  "y": 40},
+        { "x": 80,  "y": 5},
+        { "x": 90, "y": 60},
+        { "x": 90, "y": 80}
+    ];
+    var lineDataBottom = [
+        { "x": 25,   "y": 20 + 5},
+        { "x": 25,   "y": 20 + 5},
+        { "x": Math.random(10) + 25,  "y": 20 + 20},
+        { "x": Math.random(10) + 40,  "y": 20 + 10},
+        { "x": Math.random(10) + 60,  "y": 20 + 40},
+        { "x": Math.random(10) + 80,  "y": 20 + 5},
+        { "x": 80, "y": 20 + 60}
+    ];
+
+    var setupGame = function(initState) {
+        ships = circleGroup
+            .selectAll('.ship')
+            .data(initState)
+            .enter()
+            .append('circle')   // TODO use SVG define for a ship
+            .attr("class", "ship")
+            .attr('fill', function () {
+                return "hsl(" + Math.random() * 360 + ",100%, 50%)"
+            });
+
+        svgContainer.append("path")
+            .attr("class", "mapBorder")
+            .attr("d", splineFunction(lineDataTop));
+
+        svgContainer.append("path")
+            .attr("class", "mapBorder")
+            .attr("d", splineFunction(lineDataBottom));
+
+        svgContainer.append("path")
+            .attr("class", "startLine")
+            .attr("d", lineFunction(startLineData));
+
+        svgContainer.append("path")
+            .attr("class", "finishLine")
+            .attr("d", lineFunction(finishLineData));
+
+        svgContainer.selectAll("polygon")
+                .data([startZone])
+                .enter().append("polygon")
+                .attr("class", "startZone")
+                .attr("points",function(d) {
+                    return d.map(function(d){return [x(d.x),y(d.y)].join(","); }).join(" ");})
+                .attr("stroke","black")
+                .attr("stroke-width",2);
+
+
+    };
+
+    var updateState = function (newState){
+        ships
+            .attr('cx', function (d, i) { return x(newState[i].position[0]); })
+            .attr('cy', function (d, i) { return y(newState[i].position[1]); })
+            .attr('r', function (d, i) { return 4 })
+
+    }
 
 </script>
 </body>
