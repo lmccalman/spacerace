@@ -83,11 +83,19 @@
             .attr("width", width)
             .attr("height", height);
 
+
+
     // Assume positions are between 0 and 100 for now
     var x = d3.scale.linear().domain([0, 100]).range([0, width]);
     var y = d3.scale.linear().domain([0, 100]).range([0, height]);
 
-    var circleGroup = svgContainer.append("g");
+    var shipG = svgContainer.append("defs").append("g");
+    shipG.append("circle")
+        .attr('r', function (d, i) { return 4; })
+        .attr("id", "ship")
+        .attr("class", "ship");
+
+    var shipGroup = svgContainer.append("g");
     var map = svgContainer.append("g");
     var ships;
 
@@ -142,49 +150,49 @@
     ];
 
     var setupGame = function(initState) {
-        ships = circleGroup
+        ships = shipGroup
             .selectAll('.ship')
             .data(initState)
             .enter()
-            .append('circle')   // TODO use SVG define for a ship
-            .attr("class", "ship")
+            .append('use')
+            .attr("xlink:href", "#ship")
             .attr('fill', function () {
                 return "hsl(" + Math.random() * 360 + ",100%, 50%)"
             });
 
-        svgContainer.append("path")
+        map.append("path")
             .attr("class", "mapBorder")
             .attr("d", splineFunction(lineDataTop));
 
-        svgContainer.append("path")
+        map.append("path")
             .attr("class", "mapBorder")
             .attr("d", splineFunction(lineDataBottom));
 
-        svgContainer.append("path")
+        map.append("path")
             .attr("class", "startLine")
             .attr("d", lineFunction(startLineData));
 
-        svgContainer.append("path")
+        map.append("path")
             .attr("class", "finishLine")
             .attr("d", lineFunction(finishLineData));
 
-        svgContainer.selectAll("polygon")
-                .data([startZone])
-                .enter().append("polygon")
-                .attr("class", "startZone")
-                .attr("points",function(d) {
-                    return d.map(function(d){return [x(d.x),y(d.y)].join(","); }).join(" ");})
-                .attr("stroke","black")
-                .attr("stroke-width",2);
+        map.selectAll("polygon")
+            .data([startZone])
+            .enter().append("polygon")
+            .attr("class", "startZone")
+            .attr("points",function(d) {
+                return d.map(function(d){return [x(d.x),y(d.y)].join(","); }).join(" ");})
+            .attr("stroke","black")
+            .attr("stroke-width",2);
 
 
     };
 
     var updateState = function (newState){
         ships
-            .attr('cx', function (d, i) { return x(newState[i].position[0]); })
-            .attr('cy', function (d, i) { return y(newState[i].position[1]); })
-            .attr('r', function (d, i) { return 4 })
+            .attr('x', function (d, i) { return x(newState[i].position[0]); })
+            .attr('y', function (d, i) { return y(newState[i].position[1]); })
+
 
     }
 
