@@ -1,0 +1,42 @@
+\documentclass[draft=false,fontsize=12pt,paper=a4]{scrartcl}
+
+\usepackage{xltxtra}
+\defaultfontfeatures{Ligatures=TeX}
+\setmainfont[Numbers={OldStyle,Proportional}]{Garamond Premier Pro}
+\KOMAoptions{DIV=last}
+
+\title{Spacerace Equations of Motion}
+\author{Lachlan McCalman,Brian Thorne, Alistair Reid, Daniel Steinberg}
+
+\begin{document}
+\maketitle
+
+\section{First Pass (no collisions)}
+
+The state of a player can be described instantaneously by the tuple
+$(x, v, a, \theta, \omega, \alpha)$, where $x$, $v$ and $a$ are the linear
+position, velocity and accelerations, and $\theta, \omega, \alpha$ are
+rotational position, velocity and accerelation. 
+
+The control inputs for the ships are two \emph{thrusts}, taking the form of
+fixed linear and rotational accelerations. $T_l$ is the linear thrust, and
+$T_r$ is the rotational thrust. These are assumed to be constant, although
+$T_r$ may change sign instantaneously.
+
+Finally, To ensure the craft have a maximum velocity, we assume space is a
+viscous medium, in which linear and rotational movement is retarded
+proportional to $v^2$ and $\omega^2$ respectively. The factors of
+proportionality are denoted $D_l$ and $D_r$.
+
+The resulting equations of motion are:
+
+\begin{align}
+  \dot{u}_x &= v_x \\
+  \dot{u}_y &= v_y \\
+  \dot{v}_x &= T_l\cos\theta - D_lv_x\sqrt{v_x^2 + v_y^2}\\
+  \dot{v}_y &= T_l\sin\theta - D_lv_y\sqrt(v_y^2 + v_y^2}\\
+  \dot{\theta} &= \omega \\
+  \dot{\omega} &= T_r - D_r\omega^2
+\end{align}
+
+\end{document}
