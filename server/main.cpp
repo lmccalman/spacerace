@@ -1,3 +1,6 @@
+#define ELPP_THREAD_SAFE
+#define EIGEN_DONT_PARALLELIZE
+
 #include <mutex>
 #include <future>
 #include <utility>
@@ -11,6 +14,8 @@
 #include "json.hpp"
 #include "easylogging++.h"
 #include "network.hpp"
+#include "Eigen/Dense"
+#include "physics.hpp"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -19,6 +24,7 @@ using json = nlohmann::json;
 
 void handleSignal(int sig)
 {
+  LOG(INFO) << "signal " << sig << " caught...";
   interruptedBySignal = true;
 }
 
@@ -32,9 +38,9 @@ void initialiseSignalHandler()
 void collectClients(zmq::context_t& context, std::set<std::string>& ids,
     std::mutex& mutex, const std::string& mapData)
 {
-  LOG(INFO) << "starting player management thread";
+  LOG(INFO) << "starting lobby thread";
   // -1 implies wait until message
-  int msWait = -1;
+  int msWait = 500;
   int linger = 0;
   
   zmq::socket_t socket(context, ZMQ_ROUTER);
@@ -46,7 +52,6 @@ void collectClients(zmq::context_t& context, std::set<std::string>& ids,
   zmq::pollitem_t pollList [] = {{(void*)socket, 0, ZMQ_POLLIN, 0}};
   while (!interruptedBySignal)
   {
-    LOG(INFO) << "polling...";
     zmq::poll(pollList, 1, msWait);
   
     bool newMsg = pollList[0].revents & ZMQ_POLLIN;
@@ -76,18 +81,34 @@ void collectClients(zmq::context_t& context, std::set<std::string>& ids,
       }
     }
   }
+  LOG(INFO) << "Lobby thread exiting...";
+}
+  
+
+void waitAndListen(uint seconds)
+{
+  auto start = std::chrono::high_resolution_clock::now();
+  uint elapsedTime = 0;
+  while ((elapsedTime < seconds) && !interruptedBySignal)
+  {
+    elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::high_resolution_clock::now() - start).count();
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
+  
 }
 
 int main(int ac, char* av[])
 {
-  zmq::context_t* context = new zmq::context_t(1);
+  Eigen::initParallel();
+  zmq::context_t context(1);
 
   initialiseSignalHandler();
 
   LOG(INFO) << "Initialising sockets";
 
-  zmq::socket_t logSocket(*context, ZMQ_PUB);
-  zmq::socket_t stateSocket(*context, ZMQ_PUB);
+  zmq::socket_t logSocket(context, ZMQ_PUB);
+  zmq::socket_t stateSocket(context, ZMQ_PUB);
 
   logSocket.bind("tcp://*:5555");
   stateSocket.bind("tcp://*:5556");
@@ -101,47 +122,54 @@ int main(int ac, char* av[])
   std::set<std::string> currentPlayers;
   
   std::future<void> controlThread = std::async(std::launch::async, collectClients, 
-      std::ref(*context), 
+      std::ref(context), 
       std::ref(nextPlayers),
       std::ref(mapDataMutex), 
       std::cref(nextMapData));
+
+  uint lobbyWait = 5;
+  float d_l = 1.0;
+  float d_r = 0.5;
+  float h = 1e-5;
 
   while(!interruptedBySignal)
   {
     // waiting period between games
     // need to do lots of short sleeps in a loop else ctrlc doesn't work
-    std::this_thread::sleep_for(std::chrono::seconds(30));
+    LOG(INFO) << "Waiting for connections... (" << lobbyWait << " seconds)";
+    waitAndListen(lobbyWait);
+    LOG(INFO) << "Wait complete. Initialising Game!!!";
+    
 
     //get the game started
     {
+      LOG(INFO) << "Acquiring game data from control thread";
       std::lock_guard<std::mutex> lock(mapDataMutex);
       currentPlayers.clear();
       std::swap(currentPlayers, nextPlayers);
       currentMapData = nextMapData;
       nextMapData = "somenewmapdata";
+      LOG(INFO) << "Game data acquired.";
     }
+
+    uint nShips = 100; 
+    StateMatrix state(nShips, 8);
+    
+    LOG(INFO) << "Calculating timestep...";
+    eulerTimeStep(state, d_l, d_r, h);
+    LOG(INFO) << "Timestep complete";
 
     //now play the game
     // finish off the game
   }
-
-  // auto start = std::chrono::high_resolution_clock::now();
-  // uint elapsedTime = 0;
-  // while (elapsedTime < timeoutSecs)
-    
-  // elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(
-      // std::chrono::high_resolution_clock::now() - start).count();
-
-  controlThread.wait();
   
-  LOG(INFO) << "Closing sockets";
 
+  LOG(INFO) << "Closing sockets";
   logSocket.close();
   stateSocket.close();
 
-  LOG(INFO) << "Deleting context";
-  delete context;
-  context = nullptr; // just in case
+  LOG(INFO) << "Waiting for lobby thread...";
+  controlThread.wait();
 
   LOG(INFO) << "Thankyou for playing spacerace!";
   return 0;
