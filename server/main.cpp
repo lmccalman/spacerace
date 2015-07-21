@@ -90,15 +90,15 @@ void waitAndListen(uint seconds)
 int main(int ac, char* av[])
 {
   Eigen::initParallel();
-  zmq::context_t context(1);
+  std::unique_ptr<zmq::context_t> context(new zmq::context_t(1));
 
   initialiseSignalHandler();
 
   LOG(INFO) << "Initialising sockets";
 
   Sockets sockets {
-  zmq::socket_t(context, ZMQ_PUB),
-  zmq::socket_t(context, ZMQ_PUB),
+  zmq::socket_t(*context, ZMQ_PUB),
+  zmq::socket_t(*context, ZMQ_PUB),
   // zmq::socket_t(context, ZMQ_PULL)
   };
 
@@ -115,7 +115,7 @@ int main(int ac, char* av[])
   std::set<std::string> currentPlayers;
   
   std::future<void> lobbyThread = std::async(std::launch::async, collectClients, 
-      std::ref(context), 
+      std::ref(*context), 
       std::ref(nextPlayers),
       std::ref(mapDataMutex), 
       std::cref(nextMapData));
@@ -152,16 +152,21 @@ int main(int ac, char* av[])
       continue; 
     }
 
-    runGame(currentPlayers, sockets, context);
+    runGame(currentPlayers, sockets, *context);
+    LOG(INFO) << "Game Over";
 
     //now play the game
     // finish off the game
   }
   
+  LOG(INFO) << "Shutting down...";
 
   LOG(INFO) << "Closing sockets";
   sockets.log.close();
   sockets.state.close();
+
+  // destroy context
+  context = nullptr;
 
   LOG(INFO) << "Waiting for lobby thread...";
   lobbyThread.wait();

@@ -1,6 +1,11 @@
 #include "types.hpp"
 #include "time.hpp"
 
+
+//TODO have this run from the beginning of the program,
+//with two modes, gameOn and not. when not, just throw away the messages.
+// when game first turns on, create the indexMap (during a mutex lock on
+// players)
 void collectControlInput(zmq::context_t& context, 
     const std::set<std::string>& players, 
     ControlMatrix& control, std::mutex& mutex, bool& running)
@@ -24,11 +29,12 @@ void collectControlInput(zmq::context_t& context,
   {
     try
     {
+      //TODO THIS IS BROKEN -- need to poll so that possible to exit loop
       auto msg = receive(socket);
       // should be of form <id>,<0 or 1>,<-1, 0 or 1>
       boost::split(messageTokens, msg[0], boost::is_any_of(","));
+      uint idx = indexMap[messageTokens[0]];
       {
-        uint idx = indexMap[messageTokens[0]];
         std::lock_guard<std::mutex> lock(mutex);
         control(idx,0) = float(messageTokens[1] == "1");
         control(idx,1) = float(messageTokens[2] == "1") - float(messageTokens[2] == "-1");
