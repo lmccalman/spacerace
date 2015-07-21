@@ -4,10 +4,8 @@
 #include <mutex>
 #include <future>
 #include <utility>
-#include <atomic>
 #include <set>
 #include <iostream>
-#include <csignal>
 #include <thread>
 #include <chrono>
 #include "zmq.hpp"
@@ -16,23 +14,14 @@
 #include "network.hpp"
 #include "Eigen/Dense"
 #include "physics.hpp"
+#include <boost/algorithm/string.hpp>
+#include "game.hpp"
+#include "types.hpp"
+#include "init.hpp"
 
 INITIALIZE_EASYLOGGINGPP
 
-std::atomic<bool> interruptedBySignal;
 using json = nlohmann::json;
-
-void handleSignal(int sig)
-{
-  LOG(INFO) << "signal " << sig << " caught...";
-  interruptedBySignal = true;
-}
-
-void initialiseSignalHandler()
-{
-  std::signal(SIGINT, handleSignal);
-  std::signal(SIGTERM, handleSignal);
-}
 
 // Note that the mutex is intended to lock both the mapData and the ids
 void collectClients(zmq::context_t& context, std::set<std::string>& ids,
@@ -83,7 +72,6 @@ void collectClients(zmq::context_t& context, std::set<std::string>& ids,
   }
   LOG(INFO) << "Lobby thread exiting...";
 }
-  
 
 void waitAndListen(uint seconds)
 {
@@ -98,6 +86,7 @@ void waitAndListen(uint seconds)
   
 }
 
+
 int main(int ac, char* av[])
 {
   Eigen::initParallel();
@@ -107,11 +96,15 @@ int main(int ac, char* av[])
 
   LOG(INFO) << "Initialising sockets";
 
-  zmq::socket_t logSocket(context, ZMQ_PUB);
-  zmq::socket_t stateSocket(context, ZMQ_PUB);
+  Sockets sockets {
+  zmq::socket_t(context, ZMQ_PUB),
+  zmq::socket_t(context, ZMQ_PUB),
+  // zmq::socket_t(context, ZMQ_PULL)
+  };
 
-  logSocket.bind("tcp://*:5555");
-  stateSocket.bind("tcp://*:5556");
+  sockets.log.bind("tcp://*:5555");
+  sockets.state.bind("tcp://*:5556");
+  // sockets.control.bind("tcp://*:5558")
 
   LOG(INFO) << "Starting main loop";
 
@@ -121,7 +114,7 @@ int main(int ac, char* av[])
   std::set<std::string> nextPlayers;
   std::set<std::string> currentPlayers;
   
-  std::future<void> controlThread = std::async(std::launch::async, collectClients, 
+  std::future<void> lobbyThread = std::async(std::launch::async, collectClients, 
       std::ref(context), 
       std::ref(nextPlayers),
       std::ref(mapDataMutex), 
@@ -142,22 +135,24 @@ int main(int ac, char* av[])
     
 
     //get the game started
+    LOG(INFO) << "Acquiring game data from control thread";
     {
-      LOG(INFO) << "Acquiring game data from control thread";
       std::lock_guard<std::mutex> lock(mapDataMutex);
       currentPlayers.clear();
       std::swap(currentPlayers, nextPlayers);
       currentMapData = nextMapData;
       nextMapData = "somenewmapdata";
-      LOG(INFO) << "Game data acquired.";
+    }
+    LOG(INFO) << "Game data acquired.";
+
+    // can't play if no-one playing
+    if (currentPlayers.size() == 0)
+    {
+      LOG(INFO) << "Skipping match because no-one has connected";
+      continue; 
     }
 
-    uint nShips = 100; 
-    StateMatrix state(nShips, 8);
-    
-    LOG(INFO) << "Calculating timestep...";
-    eulerTimeStep(state, d_l, d_r, h);
-    LOG(INFO) << "Timestep complete";
+    runGame(currentPlayers, sockets, context);
 
     //now play the game
     // finish off the game
@@ -165,11 +160,11 @@ int main(int ac, char* av[])
   
 
   LOG(INFO) << "Closing sockets";
-  logSocket.close();
-  stateSocket.close();
+  sockets.log.close();
+  sockets.state.close();
 
   LOG(INFO) << "Waiting for lobby thread...";
-  controlThread.wait();
+  lobbyThread.wait();
 
   LOG(INFO) << "Thankyou for playing spacerace!";
   return 0;
