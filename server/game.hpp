@@ -5,7 +5,9 @@ void collectControlInput(zmq::context_t& context,
     const std::set<std::string>& players, 
     ControlMatrix& control, std::mutex& mutex, bool& running)
 {
+  int linger = 0;
   zmq::socket_t socket(context, ZMQ_PULL);
+  socket.setsockopt(ZMQ_LINGER, &linger, sizeof(int));
   socket.bind("tcp://*:5558");
   std::vector<std::string> messageTokens;
   
@@ -13,18 +15,30 @@ void collectControlInput(zmq::context_t& context,
   std::map<std::string,uint> indexMap;
   uint i = 0;
   for (auto const& p : players)
+  {
     indexMap[p] = i;
+    i++;
+  }
 
   while (running && !interruptedBySignal)
   {
-    auto msg = receive(socket);
-    // should be of form <id>,<0 or 1>,<-1, 0 or 1>
-    boost::split(messageTokens, msg[0], boost::is_any_of(","));
+    try
     {
-      uint idx = indexMap[messageTokens[0]];
-      std::lock_guard<std::mutex> lock(mutex);
-      control(idx,0) = float(messageTokens[1] == "1");
-      control(idx,1) = float(messageTokens[2] == "1") - float(messageTokens[2] == "-1");
+      auto msg = receive(socket);
+      // should be of form <id>,<0 or 1>,<-1, 0 or 1>
+      boost::split(messageTokens, msg[0], boost::is_any_of(","));
+      {
+        uint idx = indexMap[messageTokens[0]];
+        std::lock_guard<std::mutex> lock(mutex);
+        control(idx,0) = float(messageTokens[1] == "1");
+        control(idx,1) = float(messageTokens[2] == "1") - float(messageTokens[2] == "-1");
+        LOG(INFO) << "Ship " << messageTokens[0] << " enacted control " << control(idx,0) << "," << control(idx,1);
+      }
+    }
+    catch (...)
+    {
+      LOG(INFO) << "control thread shutting down after catching exception";
+      break; 
     }
   }
 }
@@ -33,10 +47,15 @@ void collectControlInput(zmq::context_t& context,
 
 void broadcastState(const StateMatrix& state, zmq::socket_t& socket)
 {
+  // LOG(INFO) << state;
   //convert the state into JSON
   //send that shit!
 }
 
+void initialiseState(StateMatrix& state)
+{
+  state = StateMatrix::Zero(state.rows(),state.cols());
+}
 
 void runGame(const std::set<std::string>& players, Sockets& sockets, zmq::context_t& context)
 {
@@ -51,6 +70,7 @@ void runGame(const std::set<std::string>& players, Sockets& sockets, zmq::contex
   uint nShips = players.size();
   uint targetMicroseconds = 1000000 / targetFPS;
   StateMatrix state(nShips, STATE_LENGTH);
+  initialiseState(state);
   ControlMatrix control = Eigen::MatrixXf::Zero(nShips, 2);
   ControlMatrix controlLocal = Eigen::MatrixXf::Zero(nShips,2);
   bool running = true;
@@ -83,5 +103,10 @@ void runGame(const std::set<std::string>& players, Sockets& sockets, zmq::contex
     // make sure we target a particular frame rate
     waitPreciseInterval(frameStart, targetMicroseconds);
   }
+
+  LOG(INFO) << "Waiting for control thread to terminate...";
+  controlThread.wait();
+  LOG(INFO) << "Control thread terminated";
+
 }
 

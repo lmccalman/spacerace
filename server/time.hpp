@@ -1,10 +1,6 @@
 #pragma once
 #include <chrono>
 
-namespace ch = std::chrono;
-using hrclock = std::chrono::high_resolution_clock;
-using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
-
 
 void waitPreciseInterval(const TimePoint& start, uint desiredMicroseconds)
 {
@@ -15,7 +11,6 @@ void waitPreciseInterval(const TimePoint& start, uint desiredMicroseconds)
   }
   else
   {
-    LOG(INFO) << "WARNING: preciseWait is running late";
   }
 }
 
