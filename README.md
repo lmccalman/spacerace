@@ -44,27 +44,36 @@ Optional attributes:
 
 ## GameState
 
-TODO - but will include an array of Players' State objects
+Is a plain json object. There is one key **ships** - an array of 
+Player State objects:
 
 ### Player State
 
-- position
-- velocity
-- orientation
+- **id [string]** - The player's chosen identifier.
+- **x, y** - position
+- **dx, dy** - linear velocity
+- **ddx, ddy** - linear acceleration
+- **Tl** - is accelerating (linear thrusters are on). `0 or 1`
+- **theta** - orientation
+- **omega** - rotational velocity
+- **alpha** - rotational acceleration
+- **Tr** - is rotating (rotational thrusters on). `-1 or 0 or 1`
 
-- is accelerating TODO:should this be observable?
-- is rotating TODO:should this be observable?
+All values are JSON Numbers - not strings.
 
 
 ## Control Input
+
 Control messages are sent from a client to the server during a game via a
 zeromq "push" socket. The control input is a simple comma separated string.
 The string is of the form:
-<yourid>,<main_engine>,<rotation>
 
-<yourid> is the string you connected with.
-<main_engine> is either a 0 or a 1, for the main engine being off or on
-<rotation> is either a -1, 0 or 1. 1 is for +ve (anti-clockwise) rotation
+    <yourid>,<main_engine>,<rotation>
+
+
+- `<yourid>` is the string you connected with.
+- `<main_engine>` is either a 0 or a 1, for the main engine being off or on
+- `<rotation>` is either a -1, 0 or 1. 1 is for +ve (anti-clockwise) rotation
 thrust, -1 is for -ve (clockwise) rotation thrust, and 0 is no rotation thrust
 
 

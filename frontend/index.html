@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Spacerace</title>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0">
     <style>
         * {
             margin: 0;
@@ -38,12 +39,32 @@
             fill: none;
         }
 
+        polygon.shipWings {
+            stroke: grey;
+            stroke-width: 1px;
+            opacity: 0.8;
+        }
+
+        circle.shipBody {
+            stroke-width: 1px;
+        }
+
+        line.shipJet {
+            stroke-width: 5px;
+            stroke: black;
+        }
+
+        use {
+            will-change: transform;
+        }
+
+
     </style>
 
 </head>
 <body>
-
 <svg id="game"></svg>
+<div id="fps">FPS: <span>?</span></div>
 <div id="leaderboard"></div>
 
 <script src="socket.io/socket.io.js"></script>
@@ -51,21 +72,22 @@
 
 <script>
     var socket = io();
+    var requestID;
+    var gameState;
+    var lastUpdateTime;
 
     var updates = 0;
+    var draws = 0;
+    var fpsqueue = [];
 
     socket.on('GameState', function (msg) {
-        var data = JSON.parse(msg).data;
+        gameState = JSON.parse(msg).data;
         updates += 1;
-        if(updates % 100 == 0){
-            console.log("Tick")
-        }
 
         if(updates == 1){
-            setupGame(data)
+            setupGame()
         }
 
-        updateState(data);
     });
 
     //socket.on('GameMap', function (msg) {
@@ -77,36 +99,47 @@
 </script>
 <script>
     var width = 720,
-        height = 500;
+        height = 720;
 
     var svgContainer = d3.select('#game')
             .attr("width", width)
             .attr("height", height);
 
 
+    var fps = d3.select("#fps span");
 
     // Assume positions are between 0 and 100 for now
+    // (0,0) is at the bottom left
     var x = d3.scale.linear().domain([0, 100]).range([0, width]);
-    var y = d3.scale.linear().domain([0, 100]).range([0, height]);
+    var y = d3.scale.linear().domain([0, 100]).range([height, 0]);
 
     var shipG = svgContainer.append("defs")
             .append("symbol")
-            .attr("viewBox", "0 0 10 10")
+            .attr("viewBox", "0 0 50 50")
             .attr("id", "ship")
             .attr("class", "ship");
 
-    shipG.append("circle")
-        .attr('r', function (d, i) { return 8; });
 
+    shipG.append("polygon")
+        .attr("points", "25,2 47,37 3,37")
+        .attr("class", "shipWings");
+
+    // For now the jet "backwards" is simply a solid red line
     shipG.append("line")
-            .attr("stroke", "black")
-            .attr("stroke-width", 2)
-            .attr("x1", 0)
-            .attr("y1", 0)
-            .attr("x2", 10)
-            .attr("y2", 10);
+            .attr("class", "shipJet")
+            .attr("x1", 25)
+            .attr("y1", 35)
+            .attr("x2", 25)
+            .attr("y2", 45);
 
-    var shipGroup = svgContainer.append("g");
+    // Main circular body of the ship
+    shipG.append("circle")
+            .attr("class", "shipBody")
+            .attr('cx', 25)
+            .attr('cy', 25)
+            .attr('r', function (d, i) { return 16; });
+
+    var shipGroup = svgContainer.append("g").attr("id", "shipsParentGroup");
     var map = svgContainer.append("g");
     var ships;
 
@@ -126,10 +159,10 @@
      * But for now lets draw two splines
      */
     var startZone = [
-        {"x": 0,   "y": 0},
-        {"x": 0,   "y": 25},
+        {"x": 5,   "y": 5},
+        {"x": 5,   "y": 25},
         {"x": 25.0,"y": 25},
-        {"x": 25.0,"y": 0}];
+        {"x": 25.0,"y": 5}];
 
     var startLineData = [
         { "x": 25,   "y": 5},
@@ -160,17 +193,22 @@
         { "x": 80, "y": 20 + 60}
     ];
 
-    var setupGame = function(initState) {
+    var setupGame = function() {
+        var initState = gameState;
+        var SHIPSIZE = "10";
+
         ships = shipGroup
             .selectAll('.ship')
             .data(initState)
             .enter()
             .append('use')
+            .attr("transform", function(d, i){return "translate(0, 0)";})
+            .attr("id", function(d, i){return "ship"+i;})
             .attr("xlink:href", "#ship")
-            .attr("width", "10")
-            .attr("height", "10")
+            .attr("width", SHIPSIZE)
+            .attr("height", SHIPSIZE)
             .attr('fill', function () {
-                return "hsl(" + Math.random() * 360 + ",100%, 50%)"
+                return "hsl(" + Math.random() * 360 + ",75%, 50%)"
             });
 
         map.append("path")
@@ -199,15 +237,54 @@
             .attr("stroke-width",2);
 
 
+        // Trigger the first full draw
+        updateState();
+
     };
 
-    var updateState = function (newState){
-        ships
-            .attr('x', function (d, i) { return x(newState[i].position[0]); })
-            .attr('y', function (d, i) { return y(newState[i].position[1]); })
-//            .attr("transform", function(d, i){
-//                   return "rotate(" + 90 + ")";
-//                });
+    var updateState = function (highResTimestamp){
+
+
+        requestID = requestAnimationFrame(updateState);
+
+
+
+        if(updates >= draws) {
+            // Only update the ships if we have gotten an update from the server
+            draws += 1;
+
+            // Calculate an fps counter
+            if (fpsqueue.length >= 100) { fps.text(d3.mean(fpsqueue).toFixed(0)); fpsqueue = fpsqueue.slice(1, 100); }
+            fpsqueue.push(Math.round(1000 / (highResTimestamp - lastUpdateTime)));
+            lastUpdateTime = highResTimestamp;
+
+
+            ships
+                .data(gameState)
+                .attr('opacity', function (d, i) {
+                    // Show accelerating with opacity toggle
+                    var accelerating = d.Tl == 1;
+                    return accelerating ? 1.0 : 0.2;
+                })
+                .attr("x", function (d, i) {return x(d.x);})
+                .attr("y", function (d, i) {return y(d.y);})
+                .attr("transform", function (d, i) {
+                    // It is possible to both update ships' position and rotation using a single SVG transform/rotation
+                    // command however it doesn't seem as performant as using the x,y attributes as above.
+
+                    var shipX = x(d.x),
+                        shipY = y(d.y);
+
+                    //return "translate(" + shipX + ", " + shipY + ") + ...
+                    // Note SVG rotate takes degrees not radians, and it also takes X, Y to rotate around
+                    return "rotate(" +
+                            (90 - d.theta * 360/(2*Math.PI)) +
+                            "," + shipX + ", " + shipY +
+                            ")";
+                });
+
+        }
+
 
     }
 
