@@ -40,9 +40,11 @@
         }
 
         polygon.shipWings {
-            stroke: grey;
-            stroke-width: 1px;
             opacity: 0.8;
+        }
+
+        polygon.shipStripe {
+            fill: black;
         }
 
         circle.shipBody {
@@ -50,7 +52,7 @@
         }
 
         line.shipJet {
-            stroke-width: 5px;
+            stroke-width: 10px;
             stroke: black;
         }
 
@@ -124,6 +126,7 @@
         .attr("points", "25,2 47,37 3,37")
         .attr("class", "shipWings");
 
+
     // For now the jet "backwards" is simply a solid red line
     shipG.append("line")
             .attr("class", "shipJet")
@@ -138,6 +141,13 @@
             .attr('cx', 25)
             .attr('cy', 25)
             .attr('r', function (d, i) { return 16; });
+
+
+    shipG.append("polygon")
+            .attr("points", "23,30 27,30 25,5")
+            .attr("class", "shipStripe");
+
+
 
     var shipGroup = svgContainer.append("g").attr("id", "shipsParentGroup");
     var map = svgContainer.append("g");
