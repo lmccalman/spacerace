@@ -117,7 +117,8 @@ int main(int ac, char* av[])
       uint idx=0;
       for (auto const& i : currentPlayers.ids)
       {
-        control.idx[i] = idx;
+        control.idx[currentPlayers.secretKeys[i]] = idx;
+        control.keyToId[currentPlayers.secretKeys[i]] = i;
         idx++;
       }
       LOG(INFO) << nShips << " players connected for this round";

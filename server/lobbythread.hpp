@@ -1,6 +1,9 @@
 #pragma once
 
 #include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include "types.hpp"
 
@@ -10,6 +13,7 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData, PlayerSet& player
 {
   LOG(INFO) << "starting lobby thread";
 
+  boost::uuids::random_generator newRandomID;
   int linger = settings["lobbySocket"]["linger"];
   int timeout = settings["lobbySocket"]["timeout"];
   uint port = settings["lobbySocket"]["port"];
@@ -31,8 +35,8 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData, PlayerSet& player
         {
           players.ids.insert(msg[2]);
           LOG(INFO) << "New Player! ID: " << msg[2];
-          //TODO implement secret code
-          std::string secretCode = "secret_code";
+          std::string secretCode = boost::lexical_cast<std::string>(newRandomID());
+          secretCode.erase(13, secretCode.size()); // doesnt need to be that long
           players.secretKeys[msg[2]] = secretCode;
           send(socket, {msg[0], "", secretCode, mapData.maps[nextMap].json});
         }

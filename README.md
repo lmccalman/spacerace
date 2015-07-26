@@ -68,10 +68,10 @@ Control messages are sent from a client to the server during a game via a
 zeromq "push" socket. The control input is a simple comma separated string.
 The string is of the form:
 
-    <yourid>,<main_engine>,<rotation>
+    <yoursecretkey>,<main_engine>,<rotation>
 
 
-- `<yourid>` is the string you connected with.
+- `<yoursecretkey>` is the string you were given by the lobby upon connection
 - `<main_engine>` is either a 0 or a 1, for the main engine being off or on
 - `<rotation>` is either a -1, 0 or 1. 1 is for +ve (anti-clockwise) rotation
 thrust, -1 is for -ve (clockwise) rotation thrust, and 0 is no rotation thrust

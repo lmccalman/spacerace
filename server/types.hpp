@@ -18,6 +18,7 @@ struct ControlData
 {
   ControlMatrix inputs;
   std::map<std::string, uint> idx;
+  std::map<std::string, std::string> keyToId;
   std::mutex mutex;
 };
 

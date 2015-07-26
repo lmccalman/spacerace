@@ -23,16 +23,16 @@ void runControlThread(zmq::context_t& context,
     {
       LOG(INFO) << "Control message received for processing";
       std::lock_guard<std::mutex> playerSetLock(players.mutex);
-      // should be of form <id>,<secret_code>, <0 or 1>,<-1, 0 or 1>
+      // should be of form <secret_code>, <0 or 1>,<-1, 0 or 1>
       boost::split(messageTokens, msg[0], boost::is_any_of(","));
-      bool validSender = players.secretKeys[msg[0]] == msg[1];
+      bool validSender = control.idx.count(msg[0]);
       if (validSender)
       {
         std::lock_guard<std::mutex> controlLock(control.mutex);
         uint idx = control.idx[messageTokens[0]];
         control.inputs(idx,0) = float(messageTokens[2] == "1");
         control.inputs(idx,1) = float(messageTokens[3] == "1") - float(messageTokens[3] == "-1");
-        LOG(INFO) << "Ship " << messageTokens[0] << " enacted control " 
+        LOG(INFO) << "Ship " << control.keyToId[messageTokens[0]] << " enacted control " 
           << control.inputs(idx,0) << "," << control.inputs(idx,1);
       }
     }

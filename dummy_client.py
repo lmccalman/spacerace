@@ -45,7 +45,7 @@ def play_game(context, my_id, my_secret_code, map_data):
             break;
         print("state_info: {}".format(state_info))
         print("sending control...")
-        control_socket.send("{},{},1,0".format(my_id, my_secret_code).encode());
+        control_socket.send("{},1,0".format(my_secret_code).encode());
         print("control sent")
     print("Game Over!")
 
