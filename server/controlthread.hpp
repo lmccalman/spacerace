@@ -21,7 +21,6 @@ void runControlThread(zmq::context_t& context,
     bool newMsg = receive(socket, msg);
     if (newMsg && gameRunning)
     {
-      LOG(INFO) << "Control message received for processing";
       std::lock_guard<std::mutex> playerSetLock(players.mutex);
       // should be of form <secret_code>, <0 or 1>,<-1, 0 or 1>
       boost::split(messageTokens, msg[0], boost::is_any_of(","));
@@ -31,9 +30,6 @@ void runControlThread(zmq::context_t& context,
       {
         std::lock_guard<std::mutex> controlLock(control.mutex);
         uint idx = control.idx[messageTokens[0]];
-        LOG(INFO) << "Ship has id " << idx;
-        LOG(INFO) << "Shape of control matrix:" << control.inputs.rows() << "x" << control.inputs.cols();
-        
         control.inputs(idx,0) = float(messageTokens[1] == "1");
         control.inputs(idx,1) = float(messageTokens[2] == "1") - float(messageTokens[2] == "-1");
         LOG(INFO) << "Ship " << control.keyToId[messageTokens[0]] << " enacted control " 
@@ -44,7 +40,7 @@ void runControlThread(zmq::context_t& context,
         if (!validSender)
           LOG(INFO)  << "Unknown secret key " << messageTokens[0];
         if (!validMessage)
-        LOG(INFO) << "Ship " << control.keyToId[messageTokens[0]] << " sent invalid message"; 
+          LOG(INFO) << "Ship " << control.keyToId[messageTokens[0]] << " sent invalid message"; 
       }
     }
   }

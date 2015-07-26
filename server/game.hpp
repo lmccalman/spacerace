@@ -58,18 +58,14 @@ void runGame(PlayerSet& players, ControlData& control, const Map& map,
   auto gameStart = hrclock::now();
   while (running && !interruptedBySignal)
   {
-    LOG(INFO) << "Starting frame...";
     auto frameStart = hrclock::now();
     //get control inputs from control thread
-    LOG(INFO) << "Broadcasting state";
     broadcastState(players, state, control, stateSocket);
-    LOG(INFO) << "Collecting control inputs";
     {
       std::lock_guard<std::mutex> lock(control.mutex);
       inputs = control.inputs;
     }
 
-    LOG(INFO) << "Integrating";
     for (uint i=0; i<integrationSteps;i++)
       eulerTimeStep(state, inputs, linearDrag, rotationalDrag, timeStep);
     
