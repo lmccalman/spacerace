@@ -14,13 +14,17 @@ using ControlMatrix = Eigen::Matrix<float, Eigen::Dynamic, CONTROL_LENGTH>;
 using StateVector = Eigen::Matrix<float,1,STATE_LENGTH>;
 using ControlVector = Eigen::Matrix<float,1,CONTROL_LENGTH>;
 
-struct PlayerData
+struct ControlData
 {
-  std::set<std::string> next;
-  std::set<std::string> current;
-  std::map<std::string, uint> indices;
+  ControlMatrix inputs;
+  std::map<std::string, uint> idx;
+  std::mutex mutex;
+};
+
+struct PlayerSet
+{
+  std::set<std::string> ids;
   std::map<std::string, std::string> secretKeys;
-  ControlMatrix controlInputs;
   std::mutex mutex;
 };
 

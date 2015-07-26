@@ -25,4 +25,5 @@ FIND_PACKAGE(ZMQ REQUIRED)
 
 ADD_SUBDIRECTORY(server)
 
-CONFIGURE_FILE(dummy_client.py "${SPACERACE_BINARY_DIR}/dummy_client.py" COPYONLY)
+#CONFIGURE_FILE(dummy_client.py "${SPACERACE_BINARY_DIR}/dummy_client.py" COPYONLY)
+#CONFIGURE_FILE(server/spacerace.json "${SPACERACE_BINARY_DIR}/spacerace.json" COPYONLY)

@@ -1,0 +1,36 @@
+{
+  "lobbyWait": 2,
+  "integrationSteps": 10,
+  "targetFPS": 60,
+  "gameTime": 120,
+  "timeStep": 0.001,
+
+  "physics": {
+    "linearDrag": 0.5,
+    "rotationalDrag": 0.1,
+    "linearThrust": 1.0,
+    "rotationalThrust": 0.2},
+
+  "engine": {
+    "timestep": 0.001},
+
+  "stateSocket": {
+    "port": 5556,
+    "linger": 0,
+    "timeout": 500},
+
+  "controlSocket" : {
+    "port": 5557,
+    "linger":0,
+    "timeout": 500},
+
+  "lobbySocket": {
+    "port": 5558,
+    "linger": 0,
+    "timeout": 500},
+  
+  "infoSocket": {
+    "port": 5559,
+    "linger": 0,
+    "timeout": 500}
+}
