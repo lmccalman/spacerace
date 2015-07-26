@@ -2,12 +2,32 @@
 #include "time.hpp"
 
 
-void broadcastState(const StateMatrix& state, zmq::socket_t& socket)
+void broadcastState(const PlayerSet& players, const StateMatrix& state, const ControlData& control, zmq::socket_t& socket)
 {
-  send(socket, {"Some fake state"});
-  // LOG(INFO) << state;
-  //convert the state into JSON
-  //send that shit!
+  json j = json::array();
+  for (auto const& p : players.ids)
+  {
+    uint idx = control.idx.at(players.secretKeys.at(p));
+    float x = state(idx, 0);
+    float y = state(idx, 1);
+    float vx = state(idx, 2);
+    float vy = state(idx, 3);
+    float theta = state(idx, 4);
+    float omega = state(idx, 5);
+    float Tl = control.inputs(idx, 0);
+    float Tr = control.inputs(idx, 1);
+    j.push_back({
+        {"x", x},
+        {"y", y},
+        {"vx", vx},
+        {"vy", vy},
+        {"theta", theta},
+        {"omega", omega},
+        {"Tl", Tl},
+        {"Tr", Tr}
+        });
+  }
+  send(socket, {j.dump()});
 }
 
 void initialiseState(StateMatrix& state)
@@ -42,7 +62,7 @@ void runGame(PlayerSet& players, ControlData& control, const Map& map,
     auto frameStart = hrclock::now();
     //get control inputs from control thread
     LOG(INFO) << "Broadcasting state";
-    broadcastState(state, stateSocket);
+    broadcastState(players, state, control, stateSocket);
     LOG(INFO) << "Collecting control inputs";
     {
       std::lock_guard<std::mutex> lock(control.mutex);

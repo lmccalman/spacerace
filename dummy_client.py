@@ -40,12 +40,12 @@ def play_game(context, my_id, my_secret_code, map_data):
     print("State and control sockets connected")
     while True:
         print("receiving state info...")
-        state_info = state_socket.recv_multipart()
+        state_info = state_socket.recv()
         if state_info[0] == b"GAME OVER":
             break;
         print("state_info: {}".format(state_info))
         print("sending control...")
-        control_socket.send("{},1,0".format(my_secret_code).encode());
+        control_socket.send("{},1,1".format(my_secret_code.decode()).encode());
         print("control sent")
     print("Game Over!")
 
