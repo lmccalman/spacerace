@@ -1,19 +1,41 @@
 #pragma once
 
-#include <chrono>
-#include <atomic>
-#include "zmq.hpp"
+#include <map>
+#include <string>
+#include <set>
+#include <mutex>
+#include "Eigen/Dense"
 
-std::atomic<bool> interruptedBySignal;
+const uint STATE_LENGTH = 6;
+const uint CONTROL_LENGTH = 2;
 
-struct Sockets
+using StateMatrix = Eigen::Matrix<float,Eigen::Dynamic,STATE_LENGTH>;
+using ControlMatrix = Eigen::Matrix<float, Eigen::Dynamic, CONTROL_LENGTH>;
+using StateVector = Eigen::Matrix<float,1,STATE_LENGTH>;
+using ControlVector = Eigen::Matrix<float,1,CONTROL_LENGTH>;
+
+struct PlayerData
 {
-  zmq::socket_t log;
-  zmq::socket_t state;
-  // zmq::socket_t control;
+  std::set<std::string> next;
+  std::set<std::string> current;
+  std::map<std::string, uint> indices;
+  std::map<std::string, std::string> secretKeys;
+  ControlMatrix controlInputs;
+  std::mutex mutex;
 };
 
-namespace ch = std::chrono;
-using hrclock = std::chrono::high_resolution_clock;
-using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
+struct Map
+{
+  Eigen::MatrixXf occupancy;
+  Eigen::MatrixXf normalx;
+  Eigen::MatrixXf normaly;
+  std::string json;
+};
+
+struct MapData
+{
+  std::vector<Map> maps;
+  uint currentMap = 0;
+  std::mutex mutex;
+};
 

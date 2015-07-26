@@ -1,29 +1,26 @@
 #pragma once
 
-#include "Eigen/Dense"
-
-const uint STATE_LENGTH = 6;
-const uint CONTROL_LENGTH = 2;
-
-using StateMatrix = Eigen::Matrix<float,Eigen::Dynamic,STATE_LENGTH>;
-using ControlMatrix = Eigen::Matrix<float, Eigen::Dynamic, CONTROL_LENGTH>;
-using StateVector = Eigen::Matrix<float,1,STATE_LENGTH>;
-using ControlVector = Eigen::Matrix<float,1,CONTROL_LENGTH>;
-
 // State Vector
-// ux uy vx vy  theta omega 
+// ux uy vx vy  theta omega
 // 0  1  2  3   4     5  
 
 // Control Vector
 // T_l T_r
 // 0   1
 
+// Hidden State // used for collisions, gravity, elastic walls etc
+// F_x F_y Tau
+//  0   1   2
+
+//TODO add a constant parametr struct
+
+
 void collisionFreeDerivative(const StateVector& s, const ControlVector& c, StateVector& d, float d_l, float d_r)
 {
-  //ux_dot = vx
+  //ux_dot = vx + f_x
   d(0) = s(2);
-  //uy_dot = vy
-  d(1) = s(3);
+  //uy_dot = vy + f_y
+  d(1) = s(3); 
   //vx_dot = T_l cos\theta - D_lv_x\sqrt{v_x^2 + v_y^2}
   d(2) = c(0) * cos(s(4)) - d_l * s(2) * sqrt(s(2)*s(2) + s(3)*s(3));
   //vy_dot = T_l sin\theta - D_lv_y\sqrt{v_x^2 + v_y^2}

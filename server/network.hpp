@@ -21,21 +21,30 @@ void send(zmq::socket_t& socket, const std::vector<std::string>& msg)
   socket.send(m);
 }
 
-std::vector<std::string> receive(zmq::socket_t& socket)
+bool receive(zmq::socket_t& socket, std::vector<std::string>& msg)
 {
-  std::vector<std::string> msg;
+  // std::vector<std::string> msg;
   int isMore = 1;
-  size_t moreSize = sizeof(isMore);
+  size_t isMoreSize = sizeof(int);
+  bool hasMsg;
+  msg.clear();
   while (isMore)
   {
     zmq::message_t m;
-    socket.recv(&m);
-    msg.push_back(std::string(static_cast<char*>(m.data()), m.size()));
-    socket.getsockopt(ZMQ_RCVMORE, &isMore, &moreSize);
+    hasMsg = socket.recv(&m);
+    if (hasMsg)
+    {
+      msg.push_back(std::string(static_cast<char*>(m.data()), m.size()));
+      socket.getsockopt(ZMQ_RCVMORE, (void*)(&isMore), &isMoreSize);
+    }
+    else
+    {
+      break; 
+    }
   }
-  return msg;
+  return hasMsg;
 }
-    
+
 std::ostream &operator<<(std::ostream &os, std::vector<std::string> const &v) 
 { 
   if (!v.empty()) 
@@ -62,4 +71,12 @@ std::string asHex(const std::string& input)
         output.push_back(lut[c & 15]);
     }
     return output;
+}
+
+void initialiseSocket(zmq::socket_t& s, uint port, int linger, int timeoutMS)
+{
+  s.setsockopt(ZMQ_LINGER, &linger, sizeof(int));
+  s.setsockopt(ZMQ_RCVTIMEO, &timeoutMS, sizeof(int));
+  std::string address = "tcp://*:" + std::to_string(port);
+  s.bind(address.c_str());
 }
