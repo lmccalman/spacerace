@@ -8,6 +8,8 @@ void runControlThread(zmq::context_t& context,
                       const bool& gameRunning,
                       const json& settings)
 {
+  InfoLogger logger(context);
+
   int linger = settings["controlSocket"]["linger"];
   int timeout = settings["controlSocket"]["timeout"];
   uint port = settings["controlSocket"]["port"];
@@ -32,18 +34,22 @@ void runControlThread(zmq::context_t& context,
         uint idx = control.idx[messageTokens[0]];
         control.inputs(idx,0) = float(messageTokens[1] == "1");
         control.inputs(idx,1) = float(messageTokens[2] == "1") - float(messageTokens[2] == "-1");
-        LOG(INFO) << "Ship " << control.keyToId[messageTokens[0]] << " enacted control " 
+        LOG(DEBUG) << "Ship " << control.keyToId[messageTokens[0]] << " enacted control " 
           << control.inputs(idx,0) << "," << control.inputs(idx,1);
       }
       else if (newMsg)
       {
         if (!validSender)
-          LOG(INFO)  << "Unknown secret key " << messageTokens[0];
+          logger({"ERROR","Unknown secret key: " + messageTokens[0]});
         if (!validMessage)
-          LOG(INFO) << "Ship " << control.keyToId[messageTokens[0]] << " sent invalid message"; 
+          logger({"ERROR","Ship " + control.keyToId[messageTokens[0]] + " sent invalid message"}); 
       }
     }
   }
+  
+  socket.close();
+  logger.close();
+
 }
   
 

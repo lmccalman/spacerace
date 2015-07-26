@@ -12,6 +12,7 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData, PlayerSet& player
     const json& settings)
 {
   LOG(INFO) << "starting lobby thread";
+  InfoLogger logger(context);
 
   boost::uuids::random_generator newRandomID;
   int linger = settings["lobbySocket"]["linger"];
@@ -26,7 +27,6 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData, PlayerSet& player
     bool newMsg = receive(socket, msg);
     if (newMsg)
     {
-      LOG(INFO) << "New message received!!";
       if (msg.size() == 3)
       {
         std::lock_guard<std::mutex> lock(players.mutex);
@@ -34,7 +34,7 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData, PlayerSet& player
         if (!players.ids.count(msg[2]))
         {
           players.ids.insert(msg[2]);
-          LOG(INFO) << "New Player! ID: " << msg[2];
+          logger({"New Player connected with ID: " + msg[2]});
           std::string secretCode = boost::lexical_cast<std::string>(newRandomID());
           secretCode.erase(13, secretCode.size()); // doesnt need to be that long
           players.secretKeys[msg[2]] = secretCode;
@@ -42,16 +42,18 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData, PlayerSet& player
         }
         else
         {
-          LOG(INFO) << "Player trying to join with existing ID";
+          logger({"ERROR", "ID already in use: " + msg[2]});
           send(socket,{msg[0], "", "ERROR: ID Taken. Please try something else."});
         }
       }
       else
       {
-          LOG(INFO) << "Client sent mal-formed connection message";
-          send(socket,{msg[0], "", "ERROR: Please connect with single msg frame as your ID"});
+        logger({"ERROR", "Client " + msg[0] + " sent mal-formed connection message"});
+        send(socket,{msg[0], "", "ERROR: mal-formed connection message"});
       }
     }
   }
   LOG(INFO) << "Lobby thread exiting...";
+  logger.close();
+  socket.close();
 }

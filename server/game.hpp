@@ -36,7 +36,7 @@ void initialiseState(StateMatrix& state)
 }
 
 void runGame(PlayerSet& players, ControlData& control, const Map& map,
-    zmq::socket_t& stateSocket, const json& settings)
+    zmq::socket_t& stateSocket, const json& settings, InfoLogger& logger)
 {
   
   uint integrationSteps = settings["integrationSteps"];
@@ -56,6 +56,7 @@ void runGame(PlayerSet& players, ControlData& control, const Map& map,
   bool running = true;
   
   auto gameStart = hrclock::now();
+  logger({"INFO","Game starting now!"});
   while (running && !interruptedBySignal)
   {
     auto frameStart = hrclock::now();
@@ -76,6 +77,7 @@ void runGame(PlayerSet& players, ControlData& control, const Map& map,
     waitPreciseInterval(frameStart, targetMicroseconds);
   }
   // Game over, so tell the clients
+  logger({"INFO","Game over!"});
   send(stateSocket, {"GAME OVER", "some_json_stats?"});
 
 }

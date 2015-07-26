@@ -5,13 +5,10 @@ import string
 state_port = 5556
 control_port = 5557
 lobby_port = 5558
-info_port = 5559
-
-id_length = 10
 
 def random_id():
     return "".join(random.choice(string.ascii_letters) 
-            for i in range(id_length)).encode()
+            for i in range(10)).encode()
 
 def connect(context, my_id):
     lobby_socket = context.socket(zmq.REQ)
@@ -40,7 +37,7 @@ def play_game(context, my_id, my_secret_code, map_data):
     print("State and control sockets connected")
     while True:
         print("receiving state info...")
-        state_info = state_socket.recv()
+        state_info = state_socket.recv_multipart()
         if state_info[0] == b"GAME OVER":
             break;
         print("state_info: {}".format(state_info))
@@ -51,10 +48,12 @@ def play_game(context, my_id, my_secret_code, map_data):
 
 def main():
     context = zmq.Context()
+    context.linger = 0 # applies to subsequent sockets
     my_id = random_id()
     print("my id: {}".format(my_id))
-    secret_code, map_data = connect(context, my_id)
-    play_game(context, my_id, secret_code, map_data)
+    while True:
+        secret_code, map_data = connect(context, my_id)
+        play_game(context, my_id, secret_code, map_data)
 
 
 if __name__ == '__main__':

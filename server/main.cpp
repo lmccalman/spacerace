@@ -16,9 +16,9 @@
 #include "types.hpp"
 #include "init.hpp"
 #include "network.hpp"
+#include "infothread.hpp"
 #include "lobbythread.hpp"
 #include "controlthread.hpp"
-#include "infothread.hpp"
 #include "physics.hpp"
 #include "game.hpp"
 #include "maps.hpp"
@@ -88,6 +88,10 @@ int main(int ac, char* av[])
       std::ref(gameRunning),
       std::cref(settings));
 
+  // External logging system
+  InfoLogger logger(*context);
+  logger({"INFO", "External logging initialised"});
+
   
   uint lobbyWait = settings["lobbyWait"];
   while(!interruptedBySignal)
@@ -137,7 +141,8 @@ int main(int ac, char* av[])
     }
     gameRunning = true;
     runGame(currentPlayers, control, 
-        mapData.maps[mapData.currentMap], stateSocket, settings);
+        mapData.maps[mapData.currentMap], stateSocket, settings, 
+        logger);
     gameRunning = false;
     LOG(INFO) << "Game Over";
 
@@ -146,6 +151,7 @@ int main(int ac, char* av[])
   LOG(INFO) << "Shutting down...";
 
   LOG(INFO) << "Closing sockets";
+  logger.close();
   stateSocket.close();
 
   // destroy context

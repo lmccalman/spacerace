@@ -1,22 +1,29 @@
 #include "network.hpp"
 
-std::function<void(const std::string&)> getInfoLogger(zmq::context_t& c)
+class InfoLogger
 {
-  int linger = 0;
-  zmq::socket_t socket(c, ZMQ_PUSH);
-  socket.setsockopt(ZMQ_LINGER, &linger, sizeof(int));
-  socket.connect("inproc://infologger");
-  
-  auto f = [&socket] (const std::string& s) 
-  {
-    uint n = s.size();
-    zmq::message_t m(n);
-    memcpy(m.data(), s.data(), n);
-    socket.send(m); 
-  };
+  public:
+    InfoLogger(zmq::context_t& c)
+      : socket_(c, ZMQ_PUSH)
+    {
+      int linger = 0;
+      socket_.setsockopt(ZMQ_LINGER, &linger, sizeof(int));
+      socket_.connect("inproc://infologger");
+    }
 
-  return f;
-}
+    void operator()(const std::vector<std::string>& s)
+    {
+      send(socket_, s);
+    }
+
+    void close()
+    {
+      socket_.close(); 
+    }
+
+  private:
+    zmq::socket_t socket_;
+};
 
 void runInfoThread(zmq::context_t& c, const json& settings)
 {
@@ -35,6 +42,13 @@ void runInfoThread(zmq::context_t& c, const json& settings)
     std::vector<std::string> msg;
     bool newMsg = receive(pull, msg);
     if (newMsg)
+    {
+      LOG(INFO) << msg;
       send(pub, msg);
+    }
   }
+
+  pull.close();
+  pub.close();
+
 }
