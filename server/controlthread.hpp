@@ -21,14 +21,13 @@ void runControlThread(zmq::context_t& context,
     bool newMsg = receive(socket, msg);
     if (newMsg && gameRunning)
     {
-      LOG(INFO) << "control thread acquiring player set lock";
+      LOG(INFO) << "Control message received for processing";
       std::lock_guard<std::mutex> playerSetLock(players.mutex);
       // should be of form <id>,<secret_code>, <0 or 1>,<-1, 0 or 1>
       boost::split(messageTokens, msg[0], boost::is_any_of(","));
       bool validSender = players.secretKeys[msg[0]] == msg[1];
       if (validSender)
       {
-        LOG(INFO) << "control thread acquiring control lock";
         std::lock_guard<std::mutex> controlLock(control.mutex);
         uint idx = control.idx[messageTokens[0]];
         control.inputs(idx,0) = float(messageTokens[2] == "1");

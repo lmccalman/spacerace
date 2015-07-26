@@ -1,8 +1,8 @@
 {
-  "lobbyWait": 2,
+  "lobbyWait": 5,
   "integrationSteps": 10,
-  "targetFPS": 60,
-  "gameTime": 120,
+  "targetFPS": 2,
+  "gameTime": 10,
   "timeStep": 0.001,
 
   "physics": {

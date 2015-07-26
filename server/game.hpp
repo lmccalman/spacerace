@@ -4,6 +4,7 @@
 
 void broadcastState(const StateMatrix& state, zmq::socket_t& socket)
 {
+  send(socket, {"Some fake state"});
   // LOG(INFO) << state;
   //convert the state into JSON
   //send that shit!
@@ -37,14 +38,18 @@ void runGame(PlayerSet& players, ControlData& control, const Map& map,
   auto gameStart = hrclock::now();
   while (running && !interruptedBySignal)
   {
+    LOG(INFO) << "Starting frame...";
     auto frameStart = hrclock::now();
     //get control inputs from control thread
+    LOG(INFO) << "Broadcasting state";
     broadcastState(state, stateSocket);
+    LOG(INFO) << "Collecting control inputs";
     {
       std::lock_guard<std::mutex> lock(control.mutex);
       inputs = control.inputs;
     }
 
+    LOG(INFO) << "Integrating";
     for (uint i=0; i<integrationSteps;i++)
       eulerTimeStep(state, inputs, linearDrag, rotationalDrag, timeStep);
     
@@ -54,5 +59,8 @@ void runGame(PlayerSet& players, ControlData& control, const Map& map,
     // make sure we target a particular frame rate
     waitPreciseInterval(frameStart, targetMicroseconds);
   }
+  // Game over, so tell the clients
+  send(stateSocket, {"GAME OVER", "some_json_stats?"});
+
 }
 
