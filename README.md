@@ -42,6 +42,15 @@ Optional attributes:
 - `style`: TODO
 
 
+##Lobby
+TODO -- connect to lobby with a REQ socket. Send a message with an ascii string
+containing your ships name. The server will send a reply with 2 frames -- the
+first is a secret key used to make sure only you can control your ship, and the
+second is the map specification for the next game.
+
+Once this has happened you're ready to play, start listening on the game state
+socket for the beginning of the game!
+
 ## GameState
 
 Is a plain json object. There is one key **ships** - an array of 
@@ -51,12 +60,10 @@ Player State objects:
 
 - **id [string]** - The player's chosen identifier.
 - **x, y** - position
-- **dx, dy** - linear velocity
-- **ddx, ddy** - linear acceleration
-- **Tl** - is accelerating (linear thrusters are on). `0 or 1`
+- **vx, vy** - linear velocity
 - **theta** - orientation
 - **omega** - rotational velocity
-- **alpha** - rotational acceleration
+- **Tl** - is accelerating (linear thrusters are on). `0 or 1`
 - **Tr** - is rotating (rotational thrusters on). `-1 or 0 or 1`
 
 All values are JSON Numbers - not strings.
