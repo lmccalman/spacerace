@@ -22,6 +22,8 @@ def buildmap(image, mapname):
     if mapim.shape[2] > 3:
         mapim = mapim[:, :, 0:3]  # ignore alpha
 
+    w, h, _ = mapim.shape
+
     # Find start (full green pixels)
     startim = np.logical_and(mapim[:, :, 0] != 255, mapim[:, :, 1] == 255,
                              mapim[:, :, 2] != 255)
@@ -34,44 +36,53 @@ def buildmap(image, mapname):
     occmap = np.logical_and(mapim[:, :, 0] == 0, mapim[:, :, 1] == 0,
                             mapim[:, :, 2] == 0)
 
-    # Calculate wall normals
-    blurmap = filters.gaussian_filter(occmap, sigma=3.0)
-    contours = measure.find_contours(blurmap, 0.5)
-
-    # Look at:
-    # http://stackoverflow.com/questions/30079740/image-gradient-vector-field-in-python
-    # But can use distance to walls map
-
     fig, ax = pl.subplots()
     ax.imshow(occmap, interpolation='nearest', cmap=pl.cm.gray)
 
-    for contour in contours:
-        ax.plot(contour[:, 1], contour[:, 0], linewidth=2)
-
-    ax.axis('image')
-
     # Calculate start->end potential field
-    flowmap = skfmm.distance(np.ma.MaskedArray(~endim, occmap), dx=1e-2)
+    distfromend = -skfmm.distance(np.ma.MaskedArray(~endim, occmap), dx=1e-2)
+    dfx, dfy = np.gradient(distfromend)
+    # dfx, dfy = -dfx, -dfy  # reverse flow field to end
 
-    pl.figure()
-    pl.imshow(flowmap, interpolation='none', cmap=pl.cm.gray)
 
-    # Calculate distance to walls
+    # blurmap = filters.gaussian_filter(occmap, sigma=3.0)
+    # contours = measure.find_contours(blurmap, 0.5)
+    # for contour in contours:
+    #     ax.plot(contour[:, 1], contour[:, 0], linewidth=2)
+
+    # ax.axis('image')
     # conmap = np.zeros_like(blurmap, dtype=bool)
     # for contour in contours:
     #     crow = np.round(contour[:, 0]).astype(int)
     #     ccol = np.round(contour[:, 1]).astype(int)
     #     conmap[crow, ccol] = True
+
+    # Calculate wall normals
     distmap = skfmm.distance(~occmap, dx=1e-2)
 
+    # Calculate distance to walls
+    dnx, dny = np.gradient(np.ma.MaskedArray(distmap, occmap))
+
+    # plotting
+    skip = (slice(None, None, 30), slice(None, None, 30))
+    x, y = np.mgrid[0:w, 0:h]
+
     pl.figure()
+    pl.quiver(y[skip], x[skip], dny[skip], dnx[skip], color='r', angles='xy')
+    pl.gca().invert_yaxis()
     pl.imshow(distmap, interpolation='none', cmap=pl.cm.gray)
+    pl.colorbar()
+
+    pl.figure()
+    pl.quiver(y[skip], x[skip], dfy[skip], dfx[skip], color='r', angles='xy')
+    pl.gca().invert_yaxis()
+    pl.imshow(distfromend, interpolation='none', cmap=pl.cm.gray)
+    pl.colorbar()
 
     pl.show()
     # Save layers
 
-
-    import IPython; IPython.embed()
+    # import IPython; IPython.embed()
 
 
 if __name__ == "__main__":
