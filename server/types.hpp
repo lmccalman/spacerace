@@ -54,3 +54,23 @@ struct GameState
   bool running = false;
   std::mutex mutex;
 };
+
+struct SimulationParamaters
+{
+  float linearThrust;
+  float linearDrag;
+  float rotationalThrust;
+  float rotationalDrag;
+  float shipRadius;
+  float shipDensity;
+  float wallFriction;
+  float wallElacticity;
+  float wallDamping;
+  float shipFriction;
+  float shipElacticity;
+  float shipDamping;
+  Eigen::VectorXf shipMasses;
+  float timeStep;
+  std::mutex mutex;
+};
+
