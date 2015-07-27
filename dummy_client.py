@@ -9,7 +9,7 @@ control_port = 5557
 lobby_port = 5558
 
 def random_id():
-    return "".join(random.choice(string.ascii_letters) 
+    return "".join(random.choice(string.ascii_letters)
             for i in range(10)).encode()
 
 def connect(context, my_id):
@@ -28,7 +28,7 @@ def connect(context, my_id):
 
 def play_game(context, my_id, my_secret_code, map_data):
     print("Starting to play game")
-    control_socket = context.socket(zmq.PUSH);
+    control_socket = context.socket(zmq.PUSH)
     state_socket = context.socket(zmq.SUB)
     state_socket.setsockopt(zmq.SUBSCRIBE, b"")
     control_address = "tcp://{}:{}".format(server, control_port)
@@ -48,7 +48,7 @@ def play_game(context, my_id, my_secret_code, map_data):
         linear_control = str(random.choice([1,1,1,1,0]))
         rotational_control = str(random.choice([-1,-1,1,1,0,0,0,0,0,0,0]))
         control_socket.send("{},{},{}".format(my_secret_code.decode(),
-            linear_control, rotational_control).encode());
+            linear_control, rotational_control).encode())
         print("control sent")
     print("Game Over!")
 

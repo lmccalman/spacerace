@@ -84,7 +84,7 @@
 
     socket.on('GameState', function (msg) {
         gameState = JSON.parse(msg).data;
-
+        console.log(gameState);
         if(msg.status === "IN GAME") {
             updates += 1;
 
