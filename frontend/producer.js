@@ -58,7 +58,8 @@ setInterval(function(){
 
     }
     sock.send(JSON.stringify({
-        "data": data
+        data: data,
+        status: "IN GAME"
     }));
 
 }, 16);

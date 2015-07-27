@@ -1,6 +1,9 @@
 # Spacerace UI
 
+TODO:
 
+- Number of players connected
+- 
 ## Running the UI
 
 Install the node dependencies:

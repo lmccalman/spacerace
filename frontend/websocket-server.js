@@ -6,8 +6,8 @@ var io = require('socket.io')(http);
 
 
 // Game Server Address
-//var server = process.argv.length > 1 ? process.argv[1] : 'localhost';
-var server = "203.143.170.192";
+var server = process.argv.length > 2 ? process.argv[2] : 'localhost';
+console.log("Game Server:" + server);
 
 // Webserver component
 app.get('/', function(req, res){

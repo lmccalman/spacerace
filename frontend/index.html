@@ -83,9 +83,11 @@
     var fpsqueue = [];
 
     socket.on('GameState', function (msg) {
-        gameState = JSON.parse(msg).data;
-        console.log(gameState);
-        if(msg.status === "IN GAME") {
+        var rawPacket = JSON.parse(msg);
+        //console.log(rawPacket);
+
+        if(rawPacket.status === "IN GAME") {
+            gameState = rawPacket.data;
             updates += 1;
 
             if (updates == 1) {
@@ -93,7 +95,7 @@
             }
         }
 
-        if(msg.status === "GAME OVER"){
+        if(rawPacket.status === "GAME OVER"){
             console.log("Game Over");
         }
     });
@@ -277,11 +279,11 @@
 
             ships
                 .data(gameState)
-                .attr('opacity', function (d, i) {
-                    // Show accelerating with opacity toggle
-                    var accelerating = d.Tl == 1;
-                    return accelerating ? 1.0 : 0.2;
-                })
+                //.attr('opacity', function (d, i) {
+                //    // Show accelerating with opacity toggle
+                //    var accelerating = d.Tl == 1;
+                //    return accelerating ? 1.0 : 0.2;
+                //})
                 .attr("x", function (d, i) {return x(d.x);})
                 .attr("y", function (d, i) {return y(d.y);})
                 .attr("transform", function (d, i) {
