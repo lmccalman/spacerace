@@ -4,7 +4,9 @@
 
 void broadcastState(const PlayerSet& players, const StateMatrix& state, const ControlData& control, zmq::socket_t& socket)
 {
-  json j = json::array();
+  json j; 
+  j["status"] = "IN GAME";
+  j["data"] = json::array();
   for (auto const& p : players.ids)
   {
     uint idx = control.idx.at(players.secretKeys.at(p));
@@ -16,7 +18,7 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state, const Co
     float omega = state(idx, 5);
     float Tl = control.inputs(idx, 0);
     float Tr = control.inputs(idx, 1);
-    j.push_back({
+    j["data"].push_back({
         {"x", x},
         {"y", y},
         {"vx", vx},
@@ -32,7 +34,9 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state, const Co
 
 void initialiseState(StateMatrix& state)
 {
-  state = StateMatrix::Zero(state.rows(),state.cols());
+  state = StateMatrix::Random(state.rows(),state.cols());
+  state.col(0) = state.col(0).array() + 50;
+  state.col(1) = state.col(1).array() + 50;
 }
 
 void runGame(PlayerSet& players, ControlData& control, const Map& map,
@@ -78,7 +82,7 @@ void runGame(PlayerSet& players, ControlData& control, const Map& map,
   }
   // Game over, so tell the clients
   logger({"INFO","Game over!"});
-  send(stateSocket, {"GAME OVER", "some_json_stats?"});
+  send(stateSocket, {"{\"status\":\"GAME OVER\"}"});
 
 }
 

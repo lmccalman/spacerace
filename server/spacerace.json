@@ -1,14 +1,14 @@
 {
-  "lobbyWait": 5,
-  "integrationSteps": 10,
-  "targetFPS": 60,
-  "gameTime": 10,
+  "lobbyWait": 30,
+  "integrationSteps": 100,
+  "targetFPS": 5,
+  "gameTime": 20,
   "timeStep": 0.001,
 
   "physics": {
     "linearDrag": 0.5,
     "rotationalDrag": 0.1,
-    "linearThrust": 1.0,
+    "linearThrust": 10.0,
     "rotationalThrust": 0.2},
 
   "engine": {

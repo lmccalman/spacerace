@@ -1,6 +1,7 @@
 import zmq
 import random
 import string
+import json
 
 state_port = 5556
 control_port = 5557
@@ -38,11 +39,15 @@ def play_game(context, my_id, my_secret_code, map_data):
     while True:
         print("receiving state info...")
         state_info = state_socket.recv_multipart()
-        if state_info[0] == b"GAME OVER":
+        j = json.loads(state_info[0].decode())
+        if j['status'] == "GAME OVER":
             break;
         print("state_info: {}".format(state_info))
         print("sending control...")
-        control_socket.send("{},1,1".format(my_secret_code.decode()).encode());
+        linear_control = str(random.choice([1,1,1,1,0]))
+        rotational_control = str(random.choice([-1,-1,1,1,0,0,0,0,0,0,0]))
+        control_socket.send("{},{},{}".format(my_secret_code.decode(),
+            linear_control, rotational_control).encode());
         print("control sent")
     print("Game Over!")
 
