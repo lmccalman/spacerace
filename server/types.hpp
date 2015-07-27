@@ -5,6 +5,9 @@
 #include <set>
 #include <mutex>
 #include "Eigen/Dense"
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 const uint STATE_LENGTH = 6;
 const uint CONTROL_LENGTH = 2;
@@ -34,7 +37,7 @@ struct Map
   Eigen::MatrixXf occupancy;
   Eigen::MatrixXf normalx;
   Eigen::MatrixXf normaly;
-  std::string json;
+  json jsonData;
 };
 
 struct MapData
@@ -44,3 +47,10 @@ struct MapData
   std::mutex mutex;
 };
 
+
+struct GameState
+{
+  std::string name;
+  bool running = false;
+  std::mutex mutex;
+};

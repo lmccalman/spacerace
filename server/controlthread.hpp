@@ -5,7 +5,7 @@
 void runControlThread(zmq::context_t& context, 
                       PlayerSet& players,
                       ControlData& control,
-                      const bool& gameRunning,
+                      const GameState& gameState,
                       const json& settings)
 {
   InfoLogger logger(context);
@@ -21,7 +21,7 @@ void runControlThread(zmq::context_t& context,
   {
     std::vector<std::string> msg;
     bool newMsg = receive(socket, msg);
-    if (newMsg && gameRunning)
+    if (newMsg && gameState.running)
     {
       std::lock_guard<std::mutex> playerSetLock(players.mutex);
       // should be of form <secret_code>, <0 or 1>,<-1, 0 or 1>
@@ -34,8 +34,8 @@ void runControlThread(zmq::context_t& context,
         uint idx = control.idx[messageTokens[0]];
         control.inputs(idx,0) = float(messageTokens[1] == "1");
         control.inputs(idx,1) = float(messageTokens[2] == "1") - float(messageTokens[2] == "-1");
-        LOG(DEBUG) << "Ship " << control.keyToId[messageTokens[0]] << " enacted control " 
-          << control.inputs(idx,0) << "," << control.inputs(idx,1);
+        // LOG(DEBUG) << "Ship " << control.keyToId[messageTokens[0]] << " enacted control " 
+          // << control.inputs(idx,0) << "," << control.inputs(idx,1);
       }
       else if (newMsg)
       {

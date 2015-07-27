@@ -1,12 +1,11 @@
 #pragma once
 
-#include "json.hpp"
 #include <csignal>
 #include <boost/program_options.hpp>
 #include <sys/stat.h>
+#include <stdlib.h>
 
 namespace po = boost::program_options;
-using json = nlohmann::json;
 
 std::atomic<bool> interruptedBySignal;
 
@@ -36,7 +35,7 @@ po::variables_map commandLineArgs(int ac, char* av[])
   if (vm.count("help")) 
   {
     std::cout << desc << "\n";
-    return 0;
+    exit(EXIT_SUCCESS);
   }
   return vm;
 }

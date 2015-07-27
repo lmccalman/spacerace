@@ -2,7 +2,14 @@
 #include "time.hpp"
 
 
-void broadcastState(const PlayerSet& players, const StateMatrix& state, const ControlData& control, zmq::socket_t& socket)
+std::string gameName(uint n)
+{
+  return "game" + std::to_string(n);
+}
+
+void broadcastState(const PlayerSet& players, const StateMatrix& state, 
+    const GameState& gameState, const ControlData& control, 
+    zmq::socket_t& socket)
 {
   json j; 
   j["status"] = "IN GAME";
@@ -18,6 +25,7 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state, const Co
     float omega = state(idx, 5);
     float Tl = control.inputs(idx, 0);
     float Tr = control.inputs(idx, 1);
+    LOG(INFO) << p << ":" << state.row(idx) << "\n" << control.inputs.row(idx);
     j["data"].push_back({
         {"x", x},
         {"y", y},
@@ -29,7 +37,7 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state, const Co
         {"Tr", Tr}
         });
   }
-  send(socket, {j.dump()});
+  send(socket, {gameState.name, j.dump()});
 }
 
 void initialiseState(StateMatrix& state)
@@ -39,8 +47,9 @@ void initialiseState(StateMatrix& state)
   state.col(1) = state.col(1).array() + 50;
 }
 
-void runGame(PlayerSet& players, ControlData& control, const Map& map,
-    zmq::socket_t& stateSocket, const json& settings, InfoLogger& logger)
+void runGame(PlayerSet& players, ControlData& control, 
+    const GameState& gameState, const Map& map, zmq::socket_t& stateSocket, 
+    const json& settings, InfoLogger& logger)
 {
   
   uint integrationSteps = settings["integrationSteps"];
@@ -65,7 +74,7 @@ void runGame(PlayerSet& players, ControlData& control, const Map& map,
   {
     auto frameStart = hrclock::now();
     //get control inputs from control thread
-    broadcastState(players, state, control, stateSocket);
+    broadcastState(players, state, gameState, control, stateSocket);
     {
       std::lock_guard<std::mutex> lock(control.mutex);
       inputs = control.inputs;
@@ -82,7 +91,7 @@ void runGame(PlayerSet& players, ControlData& control, const Map& map,
   }
   // Game over, so tell the clients
   logger({"INFO","Game over!"});
-  send(stateSocket, {"{\"status\":\"GAME OVER\"}"});
+  send(stateSocket, {gameState.name,"{\"status\":\"GAME OVER\"}"});
 
 }
 

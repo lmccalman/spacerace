@@ -79,4 +79,5 @@ void initialiseSocket(zmq::socket_t& s, uint port, int linger, int timeoutMS)
   s.setsockopt(ZMQ_RCVTIMEO, &timeoutMS, sizeof(int));
   std::string address = "tcp://*:" + std::to_string(port);
   s.bind(address.c_str());
+
 }

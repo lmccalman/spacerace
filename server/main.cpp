@@ -41,7 +41,7 @@ int main(int ac, char* av[])
   if (!fileExists(settingsPath))
   {
     LOG(FATAL) << "Could not find settings file";
-    return 1;
+    exit(EXIT_FAILURE);
   }
   json settings = loadSettingsFile(settingsPath);
   
@@ -58,14 +58,17 @@ int main(int ac, char* av[])
   if (!(mapData.maps.size()> 0))
   {
     LOG(FATAL)  << "Must have at least 1 map loaded...Exiting";
-    return 1;
+    exit(EXIT_FAILURE);
   }
   // initialise map 0 as the "next" map
+  uint gameNumber = 0;
   mapData.currentMap = mapData.maps.size() - 1; 
   PlayerSet nextPlayers;
   PlayerSet currentPlayers;
   ControlData control;
-  bool gameRunning = false;
+  GameState currentGameState;
+  GameState nextGameState;
+  nextGameState.name = gameName(gameNumber);
    
   // Initialise threads 
   LOG(INFO) << "Starting info thread";
@@ -78,6 +81,7 @@ int main(int ac, char* av[])
       std::ref(*context), 
       std::ref(mapData),
       std::ref(nextPlayers),
+      std::ref(nextGameState),
       std::cref(settings));
 
   LOG(INFO) << "Starting control thread";
@@ -85,7 +89,7 @@ int main(int ac, char* av[])
       std::ref(*context), 
       std::ref(currentPlayers), 
       std::ref(control),
-      std::ref(gameRunning),
+      std::cref(currentGameState),
       std::cref(settings));
 
   // External logging system
@@ -108,6 +112,12 @@ int main(int ac, char* av[])
       std::lock_guard<std::mutex> nextPlayerLock(nextPlayers.mutex);
       std::lock_guard<std::mutex> currentPlayerLock(currentPlayers.mutex);
       std::lock_guard<std::mutex> controlLock(control.mutex);
+      std::lock_guard<std::mutex> nextGameStateLock(currentGameState.mutex);
+      std::lock_guard<std::mutex> currentGameStateLock(nextGameState.mutex);
+
+      // Update the game states
+      currentGameState.name = nextGameState.name;
+      nextGameState.name = gameName(gameNumber+1);
       
       // get list of players
       std::swap(nextPlayers.ids, currentPlayers.ids);
@@ -139,13 +149,14 @@ int main(int ac, char* av[])
       LOG(INFO) << "Skipping match because no-one has connected";
       continue; 
     }
-    gameRunning = true;
-    runGame(currentPlayers, control, 
+    
+    currentGameState.running = true;
+    runGame(currentPlayers, control, currentGameState,
         mapData.maps[mapData.currentMap], stateSocket, settings, 
         logger);
-    gameRunning = false;
+    currentGameState.running = false;
     LOG(INFO) << "Game Over";
-
+    gameNumber++;
   }
   
   LOG(INFO) << "Shutting down...";

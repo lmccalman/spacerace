@@ -19,18 +19,19 @@ def connect(context, my_id):
     lobby_socket.connect(lobby_address)
     print("sending hello")
     lobby_socket.send(my_id)
-    rep = lobby_socket.recv_multipart()
-    secret_code = rep[0]
-    map_data = rep[1]
-    print("my secret code: {}".format(secret_code))
-    print("map data: {}".format(map_data))
-    return secret_code, map_data
+    rep = lobby_socket.recv()
+    data = json.loads(rep.decode())
+    print(data)
+    game_name = data["game"]
+    secret_code = data["secret"]
+    map_data = data["map"]
+    return secret_code, map_data, game_name
 
-def play_game(context, my_id, my_secret_code, map_data):
+def play_game(context, my_id, my_secret_code, map_data, game_name):
     print("Starting to play game")
     control_socket = context.socket(zmq.PUSH)
     state_socket = context.socket(zmq.SUB)
-    state_socket.setsockopt(zmq.SUBSCRIBE, b"")
+    state_socket.setsockopt(zmq.SUBSCRIBE, game_name.encode())
     control_address = "tcp://{}:{}".format(server, control_port)
     state_address = "tcp://{}:{}".format(server, state_port)
     print("Connecting to control and state sockets")
@@ -40,14 +41,14 @@ def play_game(context, my_id, my_secret_code, map_data):
     while True:
         print("receiving state info...")
         state_info = state_socket.recv_multipart()
-        j = json.loads(state_info[0].decode())
+        j = json.loads(state_info[1].decode())
         if j['status'] == "GAME OVER":
             break;
         print("state_info: {}".format(state_info))
         print("sending control...")
         linear_control = str(random.choice([1,1,1,1,0]))
         rotational_control = str(random.choice([-1,-1,1,1,0,0,0,0,0,0,0]))
-        control_socket.send("{},{},{}".format(my_secret_code.decode(),
+        control_socket.send("{},{},{}".format(my_secret_code,
             linear_control, rotational_control).encode())
         print("control sent")
     print("Game Over!")
@@ -58,8 +59,8 @@ def main():
     my_id = random_id()
     print("my id: {}".format(my_id))
     while True:
-        secret_code, map_data = connect(context, my_id)
-        play_game(context, my_id, secret_code, map_data)
+        secret_code, map_data, game_name = connect(context, my_id)
+        play_game(context, my_id, secret_code, map_data, game_name)
 
 
 if __name__ == '__main__':
