@@ -57,10 +57,10 @@ def buildmap(image, mapname):
     #     ccol = np.round(contour[:, 1]).astype(int)
     #     conmap[crow, ccol] = True
 
-    # Calculate wall normals
+    # Calculate distance to walls
     distmap = skfmm.distance(~occmap, dx=1e-2)
 
-    # Calculate distance to walls
+    # Calculate wall normals
     dnx, dny = np.gradient(np.ma.MaskedArray(distmap, occmap))
 
     # plotting
