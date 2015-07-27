@@ -2,8 +2,12 @@ var zmq = require('zmq');
 var express = require('express');
 var app = express();
 var http = require('http').Server(app);
-
 var io = require('socket.io')(http);
+
+
+// Game Server Address
+//var server = process.argv.length > 1 ? process.argv[1] : 'localhost';
+var server = "203.143.170.192";
 
 // Webserver component
 app.get('/', function(req, res){
@@ -37,9 +41,10 @@ var filter = "";
 subscriber.subscribe(filter);
 
 subscriber.on('message', function(msg){
+    // Note the `msg` is a string, not JSON
     //console.log('Received: %s', msg.toString());
     io.emit('GameState', msg.toString());
 });
 
-console.log('Frontend server is trying to connect to ZMQ pub socket on port 5556');
-subscriber.connect('tcp://127.0.0.1:5556');
+console.log('Frontend server is trying to connect to ' + server +' ZMQ pub socket on port 5556');
+subscriber.connect('tcp://' + server + ':5556');

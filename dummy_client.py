@@ -3,6 +3,7 @@ import random
 import string
 import json
 
+server = "203.143.170.192"
 state_port = 5556
 control_port = 5557
 lobby_port = 5558
@@ -13,7 +14,7 @@ def random_id():
 
 def connect(context, my_id):
     lobby_socket = context.socket(zmq.REQ)
-    lobby_address = "tcp://localhost:{}".format(lobby_port)
+    lobby_address = "tcp://{}:{}".format(server, lobby_port)
     print("connecting to lobby at {}".format(lobby_address))
     lobby_socket.connect(lobby_address)
     print("sending hello")
@@ -30,8 +31,8 @@ def play_game(context, my_id, my_secret_code, map_data):
     control_socket = context.socket(zmq.PUSH);
     state_socket = context.socket(zmq.SUB)
     state_socket.setsockopt(zmq.SUBSCRIBE, b"")
-    control_address = "tcp://localhost:{}".format(control_port)
-    state_address = "tcp://localhost:{}".format(state_port)
+    control_address = "tcp://{}:{}".format(server, control_port)
+    state_address = "tcp://{}:{}".format(server, state_port)
     print("Connecting to control and state sockets")
     control_socket.connect(control_address)
     state_socket.connect(state_address)

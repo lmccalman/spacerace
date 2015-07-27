@@ -2,6 +2,10 @@
 
 
 ## Running the UI
+
+Install the node dependencies:
+    
+    $ npm install
  
 For now in one terminal run the **dummy producer**:
 

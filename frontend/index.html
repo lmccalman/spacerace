@@ -84,12 +84,18 @@
 
     socket.on('GameState', function (msg) {
         gameState = JSON.parse(msg).data;
-        updates += 1;
 
-        if(updates == 1){
-            setupGame()
+        if(msg.status === "IN GAME") {
+            updates += 1;
+
+            if (updates == 1) {
+                setupGame()
+            }
         }
 
+        if(msg.status === "GAME OVER"){
+            console.log("Game Over");
+        }
     });
 
     //socket.on('GameMap', function (msg) {
