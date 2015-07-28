@@ -1,6 +1,9 @@
 # spacerace
+
 Multiplayer Asteroids-like racing game for the 2015 ETD winter retreat.
 
+    docker build -t="spacerace" .
+    docker run -it -p 5556:5556 -p 5558:5558 -p 5559:5559 spacerace
 
 
 # Payload Specifications

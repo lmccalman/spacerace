@@ -14,31 +14,6 @@
             font: 13px Helvetica, Arial;
         }
 
-        path.mapBorder {
-            stroke: steelblue;
-            stroke-width: 10px;
-            fill: none;
-        }
-        path.startLine {
-            stroke: black;
-            stroke-width: 2px;
-            stroke-dasharray: 5px;
-            fill: none;
-        }
-        path.finishLine {
-            stroke: red;
-            stroke-width: 2px;
-            stroke-dasharray: 5px;
-            fill: none;
-        }
-
-        polygon.startZone {
-            opacity: 0.2;
-            stroke: black;
-            stroke-width: 5px;
-            fill: none;
-        }
-
         polygon.shipWings {
             opacity: 0.8;
         }
@@ -115,6 +90,13 @@
             .attr("width", width)
             .attr("height", height);
 
+    var map = svgContainer.append("image")
+        .attr("id", "GameMap")
+        .attr("x", "0")
+        .attr("y", "0")
+        .attr("width", 720)
+        .attr("height", 720)
+        .attr("xlink:href", "map.png");
 
     var fps = d3.select("#fps span");
 
@@ -172,45 +154,6 @@
         .interpolate("linear");
 
 
-    /**
-     * Still have to work out how we will do maps...
-     * But for now lets draw two splines
-     */
-    var startZone = [
-        {"x": 5,   "y": 5},
-        {"x": 5,   "y": 25},
-        {"x": 25.0,"y": 25},
-        {"x": 25.0,"y": 5}];
-
-    var startLineData = [
-        { "x": 25,   "y": 5},
-        { "x": 25,   "y": 25}
-    ];
-    var finishLineData = [
-        { "x": 90,   "y": 80},
-        { "x": 80,   "y": 80}
-    ];
-
-    var lineDataTop = [
-        { "x": 25,   "y": 5},
-        { "x": 27,   "y": 5},
-        { "x": 28,  "y": 20},
-        { "x": 40,  "y": 10},
-        { "x": 60,  "y": 40},
-        { "x": 80,  "y": 5},
-        { "x": 90, "y": 60},
-        { "x": 90, "y": 80}
-    ];
-    var lineDataBottom = [
-        { "x": 25,   "y": 20 + 5},
-        { "x": 25,   "y": 20 + 5},
-        { "x": Math.random(10) + 25,  "y": 20 + 20},
-        { "x": Math.random(10) + 40,  "y": 20 + 10},
-        { "x": Math.random(10) + 60,  "y": 20 + 40},
-        { "x": Math.random(10) + 80,  "y": 20 + 5},
-        { "x": 80, "y": 20 + 60}
-    ];
-
     var setupGame = function() {
         var initState = gameState;
         var SHIPSIZE = "10";
@@ -228,32 +171,6 @@
             .attr('fill', function () {
                 return "hsl(" + Math.random() * 360 + ",75%, 50%)"
             });
-
-        map.append("path")
-            .attr("class", "mapBorder")
-            .attr("d", splineFunction(lineDataTop));
-
-        map.append("path")
-            .attr("class", "mapBorder")
-            .attr("d", splineFunction(lineDataBottom));
-
-        map.append("path")
-            .attr("class", "startLine")
-            .attr("d", lineFunction(startLineData));
-
-        map.append("path")
-            .attr("class", "finishLine")
-            .attr("d", lineFunction(finishLineData));
-
-        map.selectAll("polygon")
-            .data([startZone])
-            .enter().append("polygon")
-            .attr("class", "startZone")
-            .attr("points",function(d) {
-                return d.map(function(d){return [x(d.x),y(d.y)].join(","); }).join(" ");})
-            .attr("stroke","black")
-            .attr("stroke-width",2);
-
 
         // Trigger the first full draw
         updateState();
@@ -300,10 +217,7 @@
                             "," + shipX + ", " + shipY +
                             ")";
                 });
-
         }
-
-
     }
 
 </script>

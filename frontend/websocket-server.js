@@ -13,6 +13,10 @@ console.log("Game Server:" + server);
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
+app.get('/map.png', function(req, res){
+    // TODO Only serve current map
+  res.sendFile(__dirname + '/testmap.png');
+});
 
 // TODO use gulp/webpack etc
 app.use(express.static('node_modules'));
