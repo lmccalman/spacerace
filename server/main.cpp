@@ -69,6 +69,7 @@ int main(int ac, char* av[])
   GameState currentGameState;
   GameState nextGameState;
   nextGameState.name = gameName(gameNumber);
+  SimulationParameters params = readParams(settings);
    
   // Initialise threads 
   LOG(INFO) << "Starting info thread";
@@ -125,7 +126,7 @@ int main(int ac, char* av[])
       nextPlayers.ids.clear();
       nextPlayers.secretKeys.clear();
 
-      // build the control structures and index maps for the current game
+      // build the control structures, index maps and densities for the current game
       uint nShips = currentPlayers.ids.size();
       control.inputs = Eigen::MatrixXf::Zero(nShips, CONTROL_LENGTH);
       uint idx=0;
@@ -133,6 +134,7 @@ int main(int ac, char* av[])
       {
         control.idx[currentPlayers.secretKeys[i]] = idx;
         control.keyToId[currentPlayers.secretKeys[i]] = i;
+        params.shipDensities[idx] = currentPlayers.densities[i];
         idx++;
       }
       LOG(INFO) << nShips << " players connected for this round";
@@ -152,7 +154,7 @@ int main(int ac, char* av[])
     
     currentGameState.running = true;
     runGame(currentPlayers, control, currentGameState,
-        mapData.maps[mapData.currentMap], stateSocket, settings, 
+        mapData.maps[mapData.currentMap], params, stateSocket, settings, 
         logger);
     currentGameState.running = false;
     LOG(INFO) << "Game Over";

@@ -14,7 +14,7 @@
 
 //TODO add a constant parametr struct
 
-void derivative(const StateVector& in, StateVector& out, const ControlVector& c, const SimulationParamaters& params, const Map & m)
+void derivative(const StateVector& in, StateVector& out, const ControlVector& c, const SimulationParameters& params, const Map & m)
 {
   //TODO
 }
@@ -48,7 +48,7 @@ void derivative(const StateVector& in, StateVector& out, const ControlVector& c,
 //   }
 // }
 
-void rk4TimeStep(StateMatrix& s, const ControlMatrix& c, const SimulationParamaters& params, const Map & m)
+void rk4TimeStep(StateMatrix& s, const ControlMatrix& c, const SimulationParameters& params, const Map & m)
 {
   uint n = s.rows();
   StateVector d;
@@ -59,3 +59,25 @@ void rk4TimeStep(StateMatrix& s, const ControlMatrix& c, const SimulationParamat
   }
 }
 
+SimulationParameters readParams(const json& j)
+{
+  SimulationParameters s;
+  s.linearThrust =  j["simulation"]["ship"]["linearThrust"];
+  s.rotationalThrust = j["simulation"]["ship"]["rotationalThrust"];
+  s.shipRadius = j["simulation"]["ship"]["radius"];
+  s.shipFriction = j["simulation"]["ship"]["friction"];
+  s.shipElacticity = j["simulation"]["ship"]["elacticity"];
+  s.shipDamping = j["simulation"]["ship"]["damping"];
+
+  s.linearDrag = j["simulation"]["world"]["linearDrag"];
+  s.rotationalDrag = j["simulation"]["world"]["rotationalDrag"]; 
+  s.wallFriction  = j["simulation"]["world"]["wallFriction"];
+  s.wallElacticity = j["simulation"]["world"]["wallElacticity"];
+  s.wallDamping = j["simulation"]["world"]["wallDamping"];
+
+  s.timeStep = j["simulation"]["timeStep"];
+  s.integrationSteps = j["simulation"]["integrationSteps"];
+  s.targetFPS = j["simulation"]["targetFPS"];
+
+  return s;
+}
