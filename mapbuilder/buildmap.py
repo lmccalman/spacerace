@@ -109,12 +109,12 @@ def buildmap(image, mapname, settingsfile, visualise):
     np.save(mapname+'_start', startim)
     np.save(mapname+'_end', endim)
     np.save(mapname+'_occupancy', occmap)
-    np.save(mapname+'_walldist', distmap)
-    np.save(mapname+'_enddist', distfromend)
-    np.save(mapname+'_wnormx', dnx)
-    np.save(mapname+'_wnormy', dny)
-    np.save(mapname+'_flowx', dfx)
-    np.save(mapname+'_flowy', dfy)
+    np.save(mapname+'_walldist', distmap.astype('float32'))
+    np.save(mapname+'_enddist', distfromend.astype('float32'))
+    np.save(mapname+'_wnormx', dnx.astype('float32'))
+    np.save(mapname+'_wnormy', dny.astype('float32'))
+    np.save(mapname+'_flowx', dfx.astype('float32'))
+    np.save(mapname+'_flowy', dfy.astype('float32'))
 
 
 def combine_and_norm(yi, yo, xi, xo, occmap):
