@@ -9,6 +9,8 @@
 #include <thread>
 #include <chrono>
 
+#include "stream.hpp"
+
 #include "zmq.hpp"
 #include "json.hpp"
 #include "easylogging++.h"
