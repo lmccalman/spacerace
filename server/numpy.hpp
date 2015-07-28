@@ -99,6 +99,8 @@ struct DescriptorDataType<float> { static const char value = 'f'; };
 template<>
 struct DescriptorDataType<int> { static const char value = 'i'; };
 template<>
+struct DescriptorDataType<char> { static const char value = 'b'; };
+template<>
 struct DescriptorDataType<std::complex<float> > { static const char value = 'c'; };
 template<>
 struct DescriptorDataType<std::complex<double> > { static const char value = 'c'; };
@@ -306,6 +308,10 @@ void LoadArrayFromNumpy(
     std::stringstream ss;
     ss << header[descr_loc + 2];
     ss >> word_size;
+    std::cout << "data_type:" << data_type << std::endl;
+    std::cout << "value:" << detail::DescriptorDataType<Scalar>::value << std::endl;
+    std::cout << "word_size:" << word_size << std::endl;
+    std::cout << "scalarsize:" << sizeof(Scalar) << std::endl;
     if(data_type != detail::DescriptorDataType<Scalar>::value ||
        word_size != sizeof(Scalar)) {
         throw std::runtime_error(
