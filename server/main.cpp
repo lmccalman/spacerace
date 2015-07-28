@@ -131,6 +131,7 @@ int main(int ac, char* av[])
       // build the control structures, index maps and densities for the current game
       uint nShips = currentPlayers.ids.size();
       control.inputs = Eigen::MatrixXf::Zero(nShips, CONTROL_LENGTH);
+      params.shipDensities = Eigen::VectorXf(nShips);
       uint idx=0;
       for (auto const& i : currentPlayers.ids)
       {

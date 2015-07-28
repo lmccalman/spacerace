@@ -15,7 +15,7 @@ from scipy.ndimage.filters import gaussian_filter
 @click.argument('image')
 @click.option('--mapname', default=None, help='Output map file name, same as '
                                               'IMAGE.npy unless specified.')
-@click.option('--settingsfile', default='../server/spacerace.json',
+@click.option('--settingsfile', default='../spacerace.json',
               help='Location of the spacerace settings JSON file.')
 @click.option('--visualise', is_flag=True, help='Visualise the output?')
 def buildmap(image, mapname, settingsfile, visualise):
@@ -58,7 +58,7 @@ def buildmap(image, mapname, settingsfile, visualise):
 
     # Calculate wall normals
     blurmap = gaussian_filter((~occmap).astype(float),
-                              sigma=settings['map']['normalBlur'])
+                              sigma=settings['mapbuilder']['normalBlur'])
 
     dnxi, dnyi = np.gradient(np.ma.MaskedArray(blurmap, occmap))  # in wall
     dnxo, dnyo = np.gradient(np.ma.MaskedArray(blurmap, ~occmap))  # out wall

@@ -1,6 +1,8 @@
 {
   "lobbyWait": 10,
   "gameTime": 20,
+  "mapPath": "./maps",
+  "maps": ["testmap", "someothermap"],
 
   "simulation": {
     "timeStep": 0.001,
@@ -15,14 +17,14 @@
       "maximumDensity": 2.0,
       "friction": 1.0,
       "elacticity": 3.0,
-      "damping:": 1.0},
+      "damping": 1.0},
     
     "world": {
       "linearDrag" : 1.0,
       "rotationalDrag": 1.0,
       "wallFriction": 1.0,
       "wallElacticity": 3.0,
-      "wallDamping:": 1.0}},
+      "wallDamping": 1.0}},
 
   "stateSocket": {
     "port": 5556,
@@ -44,6 +46,6 @@
     "linger": 0,
     "timeout": 500},
 
-  "map": {
+  "mapbuilder": {
     "normalBlur": 5.0}
 }

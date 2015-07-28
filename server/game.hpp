@@ -57,14 +57,9 @@ void runGame(PlayerSet& players,
              InfoLogger& logger)
 {
   
-  uint integrationSteps = settings["integrationSteps"];
-  float timeStep = settings["timeStep"];
-  uint targetFPS = settings["targetFPS"];
+  uint integrationSteps = settings["simulation"]["integrationSteps"];
+  uint targetFPS = settings["simulation"]["targetFPS"];
   uint totalGameTimeSeconds = settings["gameTime"];
-  float linearDrag = settings["physics"]["linearDrag"];
-  float rotationalDrag = settings["physics"]["rotationalDrag"];
-  float linearThrust = settings["physics"]["linearThrust"];
-  float rotationalThrust = settings["physics"]["rotationalThrust"];
 
   uint nShips = players.ids.size();
   uint targetMicroseconds = 1000000 / targetFPS;
