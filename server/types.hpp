@@ -17,6 +17,11 @@ using ControlMatrix = Eigen::Matrix<float, Eigen::Dynamic, CONTROL_LENGTH>;
 using StateVector = Eigen::Matrix<float,1,STATE_LENGTH>;
 using ControlVector = Eigen::Matrix<float,1,CONTROL_LENGTH>;
 
+namespace Eigen
+{
+  using MatrixXb = Matrix<bool, Dynamic, Dynamic>;
+}
+
 struct ControlData
 {
   ControlMatrix inputs;
@@ -35,9 +40,19 @@ struct PlayerSet
 
 struct Map
 {
-  Eigen::MatrixXf occupancy;
-  Eigen::MatrixXf normalx;
-  Eigen::MatrixXf normaly;
+  Eigen::MatrixXb start;
+  Eigen::MatrixXb finish;
+  Eigen::MatrixXb occupancy;
+
+  Eigen::MatrixXf flowx;
+  Eigen::MatrixXf flowy;
+  
+  Eigen::MatrixXf endDistance;
+  Eigen::MatrixXf wallDistance;
+
+  Eigen::MatrixXf wallNormalx;
+  Eigen::MatrixXf wallNormaly;
+
   json jsonData;
 };
 

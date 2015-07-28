@@ -99,6 +99,8 @@ struct DescriptorDataType<float> { static const char value = 'f'; };
 template<>
 struct DescriptorDataType<int> { static const char value = 'i'; };
 template<>
+struct DescriptorDataType<char> { static const char value = 'b'; };
+template<>
 struct DescriptorDataType<std::complex<float> > { static const char value = 'c'; };
 template<>
 struct DescriptorDataType<std::complex<double> > { static const char value = 'c'; };

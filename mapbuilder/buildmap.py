@@ -71,15 +71,15 @@ def buildmap(image, mapname, settingsfile, visualise):
 
         fig = pl.figure()
         fig.add_subplot(231)
-        pl.imshow(occmap, cmap=pl.cm.gray)
+        pl.imshow(occmap, cmap=pl.cm.gray, interpolation='none')
         pl.title('Occupancy map')
 
         fig.add_subplot(232)
-        pl.imshow(startim, cmap=pl.cm.gray)
+        pl.imshow(startim, cmap=pl.cm.gray, interpolation='none')
         pl.title('Start point')
 
         fig.add_subplot(233)
-        pl.imshow(endim, cmap=pl.cm.gray)
+        pl.imshow(endim, cmap=pl.cm.gray, interpolation='none')
         pl.title('End point')
 
         fig.add_subplot(234)
@@ -97,7 +97,7 @@ def buildmap(image, mapname, settingsfile, visualise):
         pl.title('Distance to end, flow to end')
 
         fig.add_subplot(236)
-        pl.imshow(mapim)
+        pl.imshow(mapim, interpolation='none')
         pl.title('Original map image')
 
         pl.show()
@@ -109,12 +109,12 @@ def buildmap(image, mapname, settingsfile, visualise):
     np.save(mapname+'_start', startim)
     np.save(mapname+'_end', endim)
     np.save(mapname+'_occupancy', occmap)
-    np.save(mapname+'_walldist', distmap)
-    np.save(mapname+'_enddist', distfromend)
-    np.save(mapname+'_wnormx', dnx)
-    np.save(mapname+'_wnormy', dny)
-    np.save(mapname+'_flowx', dfx)
-    np.save(mapname+'_flowy', dfy)
+    np.save(mapname+'_walldist', distmap.astype('float32'))
+    np.save(mapname+'_enddist', distfromend.astype('float32'))
+    np.save(mapname+'_wnormx', dnx.astype('float32'))
+    np.save(mapname+'_wnormy', dny.astype('float32'))
+    np.save(mapname+'_flowx', dfx.astype('float32'))
+    np.save(mapname+'_flowy', dfy.astype('float32'))
 
 
 def combine_and_norm(yi, yo, xi, xo, occmap):
