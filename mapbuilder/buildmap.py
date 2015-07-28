@@ -28,7 +28,15 @@ def buildmap(image, mapname, settingsfile, visualise):
     if mapim.shape[2] > 3:
         mapim = mapim[:, :, 0:3]  # ignore alpha
 
-    w, h, _ = mapim.shape
+    # Pad with border
+    pwidth = settings['mapbuilder']['padPixels']
+    mapim = np.pad(mapim, ((pwidth, pwidth), (pwidth, pwidth), (0, 0)),
+                   'constant', constant_values=0)
+
+    w, h, d = mapim.shape
+
+    # import IPython; IPython.embed()
+    # pl.imshow(mapim); pl.show()
 
     # Find start (full green pixels)
     startim = np.logical_and(mapim[:, :, 0] != 255, mapim[:, :, 1] == 255,
@@ -102,19 +110,17 @@ def buildmap(image, mapname, settingsfile, visualise):
 
         pl.show()
 
-    # import IPython; IPython.embed()
-
     # Save layers
     mapname = image.rpartition('.')[0] if mapname is None else mapname
-    np.save(mapname+'_start', startim)
-    np.save(mapname+'_end', endim)
-    np.save(mapname+'_occupancy', occmap)
-    np.save(mapname+'_walldist', distmap.astype('float32'))
-    np.save(mapname+'_enddist', distfromend.astype('float32'))
-    np.save(mapname+'_wnormx', dnx.astype('float32'))
-    np.save(mapname+'_wnormy', dny.astype('float32'))
-    np.save(mapname+'_flowx', dfx.astype('float32'))
-    np.save(mapname+'_flowy', dfy.astype('float32'))
+    save_bool_map(mapname+'_start', startim)
+    save_bool_map(mapname+'_end', endim)
+    save_bool_map(mapname+'_occupancy', occmap)
+    save_float32_map(mapname+'_walldist', distmap)
+    save_float32_map(mapname+'_enddist', distfromend)
+    save_float32_map(mapname+'_wnormx', dnx)
+    save_float32_map(mapname+'_wnormy', dny, vec=True)
+    save_float32_map(mapname+'_flowx', dfx)
+    save_float32_map(mapname+'_flowy', dfy, vec=True)
 
 
 def combine_and_norm(yi, yo, xi, xo, occmap):
@@ -129,6 +135,20 @@ def combine_and_norm(yi, yo, xi, xo, occmap):
     y[zmask] = y[zmask] / norms[zmask]
 
     return y, x
+
+
+def save_bool_map(filename, boolmap):
+    np.save(filename, np.flipud(boolmap.astype(bool)))
+
+
+def save_float32_map(filename, floatmap, vec=False):
+    arr = np.flipud(floatmap.astype('float32'))
+
+    # if we are flipping a vector quantity about the y-axis
+    if vec:
+        arr = -arr
+
+    np.save(filename, arr)
 
 
 if __name__ == "__main__":

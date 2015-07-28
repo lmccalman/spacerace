@@ -135,7 +135,7 @@ def main():
     bounds = [0, all_shape[1], 0, all_shape[0]]
     map_img = 0.25*(map_img[::2, ::2] + map_img[1::2,::2] + \
                     map_img[::2, 1::2] + map_img[1::2, 1::2])
-    spawn = np.array([25, 190])/2.  # x, y
+    spawn = np.array([25, 25])/2.  # x, y
     spawn_size = 6/2.
     
 
