@@ -83,8 +83,14 @@
 
 </script>
 <script>
-    var width = 720,
-        height = 720;
+    var width = 720;
+
+    /*
+     * TODO: Need to find out the real size/aspect ratio of the
+     * image so we draw our ships correctly
+     * */
+    var ASPECT = 1500/1078;
+    var height = width / ASPECT;
 
     var svgContainer = d3.select('#game')
             .attr("width", width)
@@ -92,10 +98,8 @@
 
     var map = svgContainer.append("image")
         .attr("id", "GameMap")
-        .attr("x", "0")
-        .attr("y", "0")
-        .attr("width", 720)
-        .attr("height", 720)
+        .attr("width", width)
+        .attr("height", height)
         .attr("xlink:href", "map.png");
 
     var fps = d3.select("#fps span");
@@ -111,13 +115,11 @@
             .attr("id", "ship")
             .attr("class", "ship");
 
-
     shipG.append("polygon")
         .attr("points", "25,2 47,37 3,37")
         .attr("class", "shipWings");
 
-
-    // For now the jet "backwards" is simply a solid red line
+    // For now the jet "backwards" is simply a solid line
     shipG.append("line")
             .attr("class", "shipJet")
             .attr("x1", 25)
@@ -140,7 +142,7 @@
 
 
     var shipGroup = svgContainer.append("g").attr("id", "shipsParentGroup");
-    var map = svgContainer.append("g");
+
     var ships;
 
     var splineFunction = d3.svg.line()
@@ -196,6 +198,7 @@
 
             ships
                 .data(gameState)
+                // Perhaps we can add/remove the jet with display="none"
                 //.attr('opacity', function (d, i) {
                 //    // Show accelerating with opacity toggle
                 //    var accelerating = d.Tl == 1;
@@ -206,12 +209,11 @@
                 .attr("transform", function (d, i) {
                     // It is possible to both update ships' position and rotation using a single SVG transform/rotation
                     // command however it doesn't seem as performant as using the x,y attributes as above.
-
+                    // Note SVG rotate takes degrees not radians, and it also takes positon (X, Y)
+                    // to center the rotation around.
                     var shipX = x(d.x),
                         shipY = y(d.y);
 
-                    //return "translate(" + shipX + ", " + shipY + ") + ...
-                    // Note SVG rotate takes degrees not radians, and it also takes X, Y to rotate around
                     return "rotate(" +
                             (90 - d.theta * 360/(2*Math.PI)) +
                             "," + shipX + ", " + shipY +
