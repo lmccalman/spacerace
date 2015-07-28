@@ -3,18 +3,18 @@
 TODO:
 
 - Number of players connected
-- 
+
 ## Running the UI
 
 Install the node dependencies:
     
     $ npm install
  
-For now in one terminal run the **dummy producer**:
+Build the static front end content:
 
-    $ node producer.js
+    $ webpack --colors
 
-Then start the webserver:
+Start the zmq -> socket.io and static asset server:
 
     $ node websocket-server.js
 

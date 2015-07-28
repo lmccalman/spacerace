@@ -1,9 +1,9 @@
 var zmq = require('zmq');
 var express = require('express');
+
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-
 
 // Game Server Address
 var server = process.argv.length > 2 ? process.argv[2] : 'localhost';
@@ -13,13 +13,16 @@ console.log("Game Server:" + server);
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
-app.get('/map.png', function(req, res){
-    // TODO Only serve current map
-  res.sendFile(__dirname + '/testmap.png');
+app.get('/bundle.js', function(req, res){
+    res.sendFile(__dirname + '/bundle.js');
 });
 
-// TODO use gulp/webpack etc
-app.use(express.static('node_modules'));
+// Commented out because map is currently bundled
+// And I expect it will actually be data in a socket.
+//app.get('/map.png', function(req, res){
+//  res.sendFile(__dirname + '/testmap.png');
+//});
+
 http.listen(8000, function(){
   console.log('listening on *:8000');
 });
