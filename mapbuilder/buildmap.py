@@ -42,20 +42,27 @@ def buildmap(image, mapname, settingsfile, visualise):
     occmap = np.logical_and(mapim[:, :, 0] == 0, mapim[:, :, 1] == 0,
                             mapim[:, :, 2] == 0)
 
+    # Calculate distance to walls
+    distmap = skfmm.distance(~occmap, dx=1e-2)
+    distmap[occmap] = -1
+
     # Calculate start->end potential field
     distfromend = skfmm.distance(np.ma.MaskedArray(~endim, occmap), dx=1e-2)
-    dfx, dfy = np.gradient(-distfromend)
+    distmaptowall = skfmm.distance(occmap, dx=1e-2)
 
-    # Calculate distance to walls
-    distmap = np.ma.MaskedArray(skfmm.distance(~occmap, dx=1e-2), occmap)
+    dfxi, dfyi = np.gradient(-distfromend)
+    dfxo, dfyo = np.gradient(np.ma.MaskedArray(-distmaptowall, ~occmap))
+    dfx, dfy = combine_and_norm(dfxi, dfxo, dfyi, dfyo, occmap)
+
+    distfromend = distfromend.filled(0) + distmaptowall
 
     # Calculate wall normals
     blurmap = gaussian_filter((~occmap).astype(float),
                               sigma=settings['map']['normalBlur'])
-    dnx, dny = np.gradient(np.ma.MaskedArray(blurmap, occmap), edge_order=2)
-    norms = np.sqrt((dny**2 + dnx**2))
-    dnx /= norms
-    dny /= norms
+
+    dnxi, dnyi = np.gradient(np.ma.MaskedArray(blurmap, occmap))  # in wall
+    dnxo, dnyo = np.gradient(np.ma.MaskedArray(blurmap, ~occmap))  # out wall
+    dnx, dny = combine_and_norm(dnxi, dnxo, dnyi, dnyo, occmap)
 
     # plotting
     if visualise:
@@ -95,17 +102,34 @@ def buildmap(image, mapname, settingsfile, visualise):
 
         pl.show()
 
+        # normals need to point to edge in walls
+        # distance to end needs to point to edge in walls
+
     # Save layers
     mapname = image.rpartition('.')[0] if mapname is None else mapname
     np.save(mapname+'_start', startim)
     np.save(mapname+'_end', endim)
     np.save(mapname+'_occupancy', occmap)
-    np.save(mapname+'_walldist', distmap.filled(np.NaN))
-    np.save(mapname+'_enddist', distfromend.filled(np.NaN))
-    np.save(mapname+'_wnormx', dnx.filled(np.NaN))
-    np.save(mapname+'_wnormy', dny.filled(np.NaN))
-    np.save(mapname+'_flowx', dfx.filled(np.NaN))
-    np.save(mapname+'_flowy', dfy.filled(np.NaN))
+    np.save(mapname+'_walldist', distmap)
+    np.save(mapname+'_enddist', distfromend)
+    np.save(mapname+'_wnormx', dnx)
+    np.save(mapname+'_wnormy', dny)
+    np.save(mapname+'_flowx', dfx)
+    np.save(mapname+'_flowy', dfy)
+
+
+def combine_and_norm(xi, xo, yi, yo, occmap):
+
+    x = xi.filled(0) + xo.filled(0)
+    y = yi.filled(0) + yo.filled(0)
+
+    # unit-ise normals
+    norms = np.sqrt((y**2 + x**2))
+    zmask = ~(norms == 0)
+    x[zmask] = x[zmask] / norms[zmask]
+    y[zmask] = y[zmask] / norms[zmask]
+
+    return x, y
 
 
 if __name__ == "__main__":
