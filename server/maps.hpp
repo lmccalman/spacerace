@@ -38,7 +38,6 @@ void loadMaps(const json& settings, MapData& mapData)
     m.start = loadBoolFromNumpy(prefix + "_start.npy");
     m.finish = loadBoolFromNumpy(prefix + "_end.npy"); 
     m.occupancy = loadBoolFromNumpy(prefix + "_occupancy.npy");
-    std::cout << m.occupancy << std::endl;
     m.flowx = loadFloatFromNumpy(prefix + "_flowx.npy"); 
     m.flowy = loadFloatFromNumpy(prefix + "_flowy.npy");
     m.endDistance = loadFloatFromNumpy(prefix + "_enddist.npy");
