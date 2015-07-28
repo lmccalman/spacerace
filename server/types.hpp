@@ -29,6 +29,7 @@ struct PlayerSet
 {
   std::set<std::string> ids;
   std::map<std::string, std::string> secretKeys;
+  std::map<std::string, float> densities;
   std::mutex mutex;
 };
 
@@ -54,3 +55,23 @@ struct GameState
   bool running = false;
   std::mutex mutex;
 };
+
+struct SimulationParameters
+{
+  float linearThrust;
+  float linearDrag;
+  float rotationalThrust;
+  float rotationalDrag;
+  float shipRadius;
+  float wallFriction;
+  float wallElacticity;
+  float wallDamping;
+  float shipFriction;
+  float shipElacticity;
+  float shipDamping;
+  float timeStep;
+  float targetFPS;
+  Eigen::VectorXf shipDensities;
+  uint integrationSteps;
+};
+

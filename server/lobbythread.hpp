@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/random_generator.hpp>
@@ -43,33 +45,43 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData, PlayerSet& player
     bool newMsg = receive(socket, msg);
     if (newMsg)
     {
-      if (msg.size() == 3)
+      
+      const std::string& shipName = msg[2];
+      std::lock_guard<std::mutex> lock(players.mutex);
+      uint nextMap = (mapData.currentMap + 1) % mapData.maps.size();
+      if (!players.ids.count(shipName))
       {
-        const std::string& shipName = msg[2];
-        std::lock_guard<std::mutex> lock(players.mutex);
-        uint nextMap = (mapData.currentMap + 1) % mapData.maps.size();
-        if (!players.ids.count(shipName))
+        std::lock_guard<std::mutex> gameStateLock(gameState.mutex);
+        players.ids.insert(shipName);
+        logger({"New Player connected with ID: " + shipName});
+        std::string secret = secretCode(gen);
+        players.secretKeys[shipName] = secret;
+        players.densities[shipName] = float(settings["simulation"]["ship"]["defaultDensity"]);
+        if (msg.size() >= 4)
         {
-          std::lock_guard<std::mutex> gameStateLock(gameState.mutex);
-          players.ids.insert(shipName);
-          logger({"New Player connected with ID: " + shipName});
-          std::string secret = secretCode(gen);
-          players.secretKeys[shipName] = secret;
-          std::string response = formulateResponse(shipName, secret, gameState.name, 
-              mapData.maps[nextMap].jsonData);
-          send(socket, {msg[0], "", response}); 
+          try
+          {
+            float d = stof(msg[3]);
+            d = std::max(d, float(settings["simulation"]["ship"]["minimumDensity"]));
+            d = std::min(d, float(settings["simulation"]["ship"]["maximumDensity"]));
+            players.densities[shipName] = d;
+          }
+          catch(...)
+          {
+            // They can still play they just have to use the default density
+            logger({"ERROR", shipName + " tried to specify density as " + msg[3] + " but could not convert to float"});
+          }
         }
-        else
-        {
-          logger({"ERROR", "ID already in use: " + shipName});
-          send(socket,{msg[0], "", "ERROR: ID Taken. Please try something else."});
-        }
+        std::string response = formulateResponse(shipName, secret, gameState.name, 
+            mapData.maps[nextMap].jsonData);
+        send(socket, {msg[0], "", response}); 
       }
       else
       {
-        logger({"ERROR", "Client " + msg[0] + " sent mal-formed connection message"});
-        send(socket,{msg[0], "", "ERROR: mal-formed connection message"});
+        logger({"ERROR", "ID already in use: " + shipName});
+        send(socket,{msg[0], "", "ERROR: ID Taken. Please try something else."});
       }
+
     }
   }
   LOG(INFO) << "Lobby thread exiting...";

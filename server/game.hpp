@@ -47,9 +47,14 @@ void initialiseState(StateMatrix& state)
   state.col(1) = state.col(1).array() + 50;
 }
 
-void runGame(PlayerSet& players, ControlData& control, 
-    const GameState& gameState, const Map& map, zmq::socket_t& stateSocket, 
-    const json& settings, InfoLogger& logger)
+void runGame(PlayerSet& players, 
+             ControlData& control, 
+             const GameState& gameState, 
+             const Map& map, 
+             const SimulationParameters& params,
+             zmq::socket_t& stateSocket, 
+             const json& settings, 
+             InfoLogger& logger)
 {
   
   uint integrationSteps = settings["integrationSteps"];
@@ -81,7 +86,7 @@ void runGame(PlayerSet& players, ControlData& control,
     }
 
     for (uint i=0; i<integrationSteps;i++)
-      eulerTimeStep(state, inputs, linearDrag, rotationalDrag, timeStep);
+      rk4TimeStep(state, inputs, params, map);
     
     //check we don't need to end the game
     running = !hasRoughIntervalPassed(gameStart, totalGameTimeSeconds, targetFPS);
