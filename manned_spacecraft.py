@@ -97,10 +97,10 @@ if __name__ == '__main__':
         description='Spacerace: Manned Spacecraft'
     )
 
-    parser.add_argument('hostname', type=str, help='Server hostname')
-    parser.add_argument('state_port', type=int, help='State port')
-    parser.add_argument('control_port', type=int, help='Control port')
-    parser.add_argument('lobby_port', type=int, help='Lobby port')
+    parser.add_argument('--hostname', type=str, help='Server hostname', default="localhost")
+    parser.add_argument('--state_port', type=int, help='State port', default="5556")
+    parser.add_argument('--control_port', type=int, help='Control port', default="5557")
+    parser.add_argument('--lobby_port', type=int, help='Lobby port', default="5558")
 
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
     parser.add_argument('--ship_name', '-n', type=str,
