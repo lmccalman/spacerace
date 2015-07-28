@@ -38,52 +38,7 @@ var svgContainer = d3.select('#game')
     .attr("width", "100%")
     .attr("height", "500");
 
-
-var width, height;
-function loadMap() {
-    // Deal with a new map...
-    // => DataUrl if "file.png" is smaller that 1Mb
-    var mapData = require("url?limit=1000000!./testmap.png");
-
-    var mapImage = document.createElement('img');
-    mapImage.addEventListener('load', function () {
-        /*
-         * Find out the real size/aspect ratio of the
-         * image so we draw our ships correctly
-         * */
-        width = mapImage.width;
-        height = mapImage.height;
-        var aspectRatio = width / height;
-
-        console.log("Loaded map image. Size = (%s, %s)", width, height);
-
-        // Set the game's height to match the map's aspect ratio?
-        var actualWidth = parseInt(svgContainer.style("width"), 10);
-        var actualHeight = actualWidth / aspectRatio;
-
-        svgContainer
-            .attr("height", actualHeight);
-
-        // Add an <image> to our <svg>
-        svgContainer.append("image")
-            .attr("id", "GameMap")
-            .attr("width", actualWidth)
-            .attr("height", actualHeight)
-            .attr("xlink:href", mapData);
-
-    });
-    mapImage.src = mapData;
-}
-
-loadMap();
-
-
-var fps = d3.select("#fps span");
-
-// Assume positions are between 0 and 100 for now
-// (0,0) is at the bottom left
-var x = d3.scale.linear().domain([0, 100]).range([0, width]);
-var y = d3.scale.linear().domain([0, 100]).range([height, 0]);
+var mapContainer = svgContainer.append("g");
 
 var shipG = svgContainer.append("defs")
     .append("symbol")
@@ -122,24 +77,55 @@ var shipGroup = svgContainer.append("g").attr("id", "shipsParentGroup");
 
 var ships;
 
-var splineFunction = d3.svg.line()
-    .x(function (d) {
-        return x(d.x);
-    })
-    .y(function (d) {
-        return y(d.y);
-    })
-    .interpolate("basis");
+var x, y;
 
-var lineFunction = d3.svg.line()
-    .x(function (d) {
-        return x(d.x);
-    })
-    .y(function (d) {
-        return y(d.y);
-    })
-    .interpolate("linear");
+var width, height;
 
+function loadMap() {
+    // Deal with a new map...
+    // => DataUrl if "file.png" is smaller that 1Mb
+    var mapData = require("url?limit=1000000!./testmap.png");
+
+    var mapImage = document.createElement('img');
+    mapImage.addEventListener('load', function () {
+        /*
+         * Find out the real size/aspect ratio of the
+         * image so we draw our ships correctly
+         * */
+        width = mapImage.width;
+        height = mapImage.height;
+        var aspectRatio = width / height;
+
+        console.log("Loaded map image. Size = (%s, %s)", width, height);
+
+        // Set the game's height to match the map's aspect ratio?
+        var actualWidth = parseInt(svgContainer.style("width"), 10);
+        var actualHeight = actualWidth / aspectRatio;
+
+        svgContainer
+            .attr("height", actualHeight);
+
+        // Add an <image> to our <svg>
+        // TODO test performance of putting it in a div behind the svg?
+        mapContainer.append("image")
+            .attr("id", "GameMap")
+            .attr("width", actualWidth)
+            .attr("height", actualHeight)
+            .attr("xlink:href", mapData);
+
+        // Assume positions are between 0 and 100 for now
+        // (0,0) is at the bottom left
+        x = d3.scale.linear().domain([0, 100]).range([0, width]);
+        y = d3.scale.linear().domain([0, 100]).range([height, 0]);
+
+    });
+    mapImage.src = mapData;
+}
+
+loadMap();
+
+
+var fps = d3.select("#fps span");
 
 var setupGame = function () {
     var initState = gameState;

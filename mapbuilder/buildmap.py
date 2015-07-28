@@ -43,31 +43,31 @@ def buildmap(image, mapname, settingsfile, visualise):
                             mapim[:, :, 2] == 0)
 
     # Calculate distance to walls
-    distmap = skfmm.distance(~occmap, dx=1e-2)
-    distmap[occmap] = -1
+    distintowall = skfmm.distance(~occmap)
+    distouttowall = skfmm.distance(occmap)
+    distmap = distintowall - distouttowall
 
     # Calculate start->end potential field
-    distfromend = skfmm.distance(np.ma.MaskedArray(~endim, occmap), dx=1e-2)
-    distmaptowall = skfmm.distance(occmap, dx=1e-2)
+    distfromend = skfmm.distance(np.ma.MaskedArray(~endim, occmap))
 
-    dfxi, dfyi = np.gradient(-distfromend)
-    dfxo, dfyo = np.gradient(np.ma.MaskedArray(-distmaptowall, ~occmap))
-    dfx, dfy = combine_and_norm(dfxi, dfxo, dfyi, dfyo, occmap)
+    dfyi, dfxi = np.gradient(-distfromend)
+    dfyo, dfxo = np.gradient(np.ma.MaskedArray(-distouttowall, ~occmap))
+    dfy, dfx = combine_and_norm(dfyi, dfyo, dfxi, dfxo, occmap)
 
-    distfromend = distfromend.filled(0) + distmaptowall
+    distfromend = distfromend.filled(0) + distouttowall
 
     # Calculate wall normals
     blurmap = gaussian_filter((~occmap).astype(float),
                               sigma=settings['mapbuilder']['normalBlur'])
 
-    dnxi, dnyi = np.gradient(np.ma.MaskedArray(blurmap, occmap))  # in wall
-    dnxo, dnyo = np.gradient(np.ma.MaskedArray(blurmap, ~occmap))  # out wall
-    dnx, dny = combine_and_norm(dnxi, dnxo, dnyi, dnyo, occmap)
+    dnyi, dnxi = np.gradient(np.ma.MaskedArray(blurmap, occmap))  # in wall
+    dnyo, dnxo = np.gradient(np.ma.MaskedArray(blurmap, ~occmap))  # out wall
+    dny, dnx = combine_and_norm(dnyi, dnyo, dnxi, dnxo, occmap)
 
     # plotting
     if visualise:
         skip = (slice(None, None, 20), slice(None, None, 20))
-        x, y = np.mgrid[0:w, 0:h]
+        y, x = np.mgrid[0:w, 0:h]
 
         fig = pl.figure()
         fig.add_subplot(231)
@@ -83,14 +83,14 @@ def buildmap(image, mapname, settingsfile, visualise):
         pl.title('End point')
 
         fig.add_subplot(234)
-        pl.quiver(y[skip], x[skip], dny[skip], dnx[skip], color='r',
+        pl.quiver(x[skip], y[skip], dnx[skip], dny[skip], color='r',
                   angles='xy')
         pl.gca().invert_yaxis()
         pl.imshow(distmap, interpolation='none', cmap=pl.cm.gray)
         pl.title('Distance to walls, wall normals')
 
         fig.add_subplot(235)
-        pl.quiver(y[skip], x[skip], dfy[skip], dfx[skip], color='r',
+        pl.quiver(x[skip], y[skip], dfx[skip], dfy[skip], color='r',
                   angles='xy')
         pl.gca().invert_yaxis()
         pl.imshow(distfromend, interpolation='none', cmap=pl.cm.gray)
@@ -102,23 +102,22 @@ def buildmap(image, mapname, settingsfile, visualise):
 
         pl.show()
 
-        # normals need to point to edge in walls
-        # distance to end needs to point to edge in walls
+    # import IPython; IPython.embed()
 
     # Save layers
     mapname = image.rpartition('.')[0] if mapname is None else mapname
     np.save(mapname+'_start', startim)
     np.save(mapname+'_end', endim)
     np.save(mapname+'_occupancy', occmap)
-    np.save(mapname+'_walldist', distmap)
-    np.save(mapname+'_enddist', distfromend)
-    np.save(mapname+'_wnormx', dnx)
-    np.save(mapname+'_wnormy', dny)
-    np.save(mapname+'_flowx', dfx)
-    np.save(mapname+'_flowy', dfy)
+    np.save(mapname+'_walldist', distmap.astype('float32'))
+    np.save(mapname+'_enddist', distfromend.astype('float32'))
+    np.save(mapname+'_wnormx', dnx.astype('float32'))
+    np.save(mapname+'_wnormy', dny.astype('float32'))
+    np.save(mapname+'_flowx', dfx.astype('float32'))
+    np.save(mapname+'_flowy', dfy.astype('float32'))
 
 
-def combine_and_norm(xi, xo, yi, yo, occmap):
+def combine_and_norm(yi, yo, xi, xo, occmap):
 
     x = xi.filled(0) + xo.filled(0)
     y = yi.filled(0) + yo.filled(0)
@@ -129,7 +128,7 @@ def combine_and_norm(xi, xo, yi, yo, occmap):
     x[zmask] = x[zmask] / norms[zmask]
     y[zmask] = y[zmask] / norms[zmask]
 
-    return x, y
+    return y, x
 
 
 if __name__ == "__main__":
