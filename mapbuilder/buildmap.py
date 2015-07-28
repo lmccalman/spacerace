@@ -43,18 +43,18 @@ def buildmap(image, mapname, settingsfile, visualise):
                             mapim[:, :, 2] == 0)
 
     # Calculate distance to walls
-    distmap = skfmm.distance(~occmap, dx=1e-2)
-    distmap[occmap] = -1
+    distintowall = skfmm.distance(~occmap)
+    distouttowall = skfmm.distance(occmap)
+    distmap = distintowall - distouttowall
 
     # Calculate start->end potential field
-    distfromend = skfmm.distance(np.ma.MaskedArray(~endim, occmap), dx=1e-2)
-    distmaptowall = skfmm.distance(occmap, dx=1e-2)
+    distfromend = skfmm.distance(np.ma.MaskedArray(~endim, occmap))
 
     dfxi, dfyi = np.gradient(-distfromend)
-    dfxo, dfyo = np.gradient(np.ma.MaskedArray(-distmaptowall, ~occmap))
+    dfxo, dfyo = np.gradient(np.ma.MaskedArray(-distouttowall, ~occmap))
     dfx, dfy = combine_and_norm(dfxi, dfxo, dfyi, dfyo, occmap)
 
-    distfromend = distfromend.filled(0) + distmaptowall
+    distfromend = distfromend.filled(0) + distouttowall
 
     # Calculate wall normals
     blurmap = gaussian_filter((~occmap).astype(float),
