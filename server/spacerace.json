@@ -32,5 +32,8 @@
   "infoSocket": {
     "port": 5559,
     "linger": 0,
-    "timeout": 500}
+    "timeout": 500},
+
+  "map": {
+    "normalBlur": 5.0}
 }

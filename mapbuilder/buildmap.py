@@ -3,22 +3,28 @@
 
 
 import click
+import json
 import skfmm
 import numpy as np
 import matplotlib.pyplot as pl
-from skimage import io, measure, filters
+from scipy.misc import imread
+from scipy.ndimage.filters import gaussian_filter
 
 
 @click.command()
 @click.argument('image')
 @click.option('--mapname', default=None, help='Output map file name, same as '
                                               'IMAGE.npy unless specified.')
-def buildmap(image, mapname):
+@click.option('--settingsfile', default='../server/spacerace.json',
+              help='Location of the spacerace settings JSON file.')
+@click.option('--visualise', is_flag=True, help='Visualise the output?')
+def buildmap(image, mapname, settingsfile, visualise):
 
-    print(image, mapname)
+    with open(settingsfile, 'r') as f:
+        settings = json.load(f)
 
     # Read in map
-    mapim = io.imread(image)
+    mapim = imread(image)
     if mapim.shape[2] > 3:
         mapim = mapim[:, :, 0:3]  # ignore alpha
 
@@ -36,53 +42,70 @@ def buildmap(image, mapname):
     occmap = np.logical_and(mapim[:, :, 0] == 0, mapim[:, :, 1] == 0,
                             mapim[:, :, 2] == 0)
 
-    fig, ax = pl.subplots()
-    ax.imshow(occmap, interpolation='nearest', cmap=pl.cm.gray)
-
     # Calculate start->end potential field
-    distfromend = -skfmm.distance(np.ma.MaskedArray(~endim, occmap), dx=1e-2)
-    dfx, dfy = np.gradient(distfromend)
-    # dfx, dfy = -dfx, -dfy  # reverse flow field to end
-
-
-    # blurmap = filters.gaussian_filter(occmap, sigma=3.0)
-    # contours = measure.find_contours(blurmap, 0.5)
-    # for contour in contours:
-    #     ax.plot(contour[:, 1], contour[:, 0], linewidth=2)
-
-    # ax.axis('image')
-    # conmap = np.zeros_like(blurmap, dtype=bool)
-    # for contour in contours:
-    #     crow = np.round(contour[:, 0]).astype(int)
-    #     ccol = np.round(contour[:, 1]).astype(int)
-    #     conmap[crow, ccol] = True
+    distfromend = skfmm.distance(np.ma.MaskedArray(~endim, occmap), dx=1e-2)
+    dfx, dfy = np.gradient(-distfromend)
 
     # Calculate distance to walls
-    distmap = skfmm.distance(~occmap, dx=1e-2)
+    distmap = np.ma.MaskedArray(skfmm.distance(~occmap, dx=1e-2), occmap)
 
     # Calculate wall normals
-    dnx, dny = np.gradient(np.ma.MaskedArray(distmap, occmap))
+    blurmap = gaussian_filter((~occmap).astype(float),
+                              sigma=settings['map']['normalBlur'])
+    dnx, dny = np.gradient(np.ma.MaskedArray(blurmap, occmap), edge_order=2)
+    norms = np.sqrt((dny**2 + dnx**2))
+    dnx /= norms
+    dny /= norms
 
     # plotting
-    skip = (slice(None, None, 30), slice(None, None, 30))
-    x, y = np.mgrid[0:w, 0:h]
+    if visualise:
+        skip = (slice(None, None, 20), slice(None, None, 20))
+        x, y = np.mgrid[0:w, 0:h]
 
-    pl.figure()
-    pl.quiver(y[skip], x[skip], dny[skip], dnx[skip], color='r', angles='xy')
-    pl.gca().invert_yaxis()
-    pl.imshow(distmap, interpolation='none', cmap=pl.cm.gray)
-    pl.colorbar()
+        fig = pl.figure()
+        fig.add_subplot(231)
+        pl.imshow(occmap, cmap=pl.cm.gray)
+        pl.title('Occupancy map')
 
-    pl.figure()
-    pl.quiver(y[skip], x[skip], dfy[skip], dfx[skip], color='r', angles='xy')
-    pl.gca().invert_yaxis()
-    pl.imshow(distfromend, interpolation='none', cmap=pl.cm.gray)
-    pl.colorbar()
+        fig.add_subplot(232)
+        pl.imshow(startim, cmap=pl.cm.gray)
+        pl.title('Start point')
 
-    pl.show()
+        fig.add_subplot(233)
+        pl.imshow(endim, cmap=pl.cm.gray)
+        pl.title('End point')
+
+        fig.add_subplot(234)
+        pl.quiver(y[skip], x[skip], dny[skip], dnx[skip], color='r',
+                  angles='xy')
+        pl.gca().invert_yaxis()
+        pl.imshow(distmap, interpolation='none', cmap=pl.cm.gray)
+        pl.title('Distance to walls, wall normals')
+
+        fig.add_subplot(235)
+        pl.quiver(y[skip], x[skip], dfy[skip], dfx[skip], color='r',
+                  angles='xy')
+        pl.gca().invert_yaxis()
+        pl.imshow(distfromend, interpolation='none', cmap=pl.cm.gray)
+        pl.title('Distance to end, flow to end')
+
+        fig.add_subplot(236)
+        pl.imshow(mapim)
+        pl.title('Original map image')
+
+        pl.show()
+
     # Save layers
-
-    # import IPython; IPython.embed()
+    mapname = image.rpartition('.')[0] if mapname is None else mapname
+    np.save(mapname+'_start', startim)
+    np.save(mapname+'_end', endim)
+    np.save(mapname+'_occupancy', occmap)
+    np.save(mapname+'_walldist', distmap.filled(np.NaN))
+    np.save(mapname+'_enddist', distfromend.filled(np.NaN))
+    np.save(mapname+'_wnormx', dnx.filled(np.NaN))
+    np.save(mapname+'_wnormy', dny.filled(np.NaN))
+    np.save(mapname+'_flowx', dfx.filled(np.NaN))
+    np.save(mapname+'_flowy', dfy.filled(np.NaN))
 
 
 if __name__ == "__main__":

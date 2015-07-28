@@ -1,0 +1,6 @@
+json
+numpy
+scipy
+matplotlib
+click
+scikit-fmm
