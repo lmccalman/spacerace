@@ -2,11 +2,13 @@ import zmq
 import random
 import string
 import json
+import sys
 
-server = "203.143.170.192"
+server = 'localhost' if len(sys.argv) <= 1 else sys.argv[1]
 state_port = 5556
 control_port = 5557
 lobby_port = 5558
+
 
 def random_id():
     return "".join(random.choice(string.ascii_letters)
@@ -43,7 +45,7 @@ def play_game(context, my_id, my_secret_code, map_data, game_name):
         state_info = state_socket.recv_multipart()
         j = json.loads(state_info[1].decode())
         if j['status'] == "GAME OVER":
-            break;
+            break
         print("state_info: {}".format(state_info))
         print("sending control...")
         linear_control = str(random.choice([1,1,1,1,0]))
