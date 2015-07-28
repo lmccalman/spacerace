@@ -3,17 +3,15 @@
 #include <cstring>
 
 
-// start, end, occupancy -- bool
-// the rest are floats
-
 Eigen::MatrixXf loadFloatFromNumpy(const std::string& filename)
 {
   std::vector<int> shape;
   std::vector<float> data;
   aoba::LoadArrayFromNumpy(filename, shape, data);
-  Eigen::MatrixXf mat(shape[0], shape[1]);
+  Eigen::MatrixXf mat(shape[1], shape[0]);
   std::size_t size = sizeof(float) * shape[0] * shape[1];
   memcpy(mat.data(), data.data(), size);
+  mat.transposeInPlace();
   return mat;
 }
 
@@ -23,9 +21,10 @@ Eigen::MatrixXb loadBoolFromNumpy(const std::string& filename)
   std::vector<int> shape;
   std::vector<char> data;
   aoba::LoadArrayFromNumpy<char>(filename, shape, data);
-  Eigen::MatrixXb mat(shape[0], shape[1]);
+  Eigen::MatrixXb mat(shape[1], shape[0]);
   std::size_t size = sizeof(char) * shape[0] * shape[1];
   memcpy(mat.data(), data.data(), size);
+  mat.transposeInPlace();
   return mat;
 }
 
@@ -39,6 +38,7 @@ void loadMaps(const json& settings, MapData& mapData)
     m.start = loadBoolFromNumpy(prefix + "_start.npy");
     m.finish = loadBoolFromNumpy(prefix + "_end.npy"); 
     m.occupancy = loadBoolFromNumpy(prefix + "_occupancy.npy");
+    std::cout << m.occupancy << std::endl;
     m.flowx = loadFloatFromNumpy(prefix + "_flowx.npy"); 
     m.flowy = loadFloatFromNumpy(prefix + "_flowy.npy");
     m.endDistance = loadFloatFromNumpy(prefix + "_enddist.npy");

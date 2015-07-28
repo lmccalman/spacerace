@@ -308,10 +308,6 @@ void LoadArrayFromNumpy(
     std::stringstream ss;
     ss << header[descr_loc + 2];
     ss >> word_size;
-    std::cout << "data_type:" << data_type << std::endl;
-    std::cout << "value:" << detail::DescriptorDataType<Scalar>::value << std::endl;
-    std::cout << "word_size:" << word_size << std::endl;
-    std::cout << "scalarsize:" << sizeof(Scalar) << std::endl;
     if(data_type != detail::DescriptorDataType<Scalar>::value ||
        word_size != sizeof(Scalar)) {
         throw std::runtime_error(
