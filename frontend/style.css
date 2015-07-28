@@ -1,0 +1,30 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font: 13px Helvetica, Arial;
+}
+
+polygon.shipWings {
+    opacity: 0.8;
+}
+
+polygon.shipStripe {
+    fill: black;
+}
+
+circle.shipBody {
+    stroke-width: 1px;
+}
+
+line.shipJet {
+    stroke-width: 10px;
+    stroke: black;
+}
+
+use {
+    will-change: transform;
+}
