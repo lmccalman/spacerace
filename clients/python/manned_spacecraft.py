@@ -111,10 +111,11 @@ class Client:
         rotation -= int('q' in self.pressed)
         rotation += int('e' in self.pressed)
         # print(linear, rotation, self.pressed)
-        self.send_control(linear, rotatiown)
+        self.send_control(linear, rotation)
 
     def release(self, event):
         self.pressed.discard(event.key)
+        self.send_control(0, 0)
 
 if __name__ == '__main__':
 
