@@ -18,5 +18,5 @@ RUN cmake /usr/src/spacerace && make
 # Clean up APT when done
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 EXPOSE 5556 5557 5558 5559
-CMD ["./spacerace-server", "-s", "/usr/src/spacerace/server/spacerace.json"]
+CMD ["./spacerace-server", "-s", "/usr/src/spacerace/spacerace.json"]
 
