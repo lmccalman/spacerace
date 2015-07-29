@@ -12,9 +12,9 @@
 // Note that the mutex is intended to lock both the mapData and the ids
 
 std::string formulateResponse(const std::string& shipName, const std::string& secretCode, 
-    const std::string& gameName, const json& mapData)
+    const std::string& gameName, const Map& map)
 {
-  json j {{"name", shipName}, {"secret", secretCode}, {"game", gameName}, {"map",mapData}};
+  json j {{"name", shipName}, {"secret", secretCode}, {"game", gameName}, {"map",map.name}};
   return j.dump();
 }
 
@@ -73,7 +73,7 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData, PlayerSet& player
           }
         }
         std::string response = formulateResponse(shipName, secret, gameState.name, 
-            mapData.maps[nextMap].jsonData);
+                                                 mapData.maps[nextMap]);
         send(socket, {msg[0], "", response}); 
       }
       else

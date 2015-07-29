@@ -35,6 +35,7 @@ void loadMaps(const json& settings, MapData& mapData)
     std::string path = settings["mapPath"];
     std::string prefix = path + "/" + mapName;
     Map m;
+    m.name = mapName;
     m.start = loadBoolFromNumpy(prefix + "_start.npy");
     m.finish = loadBoolFromNumpy(prefix + "_end.npy"); 
     m.occupancy = loadBoolFromNumpy(prefix + "_occupancy.npy");

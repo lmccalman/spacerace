@@ -40,6 +40,8 @@ struct PlayerSet
 
 struct Map
 {
+  std::string name;
+
   Eigen::MatrixXb start;
   Eigen::MatrixXb finish;
   Eigen::MatrixXb occupancy;
@@ -52,8 +54,6 @@ struct Map
 
   Eigen::MatrixXf wallNormalx;
   Eigen::MatrixXf wallNormaly;
-
-  json jsonData;
 };
 
 struct MapData
