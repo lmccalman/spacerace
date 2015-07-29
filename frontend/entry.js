@@ -82,9 +82,9 @@ var x, y;
 var width, height;
 
 function loadMap() {
-    // Deal with a new map...
-    // => DataUrl if "file.png" is smaller that 1Mb
-    var mapData = require("url?limit=1000000!./testmap.png");
+    // TODO Deal with all the maps
+    // => DataUrl if the map file is smaller that 1Mb
+    var mapData = require("url?limit=1000000!../maps/testmap.png");
 
     var mapImage = document.createElement('img');
     mapImage.addEventListener('load', function () {
@@ -115,8 +115,8 @@ function loadMap() {
 
         // Assume positions are between 0 and 100 for now
         // (0,0) is at the bottom left
-        x = d3.scale.linear().domain([0, 100]).range([0, width]);
-        y = d3.scale.linear().domain([0, 100]).range([height, 0]);
+        x = d3.scale.linear().domain([0, 100]).range([0, actualWidth]);
+        y = d3.scale.linear().domain([0, 100]).range([actualHeight, 0]);
 
     });
     mapImage.src = mapData;
