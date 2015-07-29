@@ -9,6 +9,8 @@
 # Created by Louis Tiao on 28/07/2015.
 # 
 
+import matplotlib.pyplot as plt
+
 import itertools
 import argparse
 import logging
@@ -18,7 +20,12 @@ import random
 import json
 import zmq
 
-from collections import defaultdict
+DEFAULTS = {
+    'hostname': 'localhost',
+    'state_port': 5556,
+    'control_port': 5557,
+    'lobby_port': 5558,
+}
 
 # Setup basic logging
 logger = logging.getLogger(__name__)
@@ -111,10 +118,10 @@ if __name__ == '__main__':
         description='Spacerace: Manned Spacecraft'
     )
 
-    parser.add_argument('hostname', type=str, help='Server hostname', default="localhost")
-    parser.add_argument('state_port', type=int, help='State port', default=5556)
-    parser.add_argument('control_port', type=int, help='Control port', default=5557)
-    parser.add_argument('lobby_port', type=int, help='Lobby port', default=5558)
+    parser.add_argument('--hostname', type=str, help='Server hostname', default=DEFAULTS['hostname'])
+    parser.add_argument('--state_port', type=int, help='State port', default=DEFAULTS['state_port'])
+    parser.add_argument('--control_port', type=int, help='Control port', default=DEFAULTS['control_port'])
+    parser.add_argument('--lobby_port', type=int, help='Lobby port', default=DEFAULTS['lobby_port'])
 
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
     parser.add_argument('--ship_name', '-n', type=str,
