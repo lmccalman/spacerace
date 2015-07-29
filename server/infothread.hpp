@@ -11,9 +11,14 @@ class InfoLogger
       socket_.connect("inproc://infologger");
     }
 
-    void operator()(const std::vector<std::string>& s)
+    void operator()(const std::string& category, const std::string& subject, const json& data)
     {
-      send(socket_, s);
+      json j {
+              {"category", category},
+              {"subject", subject},
+              {"data", data}
+             };
+      send(socket_, {j.dump()});
     }
 
     void close()
@@ -24,6 +29,12 @@ class InfoLogger
   private:
     zmq::socket_t socket_;
 };
+
+
+void infoMessage(const std::string& category, const std::string& subject, const json& data)
+{
+}
+
 
 void runInfoThread(zmq::context_t& c, const json& settings)
 {

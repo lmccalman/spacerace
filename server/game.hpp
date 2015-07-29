@@ -12,7 +12,7 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state,
     zmq::socket_t& socket)
 {
   json j; 
-  j["status"] = "IN GAME";
+  j["state"] = "running";
   j["data"] = json::array();
   for (auto const& p : players.ids)
   {
@@ -78,7 +78,7 @@ void runGame(PlayerSet& players,
   bool running = true;
   
   auto gameStart = hrclock::now();
-  logger({"INFO","Game starting now!"});
+  logger("game", "status","{\"state\":\"running\"}"_json);
   while (running && !interruptedBySignal)
   {
     auto frameStart = hrclock::now();
@@ -101,8 +101,8 @@ void runGame(PlayerSet& players,
     waitPreciseInterval(frameStart, targetMicroseconds);
   }
   // Game over, so tell the clients
-  logger({"INFO","Game over!"});
-  send(stateSocket, {gameState.name,"{\"status\":\"GAME OVER\"}"});
+  logger("game", "status","{\"state\":\"finished\"}"_json);
+  send(stateSocket, {gameState.name,"{\"state\":\"finished\"}"});
 
 }
 

@@ -1,4 +1,5 @@
 import zmq
+import json
 
 info_port = 5559
 
@@ -9,8 +10,8 @@ def main():
     address = "tcp://localhost:{}".format(info_port)
     socket.connect(address)
     while True:
-        msg = socket.recv_multipart()
-        print("LOG: ", [k.decode() for k in msg])
+        msg = json.loads(socket.recv().decode())
+        print(msg)
 
 
 if __name__ == '__main__':

@@ -18,6 +18,11 @@ std::string formulateResponse(const std::string& shipName, const std::string& se
   return j.dump();
 }
 
+std::string lobbyStatus()
+{
+
+}
+
 std::string secretCode(boost::uuids::random_generator& gen)
 {
   std::string s = boost::lexical_cast<std::string>(gen());
@@ -53,7 +58,12 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData, PlayerSet& player
       {
         std::lock_guard<std::mutex> gameStateLock(gameState.mutex);
         players.ids.insert(shipName);
-        logger({"New Player connected with ID: " + shipName});
+        // Notify everyone of the new players
+        json r = {{"nextMap", mapData.maps[nextMap].name},
+                  {"newPlayer", shipName},
+                  {"players", players.ids}};
+        logger("lobby", "status", r);
+
         std::string secret = secretCode(gen);
         players.secretKeys[shipName] = secret;
         players.densities[shipName] = float(settings["simulation"]["ship"]["defaultDensity"]);
@@ -69,7 +79,7 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData, PlayerSet& player
           catch(...)
           {
             // They can still play they just have to use the default density
-            logger({"ERROR", shipName + " tried to specify density as " + msg[3] + " but could not convert to float"});
+            logger("lobby", "error", {"message", shipName + " tried to specify density as " + msg[3] + " but could not convert to float"});
           }
         }
         std::string response = formulateResponse(shipName, secret, gameState.name, 
@@ -78,7 +88,7 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData, PlayerSet& player
       }
       else
       {
-        logger({"ERROR", "ID already in use: " + shipName});
+        logger("lobby", "error", {"message", "ID already in use: " + shipName});
         send(socket,{msg[0], "", "ERROR: ID Taken. Please try something else."});
       }
 

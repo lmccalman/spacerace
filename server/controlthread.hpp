@@ -40,9 +40,9 @@ void runControlThread(zmq::context_t& context,
       else if (newMsg)
       {
         if (!validSender)
-          logger({"ERROR","Unknown secret key: " + messageTokens[0]});
+          logger("control", "error", {"message","Unknown secret key: " + messageTokens[0]});
         if (!validMessage)
-          logger({"ERROR","Ship " + control.keyToId[messageTokens[0]] + " sent invalid message"}); 
+          logger("control", "error", {"message","Ship " + control.keyToId[messageTokens[0]] + " sent invalid message"}); 
       }
     }
   }

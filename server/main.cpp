@@ -97,7 +97,7 @@ int main(int ac, char* av[])
 
   // External logging system
   InfoLogger logger(*context);
-  logger({"INFO", "External logging initialised"});
+  logger("game", "status", json({"message", "External logging initialised"}));
 
   
   uint lobbyWait = settings["lobbyWait"];

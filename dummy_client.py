@@ -44,7 +44,8 @@ def play_game(context, my_id, my_secret_code, map_data, game_name):
         print("receiving state info...")
         state_info = state_socket.recv_multipart()
         j = json.loads(state_info[1].decode())
-        if j['status'] == "GAME OVER":
+        print(j)
+        if j['state'] == "finished":
             break
         print("state_info: {}".format(state_info))
         print("sending control...")
