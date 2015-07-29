@@ -123,21 +123,20 @@ int main(int ac, char* av[])
       nextGameState.name = gameName(gameNumber+1);
       
       // get list of players
-      std::swap(nextPlayers.ids, currentPlayers.ids);
-      std::swap(nextPlayers.secretKeys, currentPlayers.secretKeys);
-      nextPlayers.ids.clear();
-      nextPlayers.secretKeys.clear();
+      std::swap(nextPlayers.fromId, currentPlayers.fromId);
+      std::swap(nextPlayers.idFromSecret, currentPlayers.idFromSecret);
+      nextPlayers.fromId.clear();
+      nextPlayers.idFromSecret.clear();
 
       // build the control structures, index maps and densities for the current game
-      uint nShips = currentPlayers.ids.size();
+      uint nShips = currentPlayers.fromId.size();
       control.inputs = Eigen::MatrixXf::Zero(nShips, CONTROL_LENGTH);
       params.shipDensities = Eigen::VectorXf(nShips);
       uint idx=0;
-      for (auto const& i : currentPlayers.ids)
+      for (auto const& p : currentPlayers.fromId)
       {
-        control.idx[currentPlayers.secretKeys[i]] = idx;
-        control.keyToId[currentPlayers.secretKeys[i]] = i;
-        params.shipDensities[idx] = currentPlayers.densities[i];
+        control.idx[p.second.secretKey] = idx;
+        params.shipDensities[idx] = p.second.density;
         idx++;
       }
       LOG(INFO) << nShips << " players connected for this round";
@@ -145,11 +144,11 @@ int main(int ac, char* av[])
       // Update the map
       mapData.currentMap = (mapData.currentMap + 1) % mapData.maps.size();
       LOG(INFO) << "Beginning game on map " << mapData.currentMap;
-
+        
     }
     LOG(INFO) << "Game data acquired.";
 
-    if (currentPlayers.ids.size() == 0)
+    if (currentPlayers.fromId.size() == 0)
     {
       LOG(INFO) << "Skipping match because no-one has connected";
       continue; 

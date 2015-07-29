@@ -26,15 +26,22 @@ struct ControlData
 {
   ControlMatrix inputs;
   std::map<std::string, uint> idx;
-  std::map<std::string, std::string> keyToId;
   std::mutex mutex;
+};
+
+
+struct Player
+{
+  std::string id;
+  std::string secretKey;
+  std::string team;
+  float density;
 };
 
 struct PlayerSet
 {
-  std::set<std::string> ids;
-  std::map<std::string, std::string> secretKeys;
-  std::map<std::string, float> densities;
+  std::map<std::string, Player> fromId;
+  std::map<std::string, std::string> idFromSecret;
   std::mutex mutex;
 };
 
@@ -81,6 +88,7 @@ struct SimulationParameters
   float wallFriction;
   float wallElacticity;
   float wallDamping;
+  float pixelSize;
   float shipFriction;
   float shipElacticity;
   float shipDamping;

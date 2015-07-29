@@ -43,7 +43,7 @@ make_random_name = lambda length: ''.join(random.choice(string.ascii_letters) \
 
 class Client:
 
-    def __init__(self, server, state_port, control_port, lobby_port, ship_name):
+    def __init__(self, server, state_port, control_port, lobby_port, ship_name, team_name):
 
         # ZeroMQ context
         self.context = zmq.Context()
@@ -52,6 +52,7 @@ class Client:
         self.pressed = set()
 
         self.ship_name = ship_name        
+        self.team_name = team_name
 
         self.control_address = make_address(server, control_port)
         self.state_address = make_address(server, state_port)
@@ -64,7 +65,8 @@ class Client:
         self.lobby_sock.connect(self.lobby_address)
 
         logger.info('Sending ship name [{0}]'.format(self.ship_name))
-        self.lobby_sock.send_string(self.ship_name)
+        greeting_message = json.dumps({"name":self.ship_name, "team":self.team_name})
+        self.lobby_sock.send_string(greeting_message)
 
         logger.info('Awaiting confirmation from lobby...')
         lobby_response_data = self.lobby_sock.recv_json()
@@ -131,12 +133,14 @@ if __name__ == '__main__':
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
     parser.add_argument('--ship_name', '-n', type=str,
         default=make_random_name(10), help='Ship Name')
+    parser.add_argument('--team_name', '-t', type=str,
+        default=make_random_name(10), help='Ship Name')
 
     args = parser.parse_args()
 
     logger.debug(args)
 
-    client = Client(args.hostname, args.state_port, args.control_port, args.lobby_port, args.ship_name)
+    client = Client(args.hostname, args.state_port, args.control_port, args.lobby_port, args.ship_name, args.team_name)
 
     fig, ax = plt.subplots()
 

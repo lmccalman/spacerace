@@ -26,23 +26,22 @@ void runControlThread(zmq::context_t& context,
       std::lock_guard<std::mutex> playerSetLock(players.mutex);
       // should be of form <secret_code>, <0 or 1>,<-1, 0 or 1>
       boost::split(messageTokens, msg[0], boost::is_any_of(","));
-      bool validSender = control.idx.count(messageTokens[0]);
+      std::string secretKey = messageTokens[0];
+      bool validSender = control.idx.count(secretKey);
       bool validMessage = messageTokens.size() == 3;
       if (validSender && validMessage)
       {
         std::lock_guard<std::mutex> controlLock(control.mutex);
-        uint idx = control.idx[messageTokens[0]];
+        uint idx = control.idx[secretKey];
         control.inputs(idx,0) = float(messageTokens[1] == "1");
         control.inputs(idx,1) = float(messageTokens[2] == "1") - float(messageTokens[2] == "-1");
-        // LOG(DEBUG) << "Ship " << control.keyToId[messageTokens[0]] << " enacted control " 
-          // << control.inputs(idx,0) << "," << control.inputs(idx,1);
       }
       else if (newMsg)
       {
         if (!validSender)
-          logger("control", "error", {"message","Unknown secret key: " + messageTokens[0]});
+          logger("control", "error", {"message","Unknown secret key: " + secretKey});
         if (!validMessage)
-          logger("control", "error", {"message","Ship " + control.keyToId[messageTokens[0]] + " sent invalid message"}); 
+          logger("control", "error", {"message","Ship " + players.idFromSecret[secretKey] + " sent invalid message"}); 
       }
     }
   }

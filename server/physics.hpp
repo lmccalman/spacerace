@@ -43,6 +43,7 @@ void rk4TimeStep(StateMatrix& s, const ControlMatrix& c, const SimulationParamet
 SimulationParameters readParams(const json& j)
 {
   SimulationParameters s;
+  
   s.linearThrust =  j["simulation"]["ship"]["linearThrust"];
   s.rotationalThrust = j["simulation"]["ship"]["rotationalThrust"];
   s.shipRadius = j["simulation"]["ship"]["radius"];
@@ -55,6 +56,7 @@ SimulationParameters readParams(const json& j)
   s.wallFriction  = j["simulation"]["world"]["wallFriction"];
   s.wallElacticity = j["simulation"]["world"]["wallElacticity"];
   s.wallDamping = j["simulation"]["world"]["wallDamping"];
+  s.pixelSize = j["simulation"]["world"]["pixelSize"];
 
   s.timeStep = j["simulation"]["timeStep"];
   s.integrationSteps = j["simulation"]["integrationSteps"];

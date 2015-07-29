@@ -18,11 +18,6 @@ std::string formulateResponse(const std::string& shipName, const std::string& se
   return j.dump();
 }
 
-std::string lobbyStatus()
-{
-
-}
-
 std::string secretCode(boost::uuids::random_generator& gen)
 {
   std::string s = boost::lexical_cast<std::string>(gen());
@@ -43,53 +38,78 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData, PlayerSet& player
   uint port = settings["lobbySocket"]["port"];
   zmq::socket_t socket(context, ZMQ_ROUTER);
   initialiseSocket(socket, port, linger, timeout);
+  float defaultDensity = float(settings["simulation"]["ship"]["defaultDensity"]);
+  bool sentFirstStatus = false;
 
   while (!interruptedBySignal)
   {
-    std::vector<std::string> msg;
-    bool newMsg = receive(socket, msg);
+    // Send some initial status
+    if (!sentFirstStatus && players.fromId.size() == 0)
+    {
+      sentFirstStatus = true;
+      std::lock_guard<std::mutex> lock(players.mutex);
+        std::lock_guard<std::mutex> gameStateLock(gameState.mutex);
+      uint nextMap = (mapData.currentMap + 1) % mapData.maps.size();
+      logger("lobby", "status",{{"map", mapData.maps[nextMap].name},
+                  {"players", json::array()},
+                  {"game", gameState.name}});
+    }
+    
+    std::vector<std::string> rawMsg;
+    bool newMsg = receive(socket, rawMsg);
     if (newMsg)
     {
-      
-      const std::string& shipName = msg[2];
+      json msg = json::parse(rawMsg[2]);
+      std::string& zmqAddress = rawMsg[0];
+      LOG(INFO)  << "New message received: " << msg;
+      Player p;
+      p.id = msg["name"].get<std::string>();
+      p.team = msg["team"].get<std::string>();
+      p.secretKey = secretCode(gen);
+      p.density = defaultDensity;
+      if (msg.count("mass"))
+      {
+        try
+        {
+          float d = msg["mass"];
+          d = std::max(d, float(settings["simulation"]["ship"]["minimumDensity"]));
+          d = std::min(d, float(settings["simulation"]["ship"]["maximumDensity"]));
+          p.density = d;
+        }
+        catch(...)
+        {
+          // They can still play they just have to use the default density
+          logger("lobby", "error", {"message", p.id + " tried to specify mass as " + msg["mass"].get<std::string>() + " but could not convert to float"});
+        }
+      }
       std::lock_guard<std::mutex> lock(players.mutex);
       uint nextMap = (mapData.currentMap + 1) % mapData.maps.size();
-      if (!players.ids.count(shipName))
+      if (!players.fromId.count(p.id))
       {
+        // we want to resend next time it's empty again
+        sentFirstStatus = false;
+        LOG(INFO) << "Lobby adding new player";
         std::lock_guard<std::mutex> gameStateLock(gameState.mutex);
-        players.ids.insert(shipName);
+        players.fromId[p.id] = p;
+        players.idFromSecret[p.secretKey] = p.id;
         // Notify everyone of the new players
-        json r = {{"nextMap", mapData.maps[nextMap].name},
-                  {"newPlayer", shipName},
-                  {"players", players.ids}};
+        std::vector<std::string> lobbyPlayers;
+        for(auto const& p: players.fromId)
+          lobbyPlayers.push_back(p.first);
+        json r = {{"map", mapData.maps[nextMap].name},
+                  {"newPlayer", p.id},
+                  {"players", lobbyPlayers},
+                  {"game", gameState.name}};
         logger("lobby", "status", r);
-
-        std::string secret = secretCode(gen);
-        players.secretKeys[shipName] = secret;
-        players.densities[shipName] = float(settings["simulation"]["ship"]["defaultDensity"]);
-        if (msg.size() >= 4)
-        {
-          try
-          {
-            float d = stof(msg[3]);
-            d = std::max(d, float(settings["simulation"]["ship"]["minimumDensity"]));
-            d = std::min(d, float(settings["simulation"]["ship"]["maximumDensity"]));
-            players.densities[shipName] = d;
-          }
-          catch(...)
-          {
-            // They can still play they just have to use the default density
-            logger("lobby", "error", {"message", shipName + " tried to specify density as " + msg[3] + " but could not convert to float"});
-          }
-        }
-        std::string response = formulateResponse(shipName, secret, gameState.name, 
+        std::string response = formulateResponse(p.id, p.secretKey, gameState.name, 
                                                  mapData.maps[nextMap]);
-        send(socket, {msg[0], "", response}); 
+        LOG(INFO) << "lobby sending response: " << response;
+        send(socket, {zmqAddress, "", response}); 
       }
       else
       {
-        logger("lobby", "error", {"message", "ID already in use: " + shipName});
-        send(socket,{msg[0], "", "ERROR: ID Taken. Please try something else."});
+        logger("lobby", "error", {"message", "ID already in use: " + p.id});
+        send(socket,{zmqAddress, "", "ERROR: ID Taken. Please try something else."});
       }
 
     }
