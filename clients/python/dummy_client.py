@@ -1,69 +1,140 @@
-import zmq
-import random
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+#
+# dummy_client.py
+# Game client for 2015 ETD Winter retreat
+# https://github.com/lmccalman/spacerace
+# 
+# Created by Louis Tiao on 28/07/2015.
+# 
+
+import matplotlib.pyplot as plt
+
+import itertools
+import argparse
+import logging
+import pprint
 import string
+import random
 import json
-import sys
+import zmq
 
-server = 'localhost' if len(sys.argv) <= 1 else sys.argv[1]
-state_port = 5556
-control_port = 5557
-lobby_port = 5558
+DEFAULTS = {
+    'hostname': 'localhost',
+    'state_port': 5556,
+    'control_port': 5557,
+    'lobby_port': 5558,
+}
 
+# Setup basic logging
+logger = logging.getLogger(__name__)
 
-def random_id():
-    return "".join(random.choice(string.ascii_letters)
-            for i in range(10)).encode()
+logging.basicConfig(
+    level = logging.INFO,
+    datefmt = '%I:%M:%S %p',
+    format = '%(asctime)s [%(levelname)s]: %(message)s'
+)
 
-def connect(context, my_id):
-    lobby_socket = context.socket(zmq.REQ)
-    lobby_address = "tcp://{}:{}".format(server, lobby_port)
-    print("connecting to lobby at {}".format(lobby_address))
-    lobby_socket.connect(lobby_address)
-    print("sending hello")
-    lobby_socket.send(my_id)
-    rep = lobby_socket.recv()
-    data = json.loads(rep.decode())
-    print(data)
-    game_name = data["game"]
-    secret_code = data["secret"]
-    map_data = data["map"]
-    return secret_code, map_data, game_name
+# Helper functions
+make_address = 'tcp://{}:{}'.format
+make_random_name = lambda length: ''.join(random.choice(string.ascii_letters) \
+    for _ in range(length))
 
-def play_game(context, my_id, my_secret_code, map_data, game_name):
-    print("Starting to play game")
-    control_socket = context.socket(zmq.PUSH)
-    state_socket = context.socket(zmq.SUB)
-    state_socket.setsockopt(zmq.SUBSCRIBE, game_name.encode())
-    control_address = "tcp://{}:{}".format(server, control_port)
-    state_address = "tcp://{}:{}".format(server, state_port)
-    print("Connecting to control and state sockets")
-    control_socket.connect(control_address)
-    state_socket.connect(state_address)
-    print("State and control sockets connected")
-    while True:
-        print("receiving state info...")
-        state_info = state_socket.recv_multipart()
-        j = json.loads(state_info[1].decode())
-        if j['status'] == "GAME OVER":
-            break
-        print("state_info: {}".format(state_info))
-        print("sending control...")
-        linear_control = str(random.choice([1,1,1,1,0]))
-        rotational_control = str(random.choice([-1,-1,1,1,0,0,0,0,0,0,0]))
-        control_socket.send("{},{},{}".format(my_secret_code,
-            linear_control, rotational_control).encode())
-        print("control sent")
-    print("Game Over!")
+class Client:
 
-def main():
-    context = zmq.Context()
-    context.linger = 0 # applies to subsequent sockets
-    my_id = random_id()
-    print("my id: {}".format(my_id))
-    while True:
-        secret_code, map_data, game_name = connect(context, my_id)
-        play_game(context, my_id, secret_code, map_data, game_name)
+    def __init__(self, server, state_port, control_port, lobby_port, ship_name):
 
+        # ZeroMQ context
+        self.context = zmq.Context()
+        self.context.linger = 0
+        
+        self.control_address = make_address(server, control_port)
+        self.state_address = make_address(server, state_port)
+        self.lobby_address = make_address(server, lobby_port)
+
+        self.ship_name = ship_name
+
+    def __enter__(self):
+
+        # Lobby socket
+        self.lobby_sock = self.context.socket(zmq.REQ)
+
+        logger.info('Connecting to lobby lobby at [{0}]...'.format(self.lobby_address)) 
+        self.lobby_sock.connect(self.lobby_address)
+
+        logger.info('Sending ship name [{0}]'.format(self.ship_name))
+        self.lobby_sock.send_string(self.ship_name)
+
+        logger.info('Awaiting confirmation from lobby...')
+        lobby_response_data = self.lobby_sock.recv_json()
+
+        logging.debug(pprint.pformat(lobby_response_data))
+
+        self.secret_key = lobby_response_data['secret']
+        self.game_name = lobby_response_data['game']
+        self.game_map  = lobby_response_data['map']
+
+        logging.info('Ship [{}] was registered to participate in game [{}]'
+                     ' (secret [{}])'.format(self.ship_name, self.game_name, \
+                        self.secret_key))
+
+        # Control socket
+        self.control_sock = self.context.socket(zmq.PUSH)
+
+        logger.info('Connecting to control socket at [{0}]...'.format(self.control_address)) 
+        self.control_sock.connect(self.control_address)
+
+        # State socket
+        self.state_sock = self.context.socket(zmq.SUB)
+        self.state_sock.setsockopt_string(zmq.SUBSCRIBE, self.game_name)
+
+        logger.info('Connecting to state socket at [{0}]...'.format(self.state_address)) 
+        self.state_sock.connect(self.state_address)
+
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        logger.info('Closing sockets')
+        self.lobby_sock.close()
+        self.control_sock.close()
+        self.state_sock.close()
+
+    def recv_state(self):
+        logger.info('Awaiting message from state socket...')
+        msg_filter_b, state_b = self.state_sock.recv_multipart()
+        logger.info('State information message received!')
+        state = json.loads(state_b.decode())
+        return state
+
+    def send_control(self, linear, rotational):
+        control_lst = [self.secret_key, linear, rotational]
+        control_str = ','.join(map(str, control_lst))
+        logger.info('Sending control string "{}"'.format(control_str))
+        self.control_sock.send_string(control_str)
 
 if __name__ == '__main__':
-    main()
+
+    parser = argparse.ArgumentParser(
+        description='Spacerace: Dummy Spacecraft'
+    )
+
+    parser.add_argument('--hostname', type=str, help='Server hostname', default=DEFAULTS['hostname'])
+    parser.add_argument('--state_port', type=int, help='State port', default=DEFAULTS['state_port'])
+    parser.add_argument('--control_port', type=int, help='Control port', default=DEFAULTS['control_port'])
+    parser.add_argument('--lobby_port', type=int, help='Lobby port', default=DEFAULTS['lobby_port'])
+
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0')
+    parser.add_argument('--ship_name', '-n', type=str,
+        default=make_random_name(10), help='Ship Name')
+
+    args = parser.parse_args()
+
+    logger.debug(args)
+
+    with Client(args.hostname, args.state_port, args.control_port, args.lobby_port, args.ship_name) as client:
+        while True:
+            pprint.pprint(client.recv_state())
+            linear = random.choice([1,1,1,1,0])
+            rotational = random.choice([-1,-1,1,1,0,0,0,0,0,0,0])
+            client.send_control(linear, rotational)
