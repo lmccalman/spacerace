@@ -12,10 +12,42 @@ var updates = 0;
 var draws = 0;
 var fpsqueue = [];
 
+var playerDiv = d3.select("#leaderboard");
+
+socket.on('Log', function (msg) {
+    var rawPacket = JSON.parse(msg);
+    //console.log(rawPacket);
+
+    if(rawPacket.category === "lobby"){
+        console.log("Lobby Status received");
+        console.log(rawPacket);
+
+        d3.selectAll("#lobby ul").remove();
+
+
+        var lobby = d3.selectAll("#lobby")
+            .append("ul")
+            .selectAll("#lobby li")
+            .data(rawPacket.data.players);
+
+        lobby.enter()
+            .append("li")
+            .text(function(d, i){ return d; })
+
+
+    }
+    else {
+        console.log("Got unknown category");
+        console.log(rawPacket);
+    }
+});
+
+
 socket.on('GameState', function (msg) {
     var rawPacket = JSON.parse(msg);
+    //console.log(rawPacket);
 
-    if (rawPacket.status === "IN GAME") {
+    if (rawPacket.state === "running") {
         gameState = rawPacket.data;
         updates += 1;
 
@@ -24,7 +56,7 @@ socket.on('GameState', function (msg) {
         }
     }
 
-    if (rawPacket.status === "GAME OVER") {
+    if (rawPacket.state === "finished") {
         console.log("Game Over");
     }
 });
@@ -84,7 +116,7 @@ var width, height;
 function loadMap() {
     // TODO Deal with all the maps
     // => DataUrl if the map file is smaller that 1Mb
-    var mapData = require("url?limit=1000000!../maps/testmap.png");
+    var mapData = require("url?limit=1000000!../maps/bt-circle1.png");
 
     var mapImage = document.createElement('img');
     mapImage.addEventListener('load', function () {
@@ -124,12 +156,39 @@ function loadMap() {
 
 loadMap();
 
+var selectedShip;
 
 var fps = d3.select("#fps span");
 
 var setupGame = function () {
     var initState = gameState;
     var SHIPSIZE = "10";
+
+
+    initState.map(function(d){
+
+        d.color = "hsl(" + Math.random() * 360 + ",75%, 50%)";
+    });
+
+    // Show each player
+    var playerContainer = playerDiv.append("ul");
+    var players = playerContainer.selectAll("li")
+        .data(initState);
+
+    players.exit().remove();
+    players.enter().append("li").append("button")
+        .attr("title", "Click to select")
+        .on("click", function(d, i){
+            console.log("Selecting ship for player " + d.id);
+            selectedShip = i;
+        })
+        .style("color", function(d, i){
+            return d.color;
+        })
+        .text(function(d, i){
+            return d.id;
+        });
+
 
     ships = shipGroup
         .selectAll('.ship')
@@ -145,8 +204,8 @@ var setupGame = function () {
         .attr("xlink:href", "#ship")
         .attr("width", SHIPSIZE)
         .attr("height", SHIPSIZE)
-        .attr('fill', function () {
-            return "hsl(" + Math.random() * 360 + ",75%, 50%)"
+        .attr('fill', function (d) {
+            return d.color;
         });
 
     // Trigger the first full draw
@@ -173,6 +232,13 @@ var updateState = function (highResTimestamp) {
 
         ships
             .data(gameState)
+
+            .style("fill", function(d, i){
+                if(selectedShip === i){
+                    return "black";
+                }
+            })
+
             // Perhaps we can add/remove the jet with display="none"
             //.attr('opacity', function (d, i) {
             //    // Show accelerating with opacity toggle

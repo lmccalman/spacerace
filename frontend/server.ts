@@ -29,10 +29,6 @@ http.listen(8000, function(){
 io.on('connection', function(ws){
     console.log('A websocket connected');
 
-    ws.on('debug', function(msg){
-        console.log('WWW Debug: ' + msg);
-    });
-
     ws.on('disconnect', function(){
         console.log('Websocket disconnected');
     });
@@ -73,10 +69,11 @@ lobbySocket.on('message', function(msg){
 logSocket.on('message', function(msg){
     // Note the `msg` is a string, not JSON
     console.log('[LOG] Received: %s', msg.toString());
+    io.emit('Log', msg.toString());
 });
 
 gameStateSocket.on('message', function(topic, msg){
-    console.log('[GAME] Received State for: %s', topic.toString());
+    //console.log('[GAME] Received State for: %s', topic.toString());
     //console.log('[GAME] State: %s', msg.toString());
 
     io.emit('GameState', msg.toString());
