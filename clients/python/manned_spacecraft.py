@@ -49,13 +49,13 @@ class Client:
         self.context = zmq.Context()
         self.context.linger = 0
         
+        self.pressed = set()
+
+        self.ship_name = ship_name        
+
         self.control_address = make_address(server, control_port)
         self.state_address = make_address(server, state_port)
         self.lobby_address = make_address(server, lobby_port)
-
-        self.ship_name = ship_name
-
-    def __enter__(self):
 
         # Lobby socket
         self.lobby_sock = self.context.socket(zmq.REQ)
@@ -92,16 +92,8 @@ class Client:
         logger.info('Connecting to state socket at [{0}]...'.format(self.state_address)) 
         self.state_sock.connect(self.state_address)
 
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        logger.info('Closing sockets')
-        self.lobby_sock.close()
-        self.control_sock.close()
-        self.state_sock.close()
-
     def recv_state(self):
-        logger.info('Awaining message from state socket...')
+        logger.info('Awaiting message from state socket...')
         msg_filter_b, state_b = self.state_sock.recv_multipart()
         state = json.loads(state_b.decode())
         return state
@@ -111,6 +103,18 @@ class Client:
         control_str = ','.join(map(str, control_lst))
         logger.info('Sending control string "{}"'.format(control_str))
         self.control_sock.send_string(control_str)
+
+    def press(self, event):
+        self.pressed.add(event.key)
+        linear = int('w' in self.pressed)
+        rotation = 0
+        rotation -= int('q' in self.pressed)
+        rotation += int('e' in self.pressed)
+        # print(linear, rotation, self.pressed)
+        self.send_control(linear, rotatiown)
+
+    def release(self, event):
+        self.pressed.discard(event.key)
 
 if __name__ == '__main__':
 
@@ -131,7 +135,12 @@ if __name__ == '__main__':
 
     logger.debug(args)
 
-    with Client(args.hostname, args.state_port, args.control_port, args.lobby_port, args.ship_name) as client:
-        while True:
-            pprint.pprint(client.recv_state())
-            client.send_control(0, -1)
+    client = Client(args.hostname, args.state_port, args.control_port, args.lobby_port, args.ship_name)
+
+    fig, ax = plt.subplots()
+
+    fig.canvas.mpl_connect('key_press_event', client.press)
+    fig.canvas.mpl_connect('key_release_event', client.release)
+
+    plt.show()
+
