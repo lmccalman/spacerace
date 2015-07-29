@@ -106,10 +106,10 @@ class Client:
 
     def press(self, event):
         self.pressed.add(event.key)
-        linear = int('w' in self.pressed)
+        linear = int('up' in self.pressed)
         rotation = 0
-        rotation -= int('q' in self.pressed)
-        rotation += int('e' in self.pressed)
+        rotation -= int('left' in self.pressed)
+        rotation += int('right' in self.pressed)
         self.send_control(linear, rotation)
 
     def release(self, event):
