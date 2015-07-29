@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 #
-# manned_spacecraft.py
+# dummy_client.py
 # Game client for 2015 ETD Winter retreat
 # https://github.com/lmccalman/spacerace
 # 
 # Created by Louis Tiao on 28/07/2015.
 # 
+
+import matplotlib.pyplot as plt
 
 import itertools
 import argparse
@@ -18,7 +20,12 @@ import random
 import json
 import zmq
 
-from collections import defaultdict
+DEFAULTS = {
+    'hostname': 'localhost',
+    'state_port': 5556,
+    'control_port': 5557,
+    'lobby_port': 5558,
+}
 
 # Setup basic logging
 logger = logging.getLogger(__name__)
@@ -94,8 +101,9 @@ class Client:
         self.state_sock.close()
 
     def recv_state(self):
-        logger.info('Awaining message from state socket...')
+        logger.info('Awaiting message from state socket...')
         msg_filter_b, state_b = self.state_sock.recv_multipart()
+        logger.info('State information message received!')
         state = json.loads(state_b.decode())
         return state
 
@@ -108,13 +116,13 @@ class Client:
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
-        description='Spacerace: Manned Spacecraft'
+        description='Spacerace: Dummy Spacecraft'
     )
 
-    parser.add_argument('hostname', type=str, help='Server hostname', default="localhost")
-    parser.add_argument('state_port', type=int, help='State port', default=5556)
-    parser.add_argument('control_port', type=int, help='Control port', default=5557)
-    parser.add_argument('lobby_port', type=int, help='Lobby port', default=5558)
+    parser.add_argument('--hostname', type=str, help='Server hostname', default=DEFAULTS['hostname'])
+    parser.add_argument('--state_port', type=int, help='State port', default=DEFAULTS['state_port'])
+    parser.add_argument('--control_port', type=int, help='Control port', default=DEFAULTS['control_port'])
+    parser.add_argument('--lobby_port', type=int, help='Lobby port', default=DEFAULTS['lobby_port'])
 
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
     parser.add_argument('--ship_name', '-n', type=str,
@@ -127,4 +135,6 @@ if __name__ == '__main__':
     with Client(args.hostname, args.state_port, args.control_port, args.lobby_port, args.ship_name) as client:
         while True:
             pprint.pprint(client.recv_state())
-            client.send_control(0, -1)
+            linear = random.choice([1,1,1,1,0])
+            rotational = random.choice([-1,-1,1,1,0,0,0,0,0,0,0])
+            client.send_control(linear, rotational)
