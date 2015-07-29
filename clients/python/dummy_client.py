@@ -132,9 +132,13 @@ if __name__ == '__main__':
 
     logger.debug(args)
 
-    with Client(args.hostname, args.state_port, args.control_port, args.lobby_port, args.ship_name) as client:
-        while True:
-            pprint.pprint(client.recv_state())
-            linear = random.choice([1,1,1,1,0])
-            rotational = random.choice([-1,-1,1,1,0,0,0,0,0,0,0])
-            client.send_control(linear, rotational)
+    while True:
+        with Client(args.hostname, args.state_port, args.control_port, args.lobby_port, args.ship_name) as client:
+            while True:
+                state = client.recv_state()
+                pprint.pprint(state)
+                if state['state'] == "finished":
+                    break
+                linear = random.choice([1,1,1,1,0])
+                rotational = random.choice([-1,-1,1,1,0,0,0,0,0,0,0])
+                client.send_control(linear, rotational)
