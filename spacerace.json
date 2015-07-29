@@ -47,5 +47,6 @@
     "timeout": 500},
 
   "mapbuilder": {
-    "normalBlur": 5.0}
+    "normalBlur": 5.0,
+    "padPixels": 5}
 }
