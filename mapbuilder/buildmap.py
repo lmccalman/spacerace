@@ -7,7 +7,7 @@ import json
 import skfmm
 import numpy as np
 import matplotlib.pyplot as pl
-from scipy.misc import imread
+from scipy.misc import imread, imsave
 from scipy.ndimage.filters import gaussian_filter
 
 
@@ -24,6 +24,7 @@ def buildmap(image, mapname, settingsfile, visualise):
         settings = json.load(f)
 
     # Read in map
+    print("Reading and processing map image...")
     mapim = imread(image)
     if mapim.shape[2] > 3:
         mapim = mapim[:, :, 0:3]  # ignore alpha
@@ -34,9 +35,6 @@ def buildmap(image, mapname, settingsfile, visualise):
                    'constant', constant_values=0)
 
     w, h, d = mapim.shape
-
-    # import IPython; IPython.embed()
-    # pl.imshow(mapim); pl.show()
 
     # Find start (full green pixels)
     startim = np.logical_and(mapim[:, :, 0] != 255, mapim[:, :, 1] == 255,
@@ -51,11 +49,13 @@ def buildmap(image, mapname, settingsfile, visualise):
                             mapim[:, :, 2] == 0)
 
     # Calculate distance to walls
+    print("Calculating distance to walls...")
     distintowall = skfmm.distance(~occmap)
     distouttowall = skfmm.distance(occmap)
     distmap = distintowall - distouttowall
 
     # Calculate start->end potential field
+    print("Calculating flow field to end...")
     distfromend = skfmm.distance(np.ma.MaskedArray(~endim, occmap))
 
     dfyi, dfxi = np.gradient(-distfromend)
@@ -65,6 +65,7 @@ def buildmap(image, mapname, settingsfile, visualise):
     distfromend = distfromend.filled(0) + distouttowall
 
     # Calculate wall normals
+    print("Calculating wall normals...")
     blurmap = gaussian_filter((~occmap).astype(float),
                               sigma=settings['mapbuilder']['normalBlur'])
 
@@ -74,6 +75,7 @@ def buildmap(image, mapname, settingsfile, visualise):
 
     # plotting
     if visualise:
+        print("Making plots...")
         skip = (slice(None, None, 20), slice(None, None, 20))
         y, x = np.mgrid[0:w, 0:h]
 
@@ -110,8 +112,19 @@ def buildmap(image, mapname, settingsfile, visualise):
 
         pl.show()
 
-    # Save layers
-    mapname = image.rpartition('.')[0] if mapname is None else mapname
+    # Process output names
+    print("Saving results...")
+    mapnamebits = image.partition('.')
+    mapname = mapnamebits[0] if mapname is None else mapname.partition[0]
+
+    # import IPython; IPython.embed()
+
+    # Save padded map
+    print('\t- padded image')
+    imsave(mapname+'_padded.'+mapnamebits[2], mapim)
+
+    # Binary layers for engine
+    print('\t- binary layers')
     save_bool_map(mapname+'_start', startim)
     save_bool_map(mapname+'_end', endim)
     save_bool_map(mapname+'_occupancy', occmap)
@@ -121,6 +134,17 @@ def buildmap(image, mapname, settingsfile, visualise):
     save_float32_map(mapname+'_wnormy', dny, vec=True)
     save_float32_map(mapname+'_flowx', dfx)
     save_float32_map(mapname+'_flowy', dfy, vec=True)
+
+    # Easy to read formats for players
+    print('\t- csv layers')
+    save_text_bool_map(mapname+'_start', startim)
+    save_text_bool_map(mapname+'_end', endim)
+    save_text_bool_map(mapname+'_occupancy', occmap)
+    save_text_float32_map(mapname+'_enddist', distfromend)
+    save_text_float32_map(mapname+'_flowx', dfx)
+    save_text_float32_map(mapname+'_flowy', dfy, vec=True)
+
+    print("Done!")
 
 
 def combine_and_norm(yi, yo, xi, xo, occmap):
@@ -149,6 +173,20 @@ def save_float32_map(filename, floatmap, vec=False):
         arr = -arr
 
     np.save(filename, arr)
+
+
+def save_text_float32_map(filename, maparray, vec=False):
+    arr = np.flipud(maparray.astype('float32'))
+
+    # if we are flipping a vector quantity about the y-axis
+    if vec:
+        arr = -arr
+
+    np.savetxt(filename+'.csv.gz', arr)
+
+
+def save_text_bool_map(filename, boolmap):
+    np.savetxt(filename+'.csv.gz', np.flipud(boolmap.astype(bool)))
 
 
 if __name__ == "__main__":
