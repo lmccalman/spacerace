@@ -16,12 +16,9 @@ app.get('/', function(req, res){
 app.get('/bundle.js', function(req, res){
     res.sendFile(__dirname + '/bundle.js');
 });
+// Serve the maps folder as static assets
+app.use('/maps', express.static('../maps'));
 
-// Commented out because map is currently bundled
-// And I expect it will actually be data in a socket.
-//app.get('/map.png', function(req, res){
-//  res.sendFile(__dirname + '/testmap.png');
-//});
 
 http.listen(8000, function(){
   console.log('listening on *:8000');

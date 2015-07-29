@@ -27,6 +27,7 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state,
     float Tr = control.inputs(idx, 1);
     LOG(INFO) << p << ":" << state.row(idx) << "\n" << control.inputs.row(idx);
     j["data"].push_back({
+        {"id",p},
         {"x", x},
         {"y", y},
         {"vx", vx},
@@ -40,11 +41,19 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state,
   send(socket, {gameState.name, j.dump()});
 }
 
-void initialiseState(StateMatrix& state)
+void initialiseState(StateMatrix& state, const Map& map)
 {
   state = StateMatrix::Random(state.rows(),state.cols());
   state.col(0) = state.col(0).array() + 50;
   state.col(1) = state.col(1).array() + 50;
+}
+
+std::string winner(const PlayerSet& players,
+                   const StateMatrix& state,
+                   const Map& map)
+{
+  //TODO
+  return "";
 }
 
 void runGame(PlayerSet& players, 
@@ -64,7 +73,7 @@ void runGame(PlayerSet& players,
   uint nShips = players.ids.size();
   uint targetMicroseconds = 1000000 / targetFPS;
   StateMatrix state(nShips, STATE_LENGTH);
-  initialiseState(state);
+  initialiseState(state, map);
   ControlMatrix inputs = control.inputs;
   bool running = true;
   
@@ -84,7 +93,9 @@ void runGame(PlayerSet& players,
       rk4TimeStep(state, inputs, params, map);
     
     //check we don't need to end the game
-    running = !hasRoughIntervalPassed(gameStart, totalGameTimeSeconds, targetFPS);
+    bool timeout = hasRoughIntervalPassed(gameStart, totalGameTimeSeconds, targetFPS);
+    bool raceWon = winner(players, state, map) != "";
+    running = (!timeout) && (!raceWon);
 
     // make sure we target a particular frame rate
     waitPreciseInterval(frameStart, targetMicroseconds);

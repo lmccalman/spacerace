@@ -2,7 +2,10 @@
 
 TODO:
 
-- Number of players connected
+- Highlight a player
+- Number of players connected in lobby for next game etc
+- Who is playing in current game
+- webgl
 
 ## Running the UI
 
@@ -12,13 +15,15 @@ Install the node dependencies:
  
 Build the static front end content:
 
-    $ webpack --colors
+    $ webpack
 
 Start the zmq -> socket.io and static asset server:
 
     $ node websocket-server.js
 
 The front end should be visible at <http://localhost:8000>
+The project level folder `maps` will be served from `http://localhost:8000/maps/`
+
 
 ## Communication
 
@@ -28,4 +33,4 @@ also port the stream to a websocket connection.
 
 ## Frontend Libraries
 
-- D3 (SVG first, then explore `pathgl`)
+- D3 (SVG first, then explore `three.js`)
