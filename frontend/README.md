@@ -19,7 +19,7 @@ Build the static front end content:
 
 Start the zmq -> socket.io and static asset server:
 
-    $ node websocket-server.js
+    $ node server.js
 
 The front end should be visible at <http://localhost:8000>
 The project level folder `maps` will be served from `http://localhost:8000/maps/`

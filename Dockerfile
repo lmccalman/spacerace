@@ -12,7 +12,9 @@ RUN apt-get update && apt-get install -y \
   
 RUN mkdir -p /usr/src/spacerace /spacerace
 COPY . /usr/src/spacerace
+
 WORKDIR /spacerace
+RUN cp -r /usr/src/spacerace/maps /spacerace/maps
 RUN cmake /usr/src/spacerace && make
 
 # Clean up APT when done
