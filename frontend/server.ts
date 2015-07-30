@@ -35,6 +35,7 @@ io.on('connection', function(ws){
 
 });
 
+
 // ZMQ component
 console.log('Frontend is trying to connect to ' + server);
 
@@ -76,7 +77,7 @@ gameStateSocket.on('message', function(topic, msg){
     //console.log('[GAME] Received State for: %s', topic.toString());
     //console.log('[GAME] State: %s', msg.toString());
 
-    io.emit('GameState', msg.toString());
+    io.volatile.emit('GameState', msg.toString());
 });
 
 
