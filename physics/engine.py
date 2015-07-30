@@ -208,9 +208,9 @@ def main():
 
             # give the user control of ship 0
             if 'right' in keys:
-                inputs[0, 1] = -15.
+                inputs[0, 1] = -10.
             elif 'left' in keys:
-                inputs[0, 1] = 15.
+                inputs[0, 1] = 10.
             else:
                 inputs[0, 1] = 0.
             if 'up' in keys:
@@ -228,11 +228,7 @@ def main():
             for state, col, r, sprite in zip(states, colours, radius, sprites):
                 draw_outline(state, col, r, handle=sprite)
             event_count += 1
-            if event_count == 10:
-                pl.pause(0.001)
-                event_count = 0
-            else:
-                pl.draw()  # Don't run the event loop... its really slow
+            pl.pause(0.001)
         else:
             sleep(next_draw - this_time)
 
