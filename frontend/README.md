@@ -2,10 +2,11 @@
 
 TODO:
 
-- Highlight a player
-- Number of players connected in lobby for next game etc
-- Who is playing in current game
-- webgl
+- [x] Highlight a player
+- [x] Players connected in lobby for next game
+- [ ] Show the map for the next game
+- [x] Who is playing in current game
+- [ ] webgl
 
 ## Running the UI
 

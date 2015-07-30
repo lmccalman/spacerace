@@ -1,11 +1,13 @@
 /*
 * A dumb bot for testing the server and front end.
 * Launch with:
-*   node chaos-race [number of ships] [server if not localhost]
+*   node chaos-race [number of ships] [server]
 * */
 
 var zmq = require('zmq');
 
+
+var UPDATE_RATE = 30; // [ms]
 var NUM_SHIPS = parseInt(process.argv.length > 2 ? process.argv[2] : '10');
 var server = process.argv.length > 3 ? process.argv[3] : 'localhost';
 
@@ -17,6 +19,17 @@ var lobby_port = 5558;
 var latestState;
 var gameNotOver = true;
 var stateSocket = zmq.socket('sub');
+var lobbySocket = zmq.socket('req');
+
+console.log("Connecting to lobby");
+lobbySocket.connect('tcp://' + server + ':' + lobby_port);
+lobbySocket.on('message', (msg) => {
+    var data = JSON.parse(msg);
+    console.log("LOBBY: ", data);
+    playGame(data);
+});
+
+
 stateSocket.subscribe('');
 stateSocket.on('message', function(topic, msg) {
     console.log('[GAME] Received State for: %s', topic.toString());
@@ -27,22 +40,13 @@ stateSocket.on('message', function(topic, msg) {
 });
 
 var connect = (id: string) => {
-    var lobbySocket = zmq.socket('req');
-    console.log("Connecting to lobby");
-    lobbySocket.connect('tcp://' + server + ':' + lobby_port);
-    console.log("Sending oohhoo aaahha");
-    lobbySocket.send(id);
-    lobbySocket.on('messgae', (msg) => {
-        var data = JSON.parse(msg);
-        console.log("Monkey %s received: ", id);
-        console.log(data);
-
-        playGame(data, monkeyID);
-
-    })
+    console.log("[%s] Asking to join game", id);
+    lobbySocket.send(JSON.stringify({name: id, team: "chaos-monkeys"}));
+    console.log("[%s] Waiting for confirmation from lobby");
 };
 
-var playGame = (gameData, id: string) => {
+var playGame = (gameData) => {
+    var id:string = gameData.name;
     console.log(id + " is starting to reek havoc");
 
     var controlSocket = zmq.socket('push');
@@ -56,20 +60,17 @@ var playGame = (gameData, id: string) => {
         controlSocket.send(gameData.secret + "," + f + "," + r);
 
         if (gameNotOver) {
-            setInterval(step, 16);
+            setInterval(step, UPDATE_RATE);
         }
     };
     step()
 };
 
-console.log("Making up movements for " + NUM_SHIPS + " ships");
-
+console.log("Reeking havoc with " + NUM_SHIPS + " random ships");
 var r = (n) => {return Math.random() * n};
 
 for (var i = 0; i < NUM_SHIPS; i++) {
     var monkeyID = "chaos-" + i;
     connect(monkeyID);
-
-
 }
 

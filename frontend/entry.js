@@ -145,10 +145,13 @@ function loadMap() {
             .attr("height", actualHeight)
             .attr("xlink:href", mapData);
 
+        //svgContainer
+        //    .attr('width', actualWidth);
+
         // Assume positions are between 0 and 100 for now
         // (0,0) is at the bottom left
-        x = d3.scale.linear().domain([0, 100]).range([0, actualWidth]);
-        y = d3.scale.linear().domain([0, 100]).range([actualHeight, 0]);
+        x = d3.scale.linear().domain([0, 1]).range([0, actualWidth]);
+        y = d3.scale.linear().domain([0, 1]).range([actualHeight, 0]);
 
     });
     mapImage.src = mapData;
@@ -214,7 +217,7 @@ var setupGame = function () {
 };
 
 var updateState = function (highResTimestamp) {
-
+    //console.log(gameState);
     requestID = requestAnimationFrame(updateState);
 
     if (updates >= draws) {
@@ -238,13 +241,7 @@ var updateState = function (highResTimestamp) {
                     return "black";
                 }
             })
-
             // Perhaps we can add/remove the jet with display="none"
-            //.attr('opacity', function (d, i) {
-            //    // Show accelerating with opacity toggle
-            //    var accelerating = d.Tl == 1;
-            //    return accelerating ? 1.0 : 0.2;
-            //})
             .attr("x", function (d, i) {
                 return x(d.x);
             })
