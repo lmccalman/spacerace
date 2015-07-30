@@ -2,7 +2,7 @@
   "lobbyWait": 10,
   "gameTime": 10,
   "mapPath": "./maps",
-  "maps": ["testmap"],
+  "maps": ["testmap", "bt-circle1"],
 
   "simulation": {
     "timeStep": 0.001,
