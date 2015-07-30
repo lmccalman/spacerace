@@ -3,10 +3,19 @@ var d3 = require("d3/d3.min.js");
 
 require("./style.css");
 
+var spaceraceSettings = require("json!./../spacerace.json");
+console.log("Welcome to spacerace");
+
+console.log("Global Settings");
+console.log(spaceraceSettings);
+
+var pixelSize = spaceraceSettings.simulation.world.pixelSize;
+
 var socket = io();
 var requestID;
 var gameState;
 var lastUpdateTime;
+var nextMap = false;
 
 var updates = 0;
 var draws = 0;
@@ -14,26 +23,55 @@ var fpsqueue = [];
 
 var playerDiv = d3.select("#leaderboard");
 
+function checkStarted(data){
+    if(nextMap === false){
+        // First time, load map
+        nextMap = data.map;
+        loadMap();
+    }
+    nextMap = data.map;
+}
+
 socket.on('Log', function (msg) {
     var rawPacket = JSON.parse(msg);
     //console.log(rawPacket);
 
     if(rawPacket.category === "lobby"){
-        console.log("Lobby Status received");
+        console.log("Lobby Message received");
         console.log(rawPacket);
 
-        d3.selectAll("#lobby ul").remove();
+        if (rawPacket.subject === "status"){
+            checkStarted(rawPacket.data);
+            nextMap = rawPacket.data.map;
 
+            d3.selectAll("#lobby ul").remove();
 
-        var lobby = d3.selectAll("#lobby")
-            .append("ul")
-            .selectAll("#lobby li")
-            .data(rawPacket.data.players);
+            var lobby = d3.selectAll("#lobby")
+                .append("ul")
+                .selectAll("#lobby li")
+                .data(rawPacket.data.players);
 
-        lobby.enter()
-            .append("li")
-            .text(function(d, i){ return d; })
+            lobby.enter()
+                .append("li")
+                .text(function(d, i){ return d; });
+        }
 
+        return;
+    }
+
+    if (rawPacket.category === "game") {
+        // General Game updates
+        if (rawPacket.subject === "status"){
+            var d = rawPacket.data;
+            console.log(d.game + ' on ' + d.map + ' is ' + d.state);
+
+            if (d.state === 'finished'){
+                console.log("Stopping animation");
+                cancelAnimationFrame(requestID);
+            }
+        } else {
+            console.log("unknown subject");
+        }
 
     }
     else {
@@ -52,19 +90,19 @@ socket.on('GameState', function (msg) {
         updates += 1;
 
         if (updates == 1) {
-            setupGame()
+            loadMap();
+            setupGame();
         }
     }
 
     if (rawPacket.state === "finished") {
         console.log("Game Over");
+
+        // Load the next map (assuming it has changed)
+        loadMap();
     }
 });
 
-//socket.on('GameMap', function (msg) {
-//    var data = JSON.parse(msg).data;
-//    setupGame(data)
-//}
 
 var svgContainer = d3.select('#game')
     .attr("width", "100%")
@@ -111,12 +149,13 @@ var ships;
 
 var x, y;
 
-var width, height;
+var mapWidth, mapHeight;
 
 function loadMap() {
-    // TODO Deal with all the maps
+    if(!nextMap){return;}
+    // Deal with all the maps
     // => DataUrl if the map file is smaller that 1Mb
-    var mapData = require("url?limit=1000000!../maps/bt-circle1.png");
+    var mapData = require("url?limit=1000000!../maps/" + nextMap + ".png");
 
     var mapImage = document.createElement('img');
     mapImage.addEventListener('load', function () {
@@ -124,52 +163,58 @@ function loadMap() {
          * Find out the real size/aspect ratio of the
          * image so we draw our ships correctly
          * */
-        width = mapImage.width;
-        height = mapImage.height;
-        var aspectRatio = width / height;
+        mapWidth = mapImage.width;
+        mapHeight = mapImage.height;
+        var aspectRatio = mapWidth / mapHeight;
 
-        console.log("Loaded map image. Size = (%s, %s)", width, height);
+        console.log("Loaded map image. Size = (%s, %s)", mapWidth, mapHeight);
 
         // Set the game's height to match the map's aspect ratio?
-        var actualWidth = parseInt(svgContainer.style("width"), 10);
-        var actualHeight = actualWidth / aspectRatio;
+        var displayWidth = parseInt(svgContainer.style("width"), 10);
+        var displayHeight = displayWidth / aspectRatio;
 
         svgContainer
-            .attr("height", actualHeight);
+            .attr("height", displayHeight)
+            .attr('width', displayWidth);
 
         // Add an <image> to our <svg>
         // TODO test performance of putting it in a div behind the svg?
+        mapContainer.selectAll("image").remove();
         mapContainer.append("image")
             .attr("id", "GameMap")
-            .attr("width", actualWidth)
-            .attr("height", actualHeight)
+            .attr("width", displayWidth)
+            .attr("height", displayHeight)
             .attr("xlink:href", mapData);
 
-        //svgContainer
-        //    .attr('width', actualWidth);
 
-        // Assume positions are between 0 and 100 for now
-        // (0,0) is at the bottom left
-        x = d3.scale.linear().domain([0, 1]).range([0, actualWidth]);
-        y = d3.scale.linear().domain([0, 1]).range([actualHeight, 0]);
+        /* Set up mappings between image pixels, game units, and display pixels
+         * pixelSize is approx 10.
+         * If a map is 1500px wide, the physics engine will give positions between [0,150]
+         * (0,0) is at the bottom left
+         * */
 
+        x = d3.scale.linear().domain([0, mapWidth / pixelSize]).range([0, displayWidth]);
+        y = d3.scale.linear().domain([0, mapHeight / pixelSize]).range([displayHeight, 0]);
     });
+
     mapImage.src = mapData;
 }
-
-loadMap();
 
 var selectedShip;
 
 var fps = d3.select("#fps span");
 
+// Runs once per game
 var setupGame = function () {
     var initState = gameState;
-    var SHIPSIZE = "10";
 
+    // Note: The ship is 2 * pixelSize wide in game units (radius of the ship = 1 map scale)
+    // Ship size in display pixels
+    var SHIPSIZE = (x(2 * pixelSize)).toString();
+
+    console.log("Ship size will be " + SHIPSIZE);
 
     initState.map(function(d){
-
         d.color = "hsl(" + Math.random() * 360 + ",75%, 50%)";
     });
 
@@ -217,10 +262,10 @@ var setupGame = function () {
 };
 
 var updateState = function (highResTimestamp) {
-    //console.log(gameState);
     requestID = requestAnimationFrame(updateState);
 
     if (updates >= draws) {
+        console.log(gameState);
         // Only update the ships if we have gotten an update from the server
         draws += 1;
 
@@ -231,7 +276,6 @@ var updateState = function (highResTimestamp) {
         }
         fpsqueue.push(Math.round(1000 / (highResTimestamp - lastUpdateTime)));
         lastUpdateTime = highResTimestamp;
-
 
         ships
             .data(gameState)
