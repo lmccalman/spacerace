@@ -17,7 +17,7 @@
       "maximumDensity": 4.0},
     
     "world": {
-      "pixelSize": 10.0,
+      "mapScale": 10.0,
       "linearDrag": 1.0,
       "rotationalDrag": 1.8,
       "friction": 0.05,

@@ -53,8 +53,8 @@ void initialiseState(StateMatrix& state, const Map& map, const SimulationParamet
   for (uint i=0; i<state.rows();i++)
   {
     auto coords = startPixels[pixelIdx];
-    state(i,0) = coords.first * params.pixelSize + dist(gen);
-    state(i,1) = coords.second * params.pixelSize + dist(gen);
+    state(i,0) = coords.first / params.mapScale + dist(gen);
+    state(i,1) = coords.second / params.mapScale + dist(gen);
     state(i,2) = 0.0;
     state(i,3) = 0.0;
     state(i,4) = dist(gen) * 2.0 * M_PI;

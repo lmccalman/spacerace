@@ -89,7 +89,7 @@ struct SimulationParameters
   float shipRadius;
   float friction;
   float elasticity;
-  float pixelSize;
+  float mapScale;
   float timeStep;
   float targetFPS;
   Eigen::VectorXf shipDensities;

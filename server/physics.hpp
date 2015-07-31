@@ -29,9 +29,9 @@ void interpolate_map(float x, float y, float& wall_dist, float&
   uint w = map.occupancy.cols(); // I'm confused by maps.h
   uint h = map.occupancy.rows();
 
-  // Get coordinates in pixels
-  float fx = x * params.pixelSize;
-  float fy = y * params.pixelSize;
+  // Get floats of image coordinates from map coordinates
+  float fx = x * params.mapScale;
+  float fy = y * params.mapScale;
 
   uint ix = std::min(uint(fx), w-2);
   uint iy = std::min(uint(fy), h-2);
@@ -224,7 +224,7 @@ SimulationParameters readParams(const json& j)
   s.shipRadius = j["simulation"]["ship"]["radius"];
   s.friction = j["simulation"]["world"]["friction"];
   s.elasticity = j["simulation"]["world"]["elasticity"];
-  s.pixelSize = j["simulation"]["world"]["pixelSize"];
+  s.mapScale = j["simulation"]["world"]["mapScale"];
   s.timeStep = j["simulation"]["timeStep"];
   s.targetFPS = j["simulation"]["targetFPS"];
   s.integrationSteps = j["simulation"]["integrationSteps"];
