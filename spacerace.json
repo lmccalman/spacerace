@@ -9,23 +9,19 @@
     "integrationSteps": 100,
     "targetFPS": 60,
     "ship": {
-      "linearThrust" : 1.0,
-      "rotationalThrust": 1.0,
-      "radius": 2.0,
+      "linearThrust" : 100.0,
+      "rotationalThrust": 10.0,
+      "radius": 1.0,
       "defaultDensity": 1.0,
-      "minimumDensity": 0.1,
-      "maximumDensity": 2.0,
-      "friction": 1.0,
-      "elacticity": 3.0,
-      "damping": 1.0},
+      "minimumDensity": 0.5,
+      "maximumDensity": 4.0},
     
     "world": {
       "pixelSize": 10.0,
-      "linearDrag" : 1.0,
-      "rotationalDrag": 1.0,
-      "wallFriction": 1.0,
-      "wallElacticity": 3.0,
-      "wallDamping": 1.0}},
+      "linearDrag": 1.0,
+      "rotationalDrag": 1.8,
+      "friction": 0.05,
+      "elasticity": 4000.0}},
 
   "stateSocket": {
     "port": 5556,

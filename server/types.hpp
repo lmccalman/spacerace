@@ -49,7 +49,7 @@ struct PlayerSet
 struct Map
 {
   std::string name;
-  
+
   Eigen::MatrixXb occupancy;
 
   std::set<std::pair<uint,uint>> start;
@@ -87,13 +87,9 @@ struct SimulationParameters
   float rotationalThrust;
   float rotationalDrag;
   float shipRadius;
-  float wallFriction;
-  float wallElacticity;
-  float wallDamping;
+  float friction;
+  float elasticity;
   float pixelSize;
-  float shipFriction;
-  float shipElacticity;
-  float shipDamping;
   float timeStep;
   float targetFPS;
   Eigen::VectorXf shipDensities;
