@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include "numpy.hpp"
 #include <cstring>
 
@@ -36,8 +37,6 @@ void loadMaps(const json& settings, MapData& mapData)
     std::string prefix = path + "/" + mapName;
     Map m;
     m.name = mapName;
-    m.start = loadBoolFromNumpy(prefix + "_start.npy");
-    m.finish = loadBoolFromNumpy(prefix + "_end.npy"); 
     m.occupancy = loadBoolFromNumpy(prefix + "_occupancy.npy");
     m.flowx = loadFloatFromNumpy(prefix + "_flowx.npy"); 
     m.flowy = loadFloatFromNumpy(prefix + "_flowy.npy");
@@ -45,8 +44,33 @@ void loadMaps(const json& settings, MapData& mapData)
     m.wallDistance = loadFloatFromNumpy(prefix + "_walldist.npy"); 
     m.wallNormalx = loadFloatFromNumpy(prefix + "_wnormx.npy");
     m.wallNormaly = loadFloatFromNumpy(prefix + "_wnormy.npy");
-    //TODO build json structure
+    
+    Eigen::MatrixXb start = loadBoolFromNumpy(prefix + "_start.npy");
+    Eigen::MatrixXb finish = loadBoolFromNumpy(prefix + "_end.npy"); 
+
+    assert(start.rows() == finish.rows());
+    assert(start.cols() == finish.cols());
+
+    for (uint r=0;r<start.rows();r++)
+      for (uint c=0;c<start.cols();c++)
+      {
+        if (start(r,c))
+          m.start.insert(std::make_pair(r,c));
+        else if(finish(r,c))
+          m.finish.insert(std::make_pair(r,c));
+      }
+
     mapData.maps.push_back(std::move(m));
   }
   
+}
+
+// position to index with bounds clamping
+std::pair<uint,uint> indices(float x, float y, const Map& map,  const SimulationParameters& params)
+{
+  uint ix = uint(x / params.pixelSize);
+  ix = std::min(ix, uint(map.occupancy.rows()));
+  uint iy = uint(y / params.pixelSize);
+  ix = std::min(iy, uint(map.occupancy.cols()));
+  return std::make_pair(ix, iy);
 }

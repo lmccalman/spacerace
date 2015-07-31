@@ -22,8 +22,8 @@
 #include "lobbythread.hpp"
 #include "controlthread.hpp"
 #include "physics.hpp"
-#include "game.hpp"
 #include "maps.hpp"
+#include "game.hpp"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -136,6 +136,7 @@ int main(int ac, char* av[])
       for (auto const& p : currentPlayers.fromId)
       {
         control.idx[p.second.secretKey] = idx;
+        control.ids[idx] = p.first;
         params.shipDensities[idx] = p.second.density;
         idx++;
       }

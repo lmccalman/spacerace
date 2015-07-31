@@ -1,5 +1,6 @@
 #include "types.hpp"
 #include "time.hpp"
+#include <math.h>
 
 
 std::string gameName(uint n)
@@ -42,16 +43,44 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state,
 
 void initialiseState(StateMatrix& state, const Map& map, const SimulationParameters& params)
 {
-  //TODO Al?
+  static std::default_random_engine gen;
+  static std::uniform_real_distribution<float> dist(0.0,1.0);
+
+  std::vector<std::pair<uint,uint>> startPixels;
+  std::copy(map.start.begin(), map.start.end(), std::back_inserter(startPixels));
+  std::random_shuffle(startPixels.begin(), startPixels.end());
+  uint pixelIdx = 0;
+  for (uint i=0; i<state.rows();i++)
+  {
+    auto coords = startPixels[pixelIdx];
+    state(i,0) = coords.first * params.pixelSize + dist(gen);
+    state(i,1) = coords.second * params.pixelSize + dist(gen);
+    state(i,2) = 0.0;
+    state(i,3) = 0.0;
+    state(i,4) = dist(gen) * 2.0 * M_PI;
+    state(i,5) = 0.0;
+    pixelIdx = (pixelIdx + 1) % startPixels.size();
+  }
 }
 
 std::string winner(const PlayerSet& players,
                    const StateMatrix& state,
+                   const ControlData& control,
                    const Map& map,
                    const SimulationParameters& params)
 {
-  //TODO Al?
-  return "";
+  std::string winnerName = "";
+  for (uint i=0; i<state.rows();i++)
+  {
+    std::pair<uint,uint> coords = indices(state(i,0), state(i,1), map, params);
+    bool winner = map.finish.count(coords);
+    if (winner)
+    {
+      winnerName = control.ids.at(i);
+      break;
+    }
+  }
+  return winnerName;
 }
 
 void runGame(PlayerSet& players, 
@@ -95,7 +124,7 @@ void runGame(PlayerSet& players,
     
     //check we don't need to end the game
     bool timeout = hasRoughIntervalPassed(gameStart, totalGameTimeSeconds, targetFPS);
-    bool raceWon = winner(players, state, map, params) != "";
+    bool raceWon = winner(players, state,control, map, params) != "";
     running = (!timeout) && (!raceWon);
 
     // make sure we target a particular frame rate

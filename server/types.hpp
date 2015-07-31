@@ -26,6 +26,7 @@ struct ControlData
 {
   ControlMatrix inputs;
   std::map<std::string, uint> idx;
+  std::map<uint, std::string> ids;
   std::mutex mutex;
 };
 
@@ -48,10 +49,11 @@ struct PlayerSet
 struct Map
 {
   std::string name;
-
-  Eigen::MatrixXb start;
-  Eigen::MatrixXb finish;
+  
   Eigen::MatrixXb occupancy;
+
+  std::set<std::pair<uint,uint>> start;
+  std::set<std::pair<uint,uint>> finish;
 
   Eigen::MatrixXf flowx;
   Eigen::MatrixXf flowy;
