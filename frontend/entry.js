@@ -24,7 +24,7 @@ var fpsqueue = [];
 var playerDiv = d3.select("#leaderboard");
 
 function checkStarted(data){
-    if(nextMap === false){
+    if(nextMap == false){
         // First time, load map
         nextMap = data.map;
         loadMap();
@@ -90,8 +90,8 @@ socket.on('GameState', function (msg) {
         updates += 1;
 
         if (updates == 1) {
-            loadMap();
-            setupGame();
+            loadMap(setupGame);
+
         }
     }
 
@@ -99,7 +99,7 @@ socket.on('GameState', function (msg) {
         console.log("Game Over");
 
         // Load the next map (assuming it has changed)
-        loadMap();
+        loadMap(setupGame);
     }
 });
 
@@ -151,8 +151,12 @@ var x, y;
 
 var mapWidth, mapHeight;
 
-function loadMap() {
-    if(!nextMap){return;}
+function loadMap(cb) {
+    if(!nextMap){
+        console.log("Not loading map as we don't know what map to load");
+        return;
+    }
+
     // Deal with all the maps
     // => DataUrl if the map file is smaller that 1Mb
     var mapData = require("url?limit=1000000!../maps/" + nextMap + ".png");
@@ -172,6 +176,8 @@ function loadMap() {
         // Set the game's height to match the map's aspect ratio?
         var displayWidth = parseInt(svgContainer.style("width"), 10);
         var displayHeight = displayWidth / aspectRatio;
+
+        console.log("Display size = (%s, %s)", displayWidth, displayHeight);
 
         svgContainer
             .attr("height", displayHeight)
@@ -195,6 +201,10 @@ function loadMap() {
 
         x = d3.scale.linear().domain([0, mapWidth / pixelSize]).range([0, displayWidth]);
         y = d3.scale.linear().domain([0, mapHeight / pixelSize]).range([displayHeight, 0]);
+
+        if(cb){
+            cb();
+        }
     });
 
     mapImage.src = mapData;
@@ -206,11 +216,18 @@ var fps = d3.select("#fps span");
 
 // Runs once per game
 var setupGame = function () {
+
+    if(!nextMap){
+        console.log("Not setting up game as we don't know what map to load");
+        return;
+    }
+
     var initState = gameState;
 
     // Note: The ship is 2 * pixelSize wide in game units (radius of the ship = 1 map scale)
-    // Ship size in display pixels
-    var SHIPSIZE = (x(2 * pixelSize)).toString();
+    // Ship size in display pixels, Divide by 50 for the def file.
+    console.log("Pixel size is ", pixelSize);
+    var SHIPSIZE = ( x(2 * pixelSize / 50) ).toString();
 
     console.log("Ship size will be " + SHIPSIZE);
 
@@ -240,8 +257,10 @@ var setupGame = function () {
 
     ships = shipGroup
         .selectAll('.ship')
-        .data(initState)
-        .enter()
+        .data(initState);
+
+    ships.exit().remove();
+    ships.enter()
         .append('use')
         .attr("transform", function (d, i) {
             return "translate(0, 0)";
@@ -297,6 +316,7 @@ var updateState = function (highResTimestamp) {
                 // command however it doesn't seem as performant as using the x,y attributes as above.
                 // Note SVG rotate takes degrees not radians, and it also takes positon (X, Y)
                 // to center the rotation around.
+
                 var shipX = x(d.x),
                     shipY = y(d.y);
 

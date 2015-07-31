@@ -77,7 +77,7 @@ gameStateSocket.on('message', function(topic, msg){
     //console.log('[GAME] Received State for: %s', topic.toString());
     //console.log('[GAME] State: %s', msg.toString());
 
-    io.volatile.emit('GameState', msg.toString());
+    io.emit('GameState', msg.toString());
 });
 
 
