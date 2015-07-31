@@ -2,6 +2,7 @@
     Alistair Reid 2015
 """
 import matplotlib.pyplot as pl
+import matplotlib as mpl
 import numpy as np
 from numpy.linalg import norm
 from time import time, sleep
@@ -133,8 +134,8 @@ def main():
     map_img = np.load(resources % 'occupancy')  # 'walldist')
     all_shape = np.array(map_img.shape).astype(float) / mapscale
     bounds = [0, all_shape[1], 0, all_shape[0]]
-    map_img = 0.25*(map_img[::2, ::2] + map_img[1::2,::2] + \
-                    map_img[::2, 1::2] + map_img[1::2, 1::2])
+    # map_img = 0.25*(map_img[::2, ::2] + map_img[1::2,::2] + \
+    #                 map_img[::2, 1::2] + map_img[1::2, 1::2])
     spawn = np.array([25, 25])/2.  # x, y
     spawn_size = 6/2.
     
@@ -163,20 +164,25 @@ def main():
     ax = pl.subplot(111)
 
     # Draw the backdrop:
-    # pl.imshow(-map_img, extent=bounds, cmap=pl.cm.gray, origin='lower')
+    mapview = pl.imshow(-map_img, extent=bounds, cmap=pl.cm.gray, origin='lower')
     cx = np.linspace(bounds[0], bounds[1], map_img.shape[1])
     cy = np.linspace(bounds[2], bounds[3], map_img.shape[0])
     cX, cY = np.meshgrid(cx, cy)
     pl.contour(cX, cY, map_img, 1)
 
+    pl.show(block=False)
+    fig.canvas.draw()
+    background = [fig.canvas.copy_from_bbox(ax.bbox)]
+    
+
     sprites = []
     for s, col, r in zip(states0, colours, radius):
-        vis = draw_outline(s, col, r)
+        vis = draw_outline(ax, s, col, r)
         sprites.append(vis)
     ax.set_xlim(bounds[0:2])
     ax.set_ylim(bounds[2:4])
     ax.set_aspect('equal')
-    pl.show(block=False)
+
 
     dt = 0.02
     start_time = time()
@@ -186,16 +192,24 @@ def main():
     frame_rate = 30.
     frame_time = 1./frame_rate
     next_draw = frame_time
-   
-    # exit gracefully
+
     keys = set()
     def press(event):
         keys.add(event.key)
     def unpress(event):
         keys.remove(event.key)
+    def redo_background(event):
+        for s in sprites:
+            s.set_visible(False)
+        fig.canvas.draw()
+        background[0] = fig.canvas.copy_from_bbox(ax.bbox)
+        for s in sprites:
+            s.set_visible(True)
+        # event.width, event.height accessible
 
     fig.canvas.mpl_connect('key_press_event', press)
     fig.canvas.mpl_connect('key_release_event', unpress)
+    fig.canvas.mpl_connect('resize_event', redo_background)
     print('Press Q to exit')
 
     while 'q' not in keys:
@@ -214,10 +228,9 @@ def main():
             else:
                 inputs[0, 1] = 0.
             if 'up' in keys:
-                inputs[0,0] = 100
+                inputs[0, 0] = 100
             else:
-                inputs[0,0] = 0
-
+                inputs[0, 0] = 0
             t += dt
             integrate(states, properties, inputs, walls, bounds, dt)
         
@@ -225,15 +238,19 @@ def main():
         this_time = time() - start_time
         if this_time > next_draw:
             next_draw += frame_time
+
+            # blit the background
+            fig.canvas.restore_region(background[0])
             for state, col, r, sprite in zip(states, colours, radius, sprites):
-                draw_outline(state, col, r, handle=sprite)
+                draw_outline(ax, state, col, r, handle=sprite)
+            fig.canvas.blit(ax.bbox)
             event_count += 1
-            pl.pause(0.001)
+            fig.canvas.flush_events()
         else:
-            sleep(next_draw - this_time)
+            sleep((next_draw - this_time)*0.25)
 
 
-def draw_outline(state, c, radius, handle=None, n=15):
+def draw_outline(ax, state, c, radius, handle=None, n=15):
     x, y, th, vx, vy, w = state
     # m, I, radius, c = props
     # base_theta = np.linspace(np.pi-2, np.pi+2, n-1)
@@ -253,8 +270,9 @@ def draw_outline(state, c, radius, handle=None, n=15):
     vy += y
     if handle:
         handle.set_data(vx, vy)
+        ax.draw_artist(handle)
     else:
-        handle, = pl.plot(vx, vy, c)
+        handle, = ax.plot(vx, vy, c)
 
     return handle
 
