@@ -2,6 +2,7 @@
 #include <cmath>
 #include "Eigen/Dense"
 #include <vector>
+#include <iostream>
 
 // State Vector
 // ux uy vx vy  theta omega
@@ -51,9 +52,9 @@ void interpolate_map(float x, float y, float& wall_dist, float&
     {
       alphay = 1. - alphay;
       
-      wall_dist += alphax * alphay * map.wallDistance(ix, iy);
-      norm_x += alphax * alphay * map.wallNormalx(ix, iy);
-      norm_y += alphax * alphay * map.wallNormaly(ix, iy);
+      wall_dist += alphax * alphay * map.wallDistance(iy, ix);
+      norm_x += alphax * alphay * map.wallNormalx(iy, ix);
+      norm_y += alphax * alphay * map.wallNormaly(iy, ix);
 
       iy += 1;
     }
@@ -81,13 +82,12 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
   // rotationalThrust Order +- 10 
   // linearThrust Order +100
   // mapscale order 10 - thats params.pixelsize
-  
   // Accumulate forces and torques into these:
   uint n = states.rows();
   Eigen::MatrixXd f = Eigen::MatrixXd::Zero(n, 2);
   Eigen::VectorXd trq = Eigen::VectorXd::Zero(n);
   
-  for (int i=0; i<n; i++) {
+  for (uint i=0; i<n; i++) {
     Eigen::Vector2f pos_i;
     pos_i(0) = states(i,0);
     pos_i(1) = states(i,1);
@@ -110,7 +110,7 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
     trq(i) -= spin_drag_ratio*cd_a_rho*w_i*abs(w_i)*rad*rad;
 
     // 3. Inter-ship collisions
-    for (int j=i+1; j<n; j++) {
+    for (uint j=i+1; j<n; j++) {
       Eigen::Vector2f pos_j;
       pos_j(0) = states(j,0);
       pos_j(1) = states(j,1);
@@ -203,6 +203,13 @@ void rk4TimeStep(StateMatrix& s, const ControlMatrix& c, const
 {
   // CHANGED(AL): Now implementing RK4
   StateMatrix k1, k2, k3, k4;
+  uint n_states = s.cols();
+  uint n = s.rows();
+  k1 = StateMatrix(n, n_states);
+  k2 = StateMatrix(n, n_states);
+  k3 = StateMatrix(n, n_states);
+  k4 = StateMatrix(n, n_states);
+
   float dt = params.timeStep;
 
   derivatives(s, k1, c, params, m);
