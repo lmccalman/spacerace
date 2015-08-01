@@ -9,7 +9,7 @@ console.log("Welcome to spacerace");
 console.log("Global Settings");
 console.log(spaceraceSettings);
 
-var pixelSize = spaceraceSettings.simulation.world.pixelSize;
+var mapScale = spaceraceSettings.simulation.world.mapScale;
 
 var socket = io();
 var requestID;
@@ -193,8 +193,8 @@ function loadMap() {
          * (0,0) is at the bottom left
          * */
 
-        x = d3.scale.linear().domain([0, mapWidth / pixelSize]).range([0, displayWidth]);
-        y = d3.scale.linear().domain([0, mapHeight / pixelSize]).range([displayHeight, 0]);
+        x = d3.scale.linear().domain([0, mapWidth / mapScale]).range([0, displayWidth]);
+        y = d3.scale.linear().domain([0, mapHeight / mapScale]).range([displayHeight, 0]);
     });
 
     mapImage.src = mapData;
@@ -210,7 +210,7 @@ var setupGame = function () {
 
     // Note: The ship is 2 * pixelSize wide in game units (radius of the ship = 1 map scale)
     // Ship size in display pixels
-    var SHIPSIZE = (x(2 * pixelSize)).toString();
+    var SHIPSIZE = (x(2 * mapScale)).toString();
 
     console.log("Ship size will be " + SHIPSIZE);
 
