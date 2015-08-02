@@ -22,10 +22,11 @@ var draws = 0;
 var fpsqueue = [];
 
 var playerDiv = d3.select("#leaderboard");
+var playerContainer = playerDiv.append("ul");
 
 function checkStarted(data){
     if(nextMap === false){
-        // First time, load map
+        // First time, load a map
         nextMap = data.map;
         loadMap();
     }
@@ -67,7 +68,7 @@ socket.on('Log', function (msg) {
 
             if (d.state === 'finished'){
                 console.log("Stopping animation");
-                cancelAnimationFrame(requestID);
+                //cancelAnimationFrame(requestID);
             }
         } else {
             console.log("unknown subject");
@@ -90,16 +91,19 @@ socket.on('GameState', function (msg) {
         updates += 1;
 
         if (updates == 1) {
-            loadMap();
-            setupGame();
+            loadMap(setupGame);
+
         }
     }
 
     if (rawPacket.state === "finished") {
         console.log("Game Over");
+        updates = 0;
+        draws = 0;
+        cancelAnimationFrame(requestID);
 
         // Load the next map (assuming it has changed)
-        loadMap();
+        //loadMap();
     }
 });
 
@@ -151,7 +155,7 @@ var x, y;
 
 var mapWidth, mapHeight;
 
-function loadMap() {
+function loadMap(cb) {
     if(!nextMap){return;}
     // Deal with all the maps
     // => DataUrl if the map file is smaller that 1Mb
@@ -195,6 +199,10 @@ function loadMap() {
 
         x = d3.scale.linear().domain([0, mapWidth / mapScale]).range([0, displayWidth]);
         y = d3.scale.linear().domain([0, mapHeight / mapScale]).range([displayHeight, 0]);
+
+        if(cb){
+            cb();
+        }
     });
 
     mapImage.src = mapData;
@@ -210,7 +218,7 @@ var setupGame = function () {
 
     // Note: The ship is 2 * pixelSize wide in game units (radius of the ship = 1 map scale)
     // Ship size in display pixels
-    var SHIPSIZE = (x(2 * mapScale)).toString();
+    var SHIPSIZE = (x(mapWidth/200)).toString();
 
     console.log("Ship size will be " + SHIPSIZE);
 
@@ -219,7 +227,6 @@ var setupGame = function () {
     });
 
     // Show each player
-    var playerContainer = playerDiv.append("ul");
     var players = playerContainer.selectAll("li")
         .data(initState);
 
@@ -240,9 +247,14 @@ var setupGame = function () {
 
     ships = shipGroup
         .selectAll('.ship')
-        .data(initState)
+        .data(initState);
+
+    ships.exit().remove();
+
+    ships
         .enter()
         .append('use')
+        .attr("class", "ship")
         .attr("transform", function (d, i) {
             return "translate(0, 0)";
         })
@@ -265,7 +277,7 @@ var updateState = function (highResTimestamp) {
     requestID = requestAnimationFrame(updateState);
 
     if (updates >= draws) {
-        console.log(gameState);
+        //if(updates % 60*5 == 0) console.log(gameState);
         // Only update the ships if we have gotten an update from the server
         draws += 1;
 
