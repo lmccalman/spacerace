@@ -34,8 +34,8 @@ void interpolate_map(float x, float y, float& wall_dist, float&
   float fx = x * params.mapScale;
   float fy = y * params.mapScale;
 
-  uint ix = std::min(uint(fx), w-2);
-  uint iy = std::min(uint(fy), h-2);
+  uint ix = std::max(std::min(uint(fx), w-2), uint(0));
+  uint iy = std::max(std::min(uint(fy), h-2), uint(0));
 
   // Compute linear interp alphas
   float alphax = fx - float(ix);
@@ -45,20 +45,17 @@ void interpolate_map(float x, float y, float& wall_dist, float&
   norm_x = 0.;
   norm_y = 0.;
 
-  for (int a=0; a<2; a++)
+  for (uint dx=0; dx<2; dx++)
   {
     alphax = 1. - alphax;
-    for (int b=0; b<2; b++)
+    for (uint dy=0; dy<2; dy++)
     {
       alphay = 1. - alphay;
       
-      wall_dist += alphax * alphay * map.wallDistance(iy, ix);
-      norm_x += alphax * alphay * map.wallNormalx(iy, ix);
-      norm_y += alphax * alphay * map.wallNormaly(iy, ix);
-
-      iy += 1;
+      wall_dist += alphax * alphay * map.wallDistance(iy+dy, ix+dx);
+      norm_x += alphax * alphay * map.wallNormalx(iy+dy, ix+dx);
+      norm_y += alphax * alphay * map.wallNormaly(iy+dy, ix+dx);
     }
-    ix += 1;
   }
 
   return;
