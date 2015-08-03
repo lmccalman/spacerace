@@ -73,10 +73,12 @@ your map. You can call `./buildmap.py --help` for more info. Also, have a look
 at `mapbuilder/requirements.txt` for all of the required python packages.
 
 Finally, you can optionally provide a skin for you map to make it look pretty!
-Just make sure it is the same size as you original map and has the suffix
+Just make sure it is the same size as your original map and has the suffix
 `_skin`, e.g.
 
 ![Example map skin](mapbuilder/testmap_skin.png)
+
+Now just upload it to the location we will specify!
 
 
 ##Lobby
