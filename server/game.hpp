@@ -41,10 +41,11 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state,
   send(socket, {gameState.name, j.dump()});
 }
 
-void initialiseState(StateMatrix& state, const Map& map, const SimulationParameters& params)
+void initialiseState(StateMatrix& state, const Map& map, 
+        const SimulationParameters& params)
 {
   static std::default_random_engine gen;
-  static std::uniform_real_distribution<float> dist(0.0,1.0);
+  static std::uniform_real_distribution<float> dist(0.0, 1.0);
 
   std::vector<std::pair<uint,uint>> startPixels;
   std::copy(map.start.begin(), map.start.end(), std::back_inserter(startPixels));
@@ -53,12 +54,12 @@ void initialiseState(StateMatrix& state, const Map& map, const SimulationParamet
   for (uint i=0; i<state.rows();i++)
   {
     auto coords = startPixels[pixelIdx];
-    state(i,0) = coords.first * params.pixelSize + dist(gen);
-    state(i,1) = coords.second * params.pixelSize + dist(gen);
-    state(i,2) = 0.0;
-    state(i,3) = 0.0;
-    state(i,4) = dist(gen) * 2.0 * M_PI;
-    state(i,5) = 0.0;
+    state(i, 0) = (float(coords.second) + dist(gen)) / params.mapScale;
+    state(i, 1) = (float(coords.first) + dist(gen)) / params.mapScale;
+    state(i, 2) = 0.0;
+    state(i, 3) = 0.0;
+    state(i, 4) = dist(gen) * 2.0 * M_PI;
+    state(i, 5) = 0.0;
     pixelIdx = (pixelIdx + 1) % startPixels.size();
   }
 }

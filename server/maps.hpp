@@ -66,11 +66,12 @@ void loadMaps(const json& settings, MapData& mapData)
 }
 
 // position to index with bounds clamping
-std::pair<uint,uint> indices(float x, float y, const Map& map,  const SimulationParameters& params)
+std::pair<uint,uint> indices(float x, float y, const Map& map,
+        const SimulationParameters& params)
 {
-  uint ix = uint(x / params.pixelSize);
-  ix = std::min(ix, uint(map.occupancy.rows()));
-  uint iy = uint(y / params.pixelSize);
-  ix = std::min(iy, uint(map.occupancy.cols()));
-  return std::make_pair(ix, iy);
+  int iy = int(y * params.mapScale);
+  iy = std::max(0, std::min(iy, int(map.occupancy.rows())));
+  int ix = int(x * params.mapScale);
+  ix = std::max(0, std::min(ix, int(map.occupancy.cols())));
+  return std::make_pair(uint(ix), uint(iy));
 }

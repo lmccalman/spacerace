@@ -9,7 +9,7 @@ console.log("Welcome to spacerace");
 console.log("Global Settings");
 console.log(spaceraceSettings);
 
-var pixelSize = spaceraceSettings.simulation.world.pixelSize;
+var mapScale = spaceraceSettings.simulation.world.mapScale;
 
 var socket = io();
 var requestID;
@@ -22,10 +22,11 @@ var draws = 0;
 var fpsqueue = [];
 
 var playerDiv = d3.select("#leaderboard");
+var playerContainer = playerDiv.append("ul");
 
 function checkStarted(data){
-    if(nextMap == false){
-        // First time, load map
+    if(nextMap === false){
+        // First time, load a map
         nextMap = data.map;
         loadMap();
     }
@@ -67,7 +68,7 @@ socket.on('Log', function (msg) {
 
             if (d.state === 'finished'){
                 console.log("Stopping animation");
-                cancelAnimationFrame(requestID);
+                //cancelAnimationFrame(requestID);
             }
         } else {
             console.log("unknown subject");
@@ -97,9 +98,12 @@ socket.on('GameState', function (msg) {
 
     if (rawPacket.state === "finished") {
         console.log("Game Over");
+        updates = 0;
+        draws = 0;
+        cancelAnimationFrame(requestID);
 
         // Load the next map (assuming it has changed)
-        loadMap(setupGame);
+        //loadMap();
     }
 });
 
@@ -152,11 +156,7 @@ var x, y;
 var mapWidth, mapHeight;
 
 function loadMap(cb) {
-    if(!nextMap){
-        console.log("Not loading map as we don't know what map to load");
-        return;
-    }
-
+    if(!nextMap){return;}
     // Deal with all the maps
     // => DataUrl if the map file is smaller that 1Mb
     var mapData = require("url?limit=1000000!../maps/" + nextMap + ".png");
@@ -199,8 +199,8 @@ function loadMap(cb) {
          * (0,0) is at the bottom left
          * */
 
-        x = d3.scale.linear().domain([0, mapWidth / pixelSize]).range([0, displayWidth]);
-        y = d3.scale.linear().domain([0, mapHeight / pixelSize]).range([displayHeight, 0]);
+        x = d3.scale.linear().domain([0, mapWidth / mapScale]).range([0, displayWidth]);
+        y = d3.scale.linear().domain([0, mapHeight / mapScale]).range([displayHeight, 0]);
 
         if(cb){
             cb();
@@ -219,15 +219,15 @@ var setupGame = function () {
 
     if(!nextMap){
         console.log("Not setting up game as we don't know what map to load");
+        updates = 0;
         return;
     }
 
     var initState = gameState;
 
     // Note: The ship is 2 * pixelSize wide in game units (radius of the ship = 1 map scale)
-    // Ship size in display pixels, Divide by 50 for the def file.
-    console.log("Pixel size is ", pixelSize);
-    var SHIPSIZE = ( x(2 * pixelSize / 50) ).toString();
+    // Ship size in display pixels
+    var SHIPSIZE = (x(mapWidth/200)).toString();
 
     console.log("Ship size will be " + SHIPSIZE);
 
@@ -236,7 +236,6 @@ var setupGame = function () {
     });
 
     // Show each player
-    var playerContainer = playerDiv.append("ul");
     var players = playerContainer.selectAll("li")
         .data(initState);
 
@@ -260,8 +259,11 @@ var setupGame = function () {
         .data(initState);
 
     ships.exit().remove();
-    ships.enter()
+
+    ships
+        .enter()
         .append('use')
+        .attr("class", "ship")
         .attr("transform", function (d, i) {
             return "translate(0, 0)";
         })
@@ -284,7 +286,7 @@ var updateState = function (highResTimestamp) {
     requestID = requestAnimationFrame(updateState);
 
     if (updates >= draws) {
-        console.log(gameState);
+        //if(updates % 60*5 == 0) console.log(gameState);
         // Only update the ships if we have gotten an update from the server
         draws += 1;
 
@@ -316,7 +318,6 @@ var updateState = function (highResTimestamp) {
                 // command however it doesn't seem as performant as using the x,y attributes as above.
                 // Note SVG rotate takes degrees not radians, and it also takes positon (X, Y)
                 // to center the rotation around.
-
                 var shipX = x(d.x),
                     shipY = y(d.y);
 
