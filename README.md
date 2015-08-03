@@ -53,11 +53,11 @@ specifications:
 - Occupied regions must be **black** `#000000, rgb(0, 0, 0)`
 - Free/race track regions must be **white** `#FFFFFF, rgb(255, 255, 255)`
 - Start position(s) must be **green** `#00FF00, rgb(0, 255, 0)`
-- End position must be **red** `#FF0000, 
+- End position(s) must be **red** `#FF0000, 
   rgb(255, 0, 0)`
 
 Also, we haven't put a constraint on the size, but I recommend less than 
-1500px x 1500px. Here is an example:
+1500px X 1500px. Here is an example:
 
 ![Example map](mapbuilder/testmap.png)
 
@@ -74,7 +74,7 @@ at `mapbuilder/requirements.txt` for all of the required python packages.
 
 Finally, you can optionally provide a skin for you map to make it look pretty!
 Just make sure it is the same size as you original map and has the suffix
-`\_skin`, e.g.
+`_skin`, e.g.
 
 ![Example map skin](mapbuilder/testmap_skin.png)
 
