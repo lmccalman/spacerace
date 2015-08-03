@@ -84,7 +84,8 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData, PlayerSet& player
       }
       std::lock_guard<std::mutex> lock(players.mutex);
       uint nextMap = (mapData.currentMap + 1) % mapData.maps.size();
-      if (!players.fromId.count(p.id))
+      uint atMaxPlayers = players.fromId.size() == settings["maxPlayers"];
+      if (!players.fromId.count(p.id) && !atMaxPlayers)
       {
         // we want to resend next time it's empty again
         sentFirstStatus = false;
@@ -106,12 +107,19 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData, PlayerSet& player
         LOG(INFO) << "lobby sending response: " << response;
         send(socket, {zmqAddress, "", response}); 
       }
-      else
+      else 
       {
-        logger("lobby", "error", {"message", "ID already in use: " + p.id});
-        send(socket,{zmqAddress, "", "ERROR: ID Taken. Please try something else."});
+        if (atMaxPlayers)
+        {
+          logger("lobby", "error", {"message", "Sorry, this game is full. Try the next game!"});
+          send(socket,{zmqAddress, "", "ERROR: Sorry, this game is full. Try the next game!"});
+        }
+        else
+        {
+          logger("lobby", "error", {"message", "ID already in use: " + p.id});
+          send(socket,{zmqAddress, "", "ERROR: ID Taken. Please try something else."});
+        }
       }
-
     }
   }
   LOG(INFO) << "Lobby thread exiting...";
