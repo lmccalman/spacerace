@@ -225,9 +225,9 @@ var setupGame = function () {
 
     var initState = gameState;
 
-    // Note: The ship is 2 * pixelSize wide in game units (radius of the ship = 1 map scale)
+    // Note: The ship is rendered as 2 * mapScale wide in game units (radius of the ship = 1 map scale)
     // Ship size in display pixels
-    SHIPSIZE = x(mapWidth/200);
+    SHIPSIZE = x(2 * mapScale);
 
     console.log("Ship size will be " + SHIPSIZE);
 
@@ -254,6 +254,8 @@ var setupGame = function () {
         });
 
 
+
+
     ships = shipGroup
         .selectAll('.ship')
         .data(initState);
@@ -264,9 +266,9 @@ var setupGame = function () {
         .enter()
         .append('use')
         .attr("class", "ship")
-        .attr("transform", function (d, i) {
-            return "translate(0, 0)";
-        })
+        //.attr("transform", function (d, i) {
+        //    return "translate(" + SHIPSIZE/2+ "," + SHIPSIZE/2 + ")";
+        //})
         .attr("id", function (d, i) {
             return "ship" + i;
         })
@@ -309,22 +311,25 @@ var updateState = function (highResTimestamp) {
                 }
             })
             // Perhaps we can add/remove the jet with display="none"
-            .attr("x", function (d, i) {
-                return x(d.x);
-            })
-            .attr("y", function (d, i) {
-                return y(d.y);
-            })
+            //.attr("x", function (d, i) {
+            //    return x(d.x);
+            //})
+            //.attr("y", function (d, i) {
+            //    return y(d.y);
+            //})
             .attr("transform", function (d, i) {
                 // It is possible to both update ships' position and rotation using a single SVG transform/rotation
                 // command however it doesn't seem as performant as using the x,y attributes as above.
                 // Note SVG rotate takes degrees not radians, and it also takes positon (X, Y)
                 // to center the rotation around.
-                var shipX = x(d.x) - SHIPSIZE/2,
-                    shipY = y(d.y) + SHIPSIZE/2;
+                var shipX = SHIPSIZE/2,
+                    shipY = SHIPSIZE/2;
 
-                return "rotate(" +
-                    (90 - d.theta * 360 / (2 * Math.PI)) +
+                var shipHeadingRads = d.theta;
+
+                return "translate(" + (x(d.x) - SHIPSIZE/2) + ", " +
+                    (y(d.y) - SHIPSIZE/2) + ") rotate(" +
+                    (90 - shipHeadingRads * 360 / (2 * Math.PI)) +
                     "," + shipX + ", " + shipY +
                     ")";
             });

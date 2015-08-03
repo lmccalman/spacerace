@@ -46,7 +46,7 @@ lobbySocket.on('message', function (msg) {
 });
 logSocket.on('message', function (msg) {
     // Note the `msg` is a string, not JSON
-    console.log('[LOG] Received: %s', msg.toString());
+    //console.log('[LOG] Received: %s', msg.toString());
     io.emit('Log', msg.toString());
 });
 gameStateSocket.on('message', function (topic, msg) {
