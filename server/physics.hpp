@@ -37,9 +37,18 @@ void interpolate_map(float x, float y, float& wall_dist, float&
   uint ix = std::max(std::min(uint(fx), w-2), uint(0));
   uint iy = std::max(std::min(uint(fy), h-2), uint(0));
 
+  /*
+  wall_dist = map.wallDistance(iy, ix);
+  norm_x = map.wallNormalx(iy, ix);
+  norm_y = map.wallNormaly(iy, ix);
+  
+
+  std::cout << ", " << map.occupancy(iy, ix) << x << ", " << y << ", " << ix << ", " << iy << ", " << wall_dist << ", " << norm_x << ", " << norm_y << "\n";
+  return;
+  */
   // Compute linear interp alphas
-  float alphax = fx - float(ix);
-  float alphay = fy - float(iy);
+  float alphax = std::max(float(0.), std::min(float(1.), fx - float(ix)));
+  float alphay = std::max(float(0.), std::min(float(1.), fy - float(iy)));
   
   wall_dist = 0.;
   norm_x = 0.;
@@ -107,6 +116,8 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
     trq(i) -= spin_drag_ratio*cd_a_rho*w_i*abs(w_i)*rad*rad;
 
     // 3. Inter-ship collisions
+    
+    /*
     for (uint j=i+1; j<n; j++) {
       Eigen::Vector2f pos_j;
       pos_j(0) = states(j,0);
@@ -119,7 +130,6 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
 
       Eigen::Vector2f dP = pos_j - pos_i;
       float dist = dP.norm() + eps;
-      
       if (dist < diameter) {
         // we have a collision interaction
         
@@ -148,6 +158,7 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
         trq(j) -= fric * rad;
       }  // end collision
     } // end loop 3. opposing ship
+    */
 
     // 4. Wall single body collisions
    
@@ -157,12 +168,15 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
     float dist = wall_dist - rad;
     if (dist < 0)
     {
+      /* if (dist < -1.) */
+      /*     assert(false); */
+
       // Spring force
-      float f_norm_mag = -dist*k_elastic;
+      float f_norm_mag = -dist*k_elastic;  // dist is negative, f_norm is +ve
       f(i, 0) += f_norm_mag * norm_x;
       f(i, 1) += f_norm_mag * norm_y;
 
-      // Surface friction
+      /* Surface friction
       Eigen::Vector2f perp;  // surface tangent pointing +theta direction
       perp(0) = -norm_y;
       perp(1) = norm_x;
@@ -171,6 +185,7 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
       f(i, 0) -= fric*norm_y;
       f(i, 1) += fric*norm_x;
       trq(i) -= fric * rad;
+      */
     }
   } // end loop current ship
 
