@@ -26,8 +26,8 @@ The top level JSON object shall comprise:
 
 ### Game Map Files
 
-The following files are associated with each map (`.png` can be any bitmap
-format, `.csv.gz` are gzipped space-separated value files):
+The following files are associated with each map (`.png` or any bitmap format,
+`.csv.gz` are gzipped space-separated value files):
 - `mapname.png` the actual track bitmap 
 - `mapname_start.csv.gz` bitmask of the location(s) of the start
 - `mapname_end.csv.gz` bitmask of the location(s) of the end
@@ -41,7 +41,7 @@ format, `.csv.gz` are gzipped space-separated value files):
 Here is an example of this data (you will not have access to the track wall
 normals/distance to walls);
 
-![mapbuilder/example_map_products.png](Example map products.)
+![Example map products.](mapbuilder/example_map_products.png)
 
 
 ### How to contribute a map
@@ -52,19 +52,21 @@ specifications:
 
 - Occupied regions must be black `#000000, rgb(0, 0, 0)`
 - Free/race track regions must be white `#FFFFFF, rgb(255, 255, 255)`
-- Start position(s) must be green '#00FF00, rgb(0, 255, 0)`
-- End position must be red `#FF0000, rgb(255, 0, 0)`
+- Start position(s) must be <span style="color:#00FF00">green</span> `#00FF00,
+  rgb(0, 255, 0)`
+- End position must be <span style="color:#FF0000">red</span> `#FF0000, 
+  rgb(255, 0, 0)`
 
-Also, we haven't put a constraint on the size, but I reccomend less than 
+Also, we haven't put a constraint on the size, but I recommend less than 
 1500px x 1500px. Here is an example:
 
-![mapbuilder/testmap.png](Example map)
+![Example map](mapbuilder/testmap.png)
 
 Also, you can optionally provide a skin for you map to make it look pretty!
 Just make sure it is the same size as you original map and has the suffix
 `\_skin`, e.g.
 
-![mapbuilder/testmap_skin.png](Example map)
+![Example map skin](mapbuilder/testmap_skin.png)
 
 
 ##Lobby
