@@ -2,8 +2,10 @@
 #include <cmath>
 #include "Eigen/Dense"
 #include <vector>
+#include <unordered_set>
+#include <unordered_map>
 #include <iostream>
-
+#include <boost/functional/hash.hpp>  // need boost to hash std::pair
 // State Vector
 // ux uy vx vy  theta omega
 // 0  1  2  3   4     5  
@@ -40,9 +42,6 @@ void interpolate_map(float x, float y, float& wall_dist, float&
   /*
   wall_dist = map.wallDistance(iy, ix);
   norm_x = map.wallNormalx(iy, ix);
-  norm_y = map.wallNormaly(iy, ix);
-  
-
   std::cout << ", " << map.occupancy(iy, ix) << x << ", " << y << ", " << ix << ", " << iy << ", " << wall_dist << ", " << norm_x << ", " << norm_y << "\n";
   return;
   */
@@ -87,14 +86,20 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
   float ship_restitution = params.shipRestitution; // circa 0.5
   float diameter = 2.*rad;  // rad(i) + rad(j) for any i, j
   float inertia_mass_ratio = 0.25;
+
+  float map_grid = rad * 2. + eps; // must be 2*radius + eps
+  std::unordered_map<std::pair<int, int>, std::vector<uint>, 
+                     boost::hash<std::pair<int, int>>> bins;
+
+  uint n = states.rows();
+  Eigen::MatrixXd f = Eigen::MatrixXd::Zero(n, 2);
+  Eigen::VectorXd trq = Eigen::VectorXd::Zero(n);
   // rotationalThrust Order +- 10 
   // linearThrust Order +100
   // mapscale order 10 - thats params.pixelsize
   // Accumulate forces and torques into these:
-  uint n = states.rows();
-  Eigen::MatrixXd f = Eigen::MatrixXd::Zero(n, 2);
-  Eigen::VectorXd trq = Eigen::VectorXd::Zero(n);
-  
+  uint collide_checks = 0;  // debug count...
+
   for (uint i=0; i<n; i++) {
     Eigen::Vector2f pos_i;
     pos_i(0) = states(i,0);
@@ -117,8 +122,39 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
     f(i, 1) -= cd_a_rho * vel_i(1);
     trq(i) -= spin_drag_ratio*cd_a_rho*w_i*rad*rad; // * abs(w_i)
 
-    // 3. Inter-ship collisions
-    for (uint j=i+1; j<n; j++) {
+    // 3. Inter-ship collisions against ships of lower index...  
+    // Figure out this ship's hashes: It has 4 in 2 dimensions
+    std::unordered_set<uint> collision_shortlist;
+    std::pair<int, int> my_hash;
+    for (int dx=-1; dx < 2; dx+=2)
+      for (int dy=-1; dy < 2; dy+=2)
+      {
+        float x_mod = pos_i(0) + float(dx)*rad;
+        float y_mod = pos_i(1) + float(dy)*rad;
+        my_hash = std::make_pair(int(x_mod / map_grid), 
+                                 int(y_mod / map_grid));
+        if (bins.count(my_hash) > 0)
+        {
+            // Already exists - shortlist others and add self
+            std::vector<uint> current_bin = bins.find(my_hash)->second; 
+            // -->first is the key as it returns a key/value pair
+            for (uint bin_idx: current_bin)
+              if (bin_idx != i)
+                collision_shortlist.insert(bin_idx);
+            current_bin.push_back(i);
+        }
+        else
+        {
+            // didnt exist - add self, and push into map
+            std::vector<uint> current_bin;
+            current_bin.push_back(i);
+            bins.insert(std::make_pair(my_hash, current_bin));
+        }
+      }
+
+    for (uint j: collision_shortlist) {  // =i+1; j<n; j++) {
+      collide_checks ++;
+      // std::cout << "Checking " << i << ", " << j << "\n";
       Eigen::Vector2f pos_j;
       pos_j(0) = states(j,0);
       pos_j(1) = states(j,1);
@@ -162,6 +198,7 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
       }  // end collision
     } // end loop 3. opposing ship
 
+
     // 4. Wall single body collisions
     // compute distance to wall and local normals
     float wall_dist, norm_x, norm_y;
@@ -191,6 +228,7 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
     }
   } // end loop current ship
 
+  // std::cout << "Collision checks:" << collide_checks << "\n";
   // Compose the vector of derivatives:
   for (int i=0; i<n; i++)
   {

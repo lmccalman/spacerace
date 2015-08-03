@@ -1,11 +1,11 @@
 {
-  "lobbyWait": 10,
+  "lobbyWait": 15,
   "gameTime": 360,
   "mapPath": "./maps",
-  "maps": ["bt-circle1"],
+  "maps": ["testmap"],
 
   "simulation": {
-    "timeStep": 0.002,
+    "timeStep": 0.01,
     "targetFPS": 60,
     "ship": {
       "linearThrust" : 100.0,
