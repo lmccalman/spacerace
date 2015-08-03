@@ -81,8 +81,10 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
   const Eigen::VectorXf &masses = params.shipDensities;  // order of 1.0 Mass of ships 
   float spin_drag_ratio = params.rotationalDrag; // 1.8;  // spin friction to translation friction
   float eps = 1e-5;  // Avoid divide by zero special cases
-  float mu = params.friction;  // 0.05;  // friction coefficient between ships
-  float mu_wall = 0.25*params.friction;  //wallFriction;  // 0.01;  // wall friction parameter
+  float mu = params.shipFriction;  // 0.05;  // friction coefficient between ships
+  float mu_wall = params.wallFriction;  //0.25*?wallFriction;  // 0.01;  // wall friction parameter
+  float wall_restitution = params.wallRestitution; // 0.5
+  float ship_restitution = params.shipRestitution; // circa 0.5
   float diameter = 2.*rad;  // rad(i) + rad(j) for any i, j
   float inertia_mass_ratio = 0.25;
   // rotationalThrust Order +- 10 
@@ -113,11 +115,9 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
     // 2. Drag
     f(i, 0) -= cd_a_rho * vel_i(0);
     f(i, 1) -= cd_a_rho * vel_i(1);
-    trq(i) -= spin_drag_ratio*cd_a_rho*w_i*abs(w_i)*rad*rad;
+    trq(i) -= spin_drag_ratio*cd_a_rho*w_i*rad*rad; // * abs(w_i)
 
     // 3. Inter-ship collisions
-    
-    /*
     for (uint j=i+1; j<n; j++) {
       Eigen::Vector2f pos_j;
       pos_j(0) = states(j,0);
@@ -129,13 +129,16 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
       float w_j = states(j,5);
 
       Eigen::Vector2f dP = pos_j - pos_i;
-      float dist = dP.norm() + eps;
-      if (dist < diameter) {
+      float dist = dP.norm() + eps - diameter;
+      Eigen::Vector2f dPhat = dP / dP.norm();
+      if (dist < 0) {
         // we have a collision interaction
         
         // A. Direct collision: apply linear spring normal force
-        float f_magnitude = (diameter - dist) * k_elastic;
-        Eigen::Vector2f f_norm = f_magnitude * dP;
+        float f_magnitude = - dist * k_elastic; // dist < =
+        if ((vel_j - vel_i).dot(pos_j - pos_i) > 0)
+            f_magnitude *= ship_restitution;
+        Eigen::Vector2f f_norm = f_magnitude * dPhat;
         f(i, 0) -= f_norm(0);
         f(i, 1) -= f_norm(1);
         f(j, 0) += f_norm(0);
@@ -143,8 +146,8 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
 
         // B. Surface friction: approximate spin effects
         Eigen::Vector2f perp;  // surface tangent pointing +theta direction
-        perp(0) = -dP(1) / dist;
-        perp(1) = dP(0) / dist;
+        perp(0) = -dPhat(1);
+        perp(1) = dPhat(0);
         
         // relative velocities of surfaces
         float v_rel = rad*w_i + rad*w_j + perp.dot(vel_i - vel_j);
@@ -158,10 +161,8 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
         trq(j) -= fric * rad;
       }  // end collision
     } // end loop 3. opposing ship
-    */
 
     // 4. Wall single body collisions
-   
     // compute distance to wall and local normals
     float wall_dist, norm_x, norm_y;
     interpolate_map(pos_i(0), pos_i(1), wall_dist, norm_x, norm_y, map, params);
@@ -173,10 +174,12 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
 
       // Spring force
       float f_norm_mag = -dist*k_elastic;  // dist is negative, f_norm is +ve
+      if (norm_x*vel_i(0) + norm_y*vel_i(1) > 0)
+          f_norm_mag *= wall_restitution;
       f(i, 0) += f_norm_mag * norm_x;
       f(i, 1) += f_norm_mag * norm_y;
 
-      /* Surface friction
+      // Surface friction
       Eigen::Vector2f perp;  // surface tangent pointing +theta direction
       perp(0) = -norm_y;
       perp(1) = norm_x;
@@ -185,7 +188,6 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
       f(i, 0) -= fric*norm_y;
       f(i, 1) += fric*norm_x;
       trq(i) -= fric * rad;
-      */
     }
   } // end loop current ship
 
@@ -241,12 +243,15 @@ SimulationParameters readParams(const json& j)
   s.rotationalThrust = j["simulation"]["ship"]["rotationalThrust"];
   s.rotationalDrag = j["simulation"]["world"]["rotationalDrag"]; 
   s.shipRadius = j["simulation"]["ship"]["radius"];
-  s.friction = j["simulation"]["world"]["friction"];
+  s.shipFriction = j["simulation"]["ship"]["friction"];
+  s.shipRestitution = j["simulation"]["ship"]["restitution"];
   s.elasticity = j["simulation"]["world"]["elasticity"];
   s.mapScale = j["simulation"]["world"]["mapScale"];
   s.timeStep = j["simulation"]["timeStep"];
   s.targetFPS = j["simulation"]["targetFPS"];
-  
+  s.wallFriction = j["simulation"]["world"]["friction"];
+  s.wallRestitution = j["simulation"]["world"]["restitution"];
+
   /*
   s.wallFriction  = j["simulation"]["world"]["wallFriction"];
   s.wallElacticity = j["simulation"]["world"]["wallElacticity"];

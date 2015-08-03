@@ -89,7 +89,10 @@ struct SimulationParameters
   float rotationalThrust;
   float rotationalDrag;
   float shipRadius;
-  float friction;
+  float shipFriction;
+  float shipRestitution;
+  float wallRestitution;
+  float wallFriction;
   float elasticity;
   float mapScale;
   float timeStep;

@@ -1,5 +1,5 @@
 {
-  "lobbyWait": 20,
+  "lobbyWait": 10,
   "gameTime": 360,
   "mapPath": "./maps",
   "maps": ["bt-circle1"],
@@ -9,6 +9,8 @@
     "targetFPS": 60,
     "ship": {
       "linearThrust" : 100.0,
+      "friction" : 0.025,
+      "restitution" : 0.5,
       "rotationalThrust": 10.0,
       "radius": 1.0,
       "defaultDensity": 1.0,
@@ -18,6 +20,7 @@
     "world": {
       "mapScale": 5.0,
       "linearDrag": 1.0,
+      "restitution": 0.5,
       "rotationalDrag": 1.8,
       "friction": 0.05,
       "elasticity": 4000.0}},
