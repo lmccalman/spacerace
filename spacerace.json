@@ -1,6 +1,7 @@
 {
   "lobbyWait": 10,
   "gameTime": 360,
+  "maxPlayers": 10000,
   "mapPath": "./maps",
   "maps": ["bt-circle1"],
 
