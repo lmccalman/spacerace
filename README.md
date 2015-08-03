@@ -7,41 +7,64 @@ Multiplayer Asteroids-like racing game for the 2015 ETD winter retreat.
 
 # Payload Specifications
 
-The primary state content for game will be stored within two JSON objects, a Map, and 
-a GameState. The following specifies the format of these JSON objects for version `1.0`.
+The primary state content for game will be stored within two JSON objects, a
+Map, and a GameState. The following specifies the format of these JSON objects
+for version `1.0`.
 
-## Map object
+
+## Maps
+
+The maps are raster data, and will be stored in a location separately to the
+game server. The location and name of the map for the upcoming round will be
+communicated by the game server once the player has connected.
 
 The top level JSON object shall comprise:
+- **TODO:** Lachy, you may want to check below:
 - `version`: The version of the Map format, as a string. (e.g., `"1.0"`)
-- `layers`: An array of **Map Layers**. Format specified below.
-- `start`: A line describing the start point
-- `finish`: A line describing the end point
-- `raceline`: A spline that (non-optimally) links `start` to `finish`. 
+- `location`: The location and name where you can retrieve the map and
+  associated information.
+
+### Game Map Files
+
+The following files are associated with each map (`.png` can be any bitmap
+format, `.csv.gz` are gzipped space-separated value files):
+- `mapname.png` the actual track bitmap 
+- `mapname_start.csv.gz` bitmask of the location(s) of the start
+- `mapname_end.csv.gz` bitmask of the location(s) of the end
+- `mapname_occupancy.csv.gz` bitmask of the obstacles
+- `mapname_enddist.csv.gz` distance to nearest end (pixels)
+- `mapname_flowx.csv.gz` flow-field to nearest end, unit vector horizontal
+  component 
+- `mapname_flowy.csv.gz` flow-field to nearest end, unit vector vertical
+  component
+
+Here is an example of this data (you will not have access to the track wall
+normals/distance to walls);
+
+![mapbuilder/example_map_products.png](Example map products.)
 
 
-### Map Layers
+### How to contribute a map
 
-A JSON object containing at least a `type` attribute. The `type`
-attribute should be one of the following strings:
+It's easy! For the actual track, you just need to create a bitmap (preferably
+PNG but any image format will do) that conforms to the following
+specifications:
 
-- `raster`
-- `vector`
-- `diagram`
+- Occupied regions must be black `#000000, rgb(0, 0, 0)`
+- Free/race track regions must be white `#FFFFFF, rgb(255, 255, 255)`
+- Start position(s) must be green '#00FF00, rgb(0, 255, 0)`
+- End position must be red `#FF0000, rgb(255, 0, 0)`
 
-Each of these item types represents completely different information
-and is specified independently.
+Also, we haven't put a constraint on the size, but I reccomend less than 
+1500px x 1500px. Here is an example:
 
-#### `raster`
+![mapbuilder/testmap.png](Example map)
 
-TODO - Just basic occupancy, or include start zone etc.
+Also, you can optionally provide a skin for you map to make it look pretty!
+Just make sure it is the same size as you original map and has the suffix
+`\_skin`, e.g.
 
-### `vector`
-
-TODO - Probably SVG
-
-Optional attributes:
-- `style`: TODO
+![mapbuilder/testmap_skin.png](Example map)
 
 
 ##Lobby
