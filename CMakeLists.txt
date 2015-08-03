@@ -4,6 +4,17 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
 
 # Use folders
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+
+SET(CMAKE_VERBOSE_MAKEFILE ON)
+
+# Build type defaults
+IF(NOT CMAKE_BUILD_TYPE)
+  MESSAGE(STATUS "Build Type: Unset, assuming Release")
+  SET(CMAKE_BUILD_TYPE "Release")
+ELSE(NOT CMAKE_BUILD_TYPE)
+    MESSAGE(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+ENDIF(NOT CMAKE_BUILD_TYPE)
+
     
 IF(CMAKE_COMPILER_IS_GNUCXX)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wfatal-errors -Wall -Wno-unused-local-typedefs -ggdb -g  -D_GLIBCXX_USE_NANOSLEEP -fPIC -fopenmp -Wextra -pedantic -pthread")
