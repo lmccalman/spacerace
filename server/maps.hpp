@@ -74,5 +74,5 @@ std::pair<uint,uint> indices(float x, float y, const Map& map,
   iy = std::max(0, std::min(iy, int(map.occupancy.rows())));
   int ix = int(x * params.mapScale);
   ix = std::max(0, std::min(ix, int(map.occupancy.cols())));
-  return std::make_pair(uint(ix), uint(iy));
+  return std::make_pair(uint(iy), uint(ix));
 }
