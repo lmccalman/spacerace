@@ -1,3 +1,7 @@
+# Map user files
+*.npy
+*.csv.gz
+
 # Compiled Object files
 *.slo
 *.lo
