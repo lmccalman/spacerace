@@ -4,6 +4,8 @@
 #include <string>
 #include <set>
 #include <mutex>
+#include <sys/types.h>
+
 #include "Eigen/Dense"
 #include "json.hpp"
 
