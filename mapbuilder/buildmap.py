@@ -72,8 +72,6 @@ def buildmap(image, mapname, settingsfile, visualise):
 
     dny, dnx = norm_layer(*np.gradient(blurmap))
 
-    # import IPython; IPython.embed()
-
     # plotting
     if visualise:
         print("Making plots...")
@@ -146,14 +144,6 @@ def buildmap(image, mapname, settingsfile, visualise):
     save_text_float32_map(mapname+'_flowy', dfy, vec=True)
 
     print("Done!")
-
-
-# def combine_and_norm(yi, yo, xi, xo, occmap):
-
-#     x = xi.filled(0) + xo.filled(0)
-#     y = yi.filled(0) + yo.filled(0)
-
-#     # unit-ise normals
 
 
 def combine_layers(l1, l2):
