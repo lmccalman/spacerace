@@ -93,6 +93,5 @@ struct SimulationParameters
   float timeStep;
   float targetFPS;
   Eigen::VectorXf shipDensities;
-  uint integrationSteps;
 };
 

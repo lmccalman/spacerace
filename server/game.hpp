@@ -94,9 +94,9 @@ void runGame(PlayerSet& players,
              InfoLogger& logger)
 {
   
-  uint integrationSteps = settings["simulation"]["integrationSteps"];
   uint targetFPS = settings["simulation"]["targetFPS"];
   uint totalGameTimeSeconds = settings["gameTime"];
+  uint integrationSteps = uint(1. / float(targetFPS) / params.timeStep);
 
   uint nShips = players.fromId.size();
   uint targetMicroseconds = 1000000 / targetFPS;

@@ -231,7 +231,6 @@ SimulationParameters readParams(const json& j)
   s.mapScale = j["simulation"]["world"]["mapScale"];
   s.timeStep = j["simulation"]["timeStep"];
   s.targetFPS = j["simulation"]["targetFPS"];
-  s.integrationSteps = j["simulation"]["integrationSteps"];
   
   /*
   s.wallFriction  = j["simulation"]["world"]["wallFriction"];

@@ -1,12 +1,11 @@
 {
   "lobbyWait": 10,
-  "gameTime": 10,
+  "gameTime": 60,
   "mapPath": "./maps",
   "maps": ["testmap", "bt-circle1"],
 
   "simulation": {
-    "timeStep": 0.001,
-    "integrationSteps": 100,
+    "timeStep": 0.01,
     "targetFPS": 60,
     "ship": {
       "linearThrust" : 100.0,
@@ -17,7 +16,7 @@
       "maximumDensity": 4.0},
     
     "world": {
-      "mapScale": 10.0,
+      "mapScale": 5.0,
       "linearDrag": 1.0,
       "rotationalDrag": 1.8,
       "friction": 0.05,
