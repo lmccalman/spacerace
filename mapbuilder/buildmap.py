@@ -60,7 +60,8 @@ def buildmap(image, mapname, settingsfile, visualise):
 
     dfyi, dfxi = np.gradient(-distfromend)
     dfyo, dfxo = np.gradient(np.ma.MaskedArray(-distouttowall, ~occmap))
-    dfy, dfx = combine_and_norm(dfyi, dfyo, dfxi, dfxo, occmap)
+    dfy, dfx = norm_layer(combine_layers(dfyi, dfyo),
+                          combine_layers(dfxi, dfxo))
 
     distfromend = distfromend.filled(0) + distouttowall
 
@@ -69,9 +70,9 @@ def buildmap(image, mapname, settingsfile, visualise):
     blurmap = gaussian_filter((~occmap).astype(float),
                               sigma=settings['mapbuilder']['normalBlur'])
 
-    dnyi, dnxi = np.gradient(np.ma.MaskedArray(blurmap, occmap))  # in wall
-    dnyo, dnxo = np.gradient(np.ma.MaskedArray(blurmap, ~occmap))  # out wall
-    dny, dnx = combine_and_norm(dnyi, dnyo, dnxi, dnxo, occmap)
+    dny, dnx = norm_layer(*np.gradient(blurmap))
+
+    # import IPython; IPython.embed()
 
     # plotting
     if visualise:
@@ -147,12 +148,21 @@ def buildmap(image, mapname, settingsfile, visualise):
     print("Done!")
 
 
-def combine_and_norm(yi, yo, xi, xo, occmap):
+# def combine_and_norm(yi, yo, xi, xo, occmap):
 
-    x = xi.filled(0) + xo.filled(0)
-    y = yi.filled(0) + yo.filled(0)
+#     x = xi.filled(0) + xo.filled(0)
+#     y = yi.filled(0) + yo.filled(0)
 
-    # unit-ise normals
+#     # unit-ise normals
+
+
+def combine_layers(l1, l2):
+
+    return l1.filled(0) + l2.filled(0)
+
+
+def norm_layer(y, x):
+
     norms = np.sqrt((y**2 + x**2))
     zmask = ~(norms == 0)
     x[zmask] = x[zmask] / norms[zmask]
