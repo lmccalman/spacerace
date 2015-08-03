@@ -50,11 +50,10 @@ It's easy! For the actual track, you just need to create a bitmap (preferably
 PNG but any image format will do) that conforms to the following
 specifications:
 
-- Occupied regions must be black `#000000, rgb(0, 0, 0)`
-- Free/race track regions must be white `#FFFFFF, rgb(255, 255, 255)`
-- Start position(s) must be <span style="color:#00FF00">green</span> `#00FF00,
-  rgb(0, 255, 0)`
-- End position must be <span style="color:#FF0000">red</span> `#FF0000, 
+- Occupied regions must be **black** `#000000, rgb(0, 0, 0)`
+- Free/race track regions must be **white** `#FFFFFF, rgb(255, 255, 255)`
+- Start position(s) must be **green** `#00FF00, rgb(0, 255, 0)`
+- End position must be **red** `#FF0000, 
   rgb(255, 0, 0)`
 
 Also, we haven't put a constraint on the size, but I recommend less than 
@@ -62,7 +61,18 @@ Also, we haven't put a constraint on the size, but I recommend less than
 
 ![Example map](mapbuilder/testmap.png)
 
-Also, you can optionally provide a skin for you map to make it look pretty!
+To then make this map readable by the game engine, you need to run the
+`buildmap.py` script in the `mapbuilder` directory. Here is an example (from
+where you cloned this repo),
+
+    $ cd mapbuilder
+    $ ./buildmap pathto/yourmapname.png --visualise
+
+This will then output all of the necessary files into the same directory as
+your map. You can call `./buildmap.py --help` for more info. Also, have a look
+at `mapbuilder/requirements.txt` for all of the required python packages.
+
+Finally, you can optionally provide a skin for you map to make it look pretty!
 Just make sure it is the same size as you original map and has the suffix
 `\_skin`, e.g.
 
