@@ -10,7 +10,7 @@ console.log("Global Settings");
 console.log(spaceraceSettings);
 
 var mapScale = spaceraceSettings.simulation.world.mapScale;
-
+var SHIPSIZE;
 var socket = io();
 var requestID;
 var gameState;
@@ -227,7 +227,7 @@ var setupGame = function () {
 
     // Note: The ship is 2 * pixelSize wide in game units (radius of the ship = 1 map scale)
     // Ship size in display pixels
-    var SHIPSIZE = (x(mapWidth/200)).toString();
+    SHIPSIZE = x(mapWidth/200);
 
     console.log("Ship size will be " + SHIPSIZE);
 
@@ -271,8 +271,8 @@ var setupGame = function () {
             return "ship" + i;
         })
         .attr("xlink:href", "#ship")
-        .attr("width", SHIPSIZE)
-        .attr("height", SHIPSIZE)
+        .attr("width", SHIPSIZE.toString())
+        .attr("height", SHIPSIZE.toString())
         .attr('fill', function (d) {
             return d.color;
         });
@@ -286,7 +286,9 @@ var updateState = function (highResTimestamp) {
     requestID = requestAnimationFrame(updateState);
 
     if (updates >= draws) {
-        //if(updates % 60*5 == 0) console.log(gameState);
+        if(updates % 60*5 == 0){
+            console.log(gameState.map(function(s){return "(" + s.x + ',' + s.y + ")";}).join(' '));
+        }
         // Only update the ships if we have gotten an update from the server
         draws += 1;
 
@@ -318,8 +320,8 @@ var updateState = function (highResTimestamp) {
                 // command however it doesn't seem as performant as using the x,y attributes as above.
                 // Note SVG rotate takes degrees not radians, and it also takes positon (X, Y)
                 // to center the rotation around.
-                var shipX = x(d.x),
-                    shipY = y(d.y);
+                var shipX = x(d.x) - SHIPSIZE/2,
+                    shipY = y(d.y) + SHIPSIZE/2;
 
                 return "rotate(" +
                     (90 - d.theta * 360 / (2 * Math.PI)) +
