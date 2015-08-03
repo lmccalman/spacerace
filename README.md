@@ -78,7 +78,7 @@ Just make sure it is the same size as your original map and has the suffix
 
 ![Example map skin](mapbuilder/testmap_skin.png)
 
-Now just upload it to the location we will specify!
+Now just upload all of the generated files to the location we will specify!
 
 
 ##Lobby
