@@ -1,6 +1,8 @@
 #include "types.hpp"
 #include "time.hpp"
 #include <math.h>
+#include "argsort.hpp"
+/* #include <unordered_map> */
 
 
 std::string gameName(uint n)
@@ -84,6 +86,30 @@ std::string winner(const PlayerSet& players,
   return winnerName;
 }
 
+
+void playerScore(const StateMatrix& state,
+                 const ControlData& control,
+                 const Map& map,
+                 const SimulationParameters& params,
+                 GameStats& gameStats)
+{
+  std::vector<float> distance(state.rows());
+
+  for (uint i=0; i<state.rows();i++)
+  {
+    std::pair<uint,uint> coords = indices(state(i,0), state(i,1), map, params);
+    distance[i] = map.endDistance(coords.first, coords.second);
+    gameStats.playerDists[control.ids.at(i)] = distance[i];
+  }
+
+  std::vector<int> ranks = argsort(distance);
+  for (uint i=0; i<state.rows();i++)
+  {
+    gameStats.playerRanks[control.ids.at(i)] = ranks[i];
+  }
+
+}
+
 void runGame(PlayerSet& players, 
              ControlData& control, 
              const GameState& gameState, 
@@ -103,7 +129,9 @@ void runGame(PlayerSet& players,
   StateMatrix state(nShips, STATE_LENGTH);
   initialiseState(state, map, params);
   ControlMatrix inputs = control.inputs;
+  GameStats gameStats;
   bool running = true;
+  unsigned int fpscounter = 0;
   
   auto gameStart = hrclock::now();
   logger("game", "status",
@@ -111,8 +139,8 @@ void runGame(PlayerSet& players,
   while (running && !interruptedBySignal)
   {
     auto frameStart = hrclock::now();
-    //get control inputs from control thread
-    broadcastState(players, state, gameState, control, stateSocket);
+
+    // Threadsafe copy of control inputs (unlock managed by scope)
     {
       std::lock_guard<std::mutex> lock(control.mutex);
       inputs = control.inputs;
@@ -121,19 +149,34 @@ void runGame(PlayerSet& players,
     for (uint i=0; i<integrationSteps;i++)
       rk4TimeStep(state, inputs, params, map);
 
-    //TODO send an info message with who is in the lead etc etc.
+    // Calculate game stats every second
+    fpscounter++;
+    if (fpscounter >= targetFPS)
+    {
+        fpscounter = 0;
+        playerScore(state, control, map, params, gameStats);
+        logger("game", "status",
+            {{"state","running"},{"map",map.name}, {"game",gameState.name},
+             {"ranking", gameStats.playerRanks}}); 
+    }
     
     //check we don't need to end the game
     bool timeout = hasRoughIntervalPassed(gameStart, totalGameTimeSeconds, targetFPS);
     bool raceWon = winner(players, state,control, map, params) != "";
     running = (!timeout) && (!raceWon);
 
+    // get control inputs from control thread
+    broadcastState(players, state, gameState, control, stateSocket);
+
     // make sure we target a particular frame rate
     waitPreciseInterval(frameStart, targetMicroseconds);
   }
+
   // Game over, so tell the clients
+  playerScore(state, control, map, params, gameStats); // get final score
   logger("game", "status",
-        {{"state","finished"},{"map",map.name}, {"game",gameState.name}}); 
+         {{"state","finished"},{"map",map.name}, {"game",gameState.name},
+          {"ranking", gameStats.playerRanks}}); 
   send(stateSocket, {gameState.name,"{\"state\":\"finished\"}"});
 
 }
