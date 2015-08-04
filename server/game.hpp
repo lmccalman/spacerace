@@ -175,7 +175,8 @@ void runGame(PlayerSet& players,
   // Game over, so tell the clients
   playerScore(state, control, map, params, gameStats); // get final score
   logger("game", "status",
-        {{"state","finished"},{"map",map.name}, {"game",gameState.name}}); 
+         {{"state","finished"},{"map",map.name}, {"game",gameState.name},
+          {"ranking", gameStats.playerRanks}}); 
   send(stateSocket, {gameState.name,"{\"state\":\"finished\"}"});
 
 }
