@@ -29,41 +29,53 @@ Eigen::MatrixXb loadBoolFromNumpy(const std::string& filename)
   return mat;
 }
 
-void loadMaps(const json& settings, MapData& mapData)
-{
+
+void loadMaps(json& settings, MapData& mapData)
+{  
+  std::vector<std::string> mapNames;
   for (std::string mapName : settings["maps"])
   {
-    std::string path = settings["mapPath"];
-    std::string prefix = path + "/" + mapName;
-    Map m;
-    m.name = mapName;
-    m.occupancy = loadBoolFromNumpy(prefix + "_occupancy.npy");
-    m.flowx = loadFloatFromNumpy(prefix + "_flowx.npy"); 
-    m.flowy = loadFloatFromNumpy(prefix + "_flowy.npy");
-    m.endDistance = loadFloatFromNumpy(prefix + "_enddist.npy");
-    m.wallDistance = loadFloatFromNumpy(prefix + "_walldist.npy"); 
-    m.wallNormalx = loadFloatFromNumpy(prefix + "_wnormx.npy");
-    m.wallNormaly = loadFloatFromNumpy(prefix + "_wnormy.npy");
-    float mapScale = settings["simulation"]["world"]["mapScale"];
-    m.wallDistance = m.wallDistance / mapScale;
-    m.maxDistance = m.endDistance.maxCoeff();
-    Eigen::MatrixXb start = loadBoolFromNumpy(prefix + "_start.npy");
-    Eigen::MatrixXb finish = loadBoolFromNumpy(prefix + "_end.npy"); 
+    try
+    {
+      std::string path = settings["mapPath"];
+      std::string prefix = path + "/" + mapName;
+      Map m;
+      m.name = mapName;
+      m.occupancy = loadBoolFromNumpy(prefix + "_occupancy.npy");
+      m.flowx = loadFloatFromNumpy(prefix + "_flowx.npy"); 
+      m.flowy = loadFloatFromNumpy(prefix + "_flowy.npy");
+      m.endDistance = loadFloatFromNumpy(prefix + "_enddist.npy");
+      m.wallDistance = loadFloatFromNumpy(prefix + "_walldist.npy"); 
+      m.maxDistance = m.endDistance.maxCoeff();
+      m.wallNormalx = loadFloatFromNumpy(prefix + "_wnormx.npy");
+      m.wallNormaly = loadFloatFromNumpy(prefix + "_wnormy.npy");
+      float mapScale = settings["simulation"]["world"]["mapScale"];
+      m.wallDistance = m.wallDistance / mapScale;
+      Eigen::MatrixXb start = loadBoolFromNumpy(prefix + "_start.npy");
+      Eigen::MatrixXb finish = loadBoolFromNumpy(prefix + "_end.npy"); 
 
-    assert(start.rows() == finish.rows());
-    assert(start.cols() == finish.cols());
+      assert(start.rows() == finish.rows());
+      assert(start.cols() == finish.cols());
 
-    for (uint r=0;r<start.rows();r++)
-      for (uint c=0;c<start.cols();c++)
-      {
-        if (start(r,c))
-          m.start.insert(std::make_pair(r,c));
-        else if(finish(r,c))
-          m.finish.insert(std::make_pair(r,c));
-      }
-
-    mapData.maps.push_back(std::move(m));
+      for (uint r=0;r<start.rows();r++)
+        for (uint c=0;c<start.cols();c++)
+        {
+          if (start(r,c))
+            m.start.insert(std::make_pair(r,c));
+          else if(finish(r,c))
+            m.finish.insert(std::make_pair(r,c));
+        }
+      mapNames.push_back(mapName);
+      mapData.maps.push_back(std::move(m));
+    }
+    catch (std::exception& e)
+    {
+      LOG(ERROR) << "Failed to load map" <<  mapName << "\nDetails:" << 
+        e.what() << "\n";
+    }
+    settings["maps"] = mapNames;
   }
+
   
 }
 

@@ -21,7 +21,7 @@ import json
 import zmq
 
 DEFAULTS = {
-    'hostname': 'localhost',
+    'hostname': 'localhost',  #'192.168.1.110', #'localhost',
     'state_port': 5556,
     'control_port': 5557,
     'lobby_port': 5558,
