@@ -23,25 +23,32 @@ void runControlThread(zmq::context_t& context,
     bool newMsg = receive(socket, msg);
     if (newMsg && gameState.running)
     {
-      std::lock_guard<std::mutex> playerSetLock(players.mutex);
-      // should be of form <secret_code>, <0 or 1>,<-1, 0 or 1>
-      boost::split(messageTokens, msg[0], boost::is_any_of(","));
-      std::string secretKey = messageTokens[0];
-      bool validSender = control.idx.count(secretKey);
-      bool validMessage = messageTokens.size() == 3;
-      if (validSender && validMessage)
+      try
       {
-        std::lock_guard<std::mutex> controlLock(control.mutex);
-        uint idx = control.idx[secretKey];
-        control.inputs(idx,0) = float(messageTokens[1] == "1");
-        control.inputs(idx,1) = float(messageTokens[2] == "1") - float(messageTokens[2] == "-1");
+        std::lock_guard<std::mutex> playerSetLock(players.mutex);
+        // should be of form <secret_code>,<0 or 1>,<-1, 0 or 1>
+        boost::split(messageTokens, msg[0], boost::is_any_of(","));
+        std::string secretKey = messageTokens[0];
+        bool validSender = control.idx.count(secretKey);
+        bool validMessage = messageTokens.size() == 3;
+        if (validSender && validMessage)
+        {
+          std::lock_guard<std::mutex> controlLock(control.mutex);
+          uint idx = control.idx[secretKey];
+          control.inputs(idx,0) = float(messageTokens[1] == "1");
+          control.inputs(idx,1) = float(messageTokens[2] == "1") - float(messageTokens[2] == "-1");
+        }
+        else if (newMsg)
+        {
+          if (!validSender)
+            logger("control", "error", {"message","Unknown secret key: " + secretKey});
+          if (!validMessage)
+            logger("control", "error", {"message","Ship " + players.idFromSecret[secretKey] + " sent invalid message"}); 
+        }
       }
-      else if (newMsg)
+      catch(...)
       {
-        if (!validSender)
-          logger("control", "error", {"message","Unknown secret key: " + secretKey});
-        if (!validMessage)
-          logger("control", "error", {"message","Ship " + players.idFromSecret[secretKey] + " sent invalid message"}); 
+        logger("control", "error", {"message", "Could not process control message " + msg[0]}); 
       }
     }
   }

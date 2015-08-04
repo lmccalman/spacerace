@@ -2,15 +2,114 @@
 
 Multiplayer Asteroids-like racing game for the 2015 ETD winter retreat.
 
-    docker build -t spacerace .
-    docker run -it -p 5556-5559:5556-5559 spacerace 
 
-# Payload Specifications
+## Overview
 
-The primary state content for game will be stored within two JSON objects, a
-Map, and a GameState. The following specifies the format of these JSON objects
-for version `1.0`.
+This is a multi-round racing game in which the game state is managed from a
+central game server. The aim of this game is for the player's spaceship(s) to
+complete the track before anyone else's, and within the time limit of the
+round.  The round ends as soon as the first player reaches a finish, or the
+time is up.  Then each player is assigned as score which is the percentage of
+the track they completed by the finish of the round. 
 
+![Coodinate system](coords.png)
+
+
+## General Instructions for Building a Client
+
+A minimal client has three [ZeroMQ](http://zeromq.org/) sockets:
+
+1. *Lobby*: a request socket, asks for a connection to the next game, receives 
+confirmation of the next game that will be joined.
+2. *Game state*: subscription ("sub") socket, receive a JSON object of the 
+current games state (details below).
+3. *Control*: a "push" socket, push your client control actions as a ZeroMQ
+frame (see below for details).
+
+Some more detailed information on how a game is run:
+
+**1.** Connect to the lobby by sending:
+
+```
+    { 
+        "name": "yournamehere",
+        "team": "yourteam"
+    }
+```
+
+**2.** You will receive the following confirmation json:
+
+```
+    {
+        "name": "yournamehere",
+        "game": "gamename",
+        "map": "mapname",
+        "secret": "yoursecretkey"
+    }
+```
+
+If there is an error TODO.
+Then you will need to subscribe your *state* socket to "gamename".
+
+**3.** Some time later when the game starts, you will start receiving game
+state on the state socket. The game state will be received periodically (approx
+60 Hz), with the following format,
+
+```
+    {
+        "state": "running",
+        "data": [list_of_players]
+    }
+```
+
+A player has the following attributes:
+
+```
+    {
+        "id": "xxxx",
+        "x":
+        "y":
+        "vx":
+        "vy":
+        "theta": float,     (heading, angle w.r.t. counter-clockwise from horizontal)
+        "omega": float,     (angular velocity)
+        "Tl": float,        ({0,1} for linear thrust off/on)
+        "Tr": float         ({-1, 0, 1} for angular thrust clockwise/off/ counter-clockwise)
+    }
+```
+
+**4.** Sending a ship control message. The following is sent to the control "push"
+socket, which is a single ZMQ frame,
+
+```
+    "yoursecretcode,{0,1},{-1,0,1}"
+```
+
+The last command is repeated each time-step, and only the last command received
+in each time step is used.
+
+**5.** Game ending, this happens when either a player finishes the track or the
+game times out. Then you will receive the following on the state socket;
+
+```
+    {
+        "state": "finished"
+        some other end stuff here, like score etc. TODO
+    }
+```
+
+### Pseudo code
+
+    while(true)
+        send(lobby_socket, conn_message)
+        recv(control_socket, reply_message)
+        state_socket.subscribe(reply_message.game)
+        running = true
+        while(running)
+            send(control_socket, control_action)
+            recv(state_socket, game_state)
+            running = game_state.state
+    
 
 ## Maps
 
@@ -123,4 +222,6 @@ The string is of the form:
 thrust, -1 is for -ve (clockwise) rotation thrust, and 0 is no rotation thrust
 
 
-
+# Docker
+    docker build -t spacerace .
+    docker run -it -p 5556-5559:5556-5559 spacerace 
