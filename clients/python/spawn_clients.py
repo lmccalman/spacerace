@@ -1,21 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-#
-# dummy_client.py
-# Game client for 2015 ETD Winter retreat
-# https://github.com/lmccalman/spacerace
-# 
-# Created by Louis Tiao on 28/07/2015.
-# 
-
 import logging
 import string
 import random
 import zmq
 
-from client import Client
+from client import Client, StateClient
+from collections import defaultdict
 from argparse import ArgumentParser
+from threading import Thread
+
 
 DEFAULTS = {
     'hostname': 'localhost',
@@ -56,23 +51,32 @@ if __name__ == '__main__':
     parser.add_argument('--control_port', type=int, help='Control port', default=DEFAULTS['control_port'])
     parser.add_argument('--lobby_port', type=int, help='Lobby port', default=DEFAULTS['lobby_port'])
 
-    parser.add_argument('--ship_name', '-s', type=str,
-        default=make_random_name(10), help='Ship Name')
-    parser.add_argument('--team_name', '-t', type=str,
-        default=make_random_name(10), help='Team Name')
+    parser.add_argument('--num_ships', '-n', type=int, default=1, help='Number of clients to Spawn')
 
     args = parser.parse_args()
     logger.debug(args)
 
-    with make_context() as context:
-        client = Client(args.hostname, args.lobby_port, args.control_port, args.state_port, context)
+    # with make_context() as context:
 
-        while True:
-            response = client.lobby.register(args.ship_name, args.team_name)
-            client.state.subscribe(response.game)
+    context = make_context()
 
-            for state_data in client.state.state_gen():
-                logger.debug(state_data)
-                client.control.send(response.secret, *make_random_control())
+    client = Client(args.hostname, args.lobby_port, args.control_port, args.state_port, context)
 
-        client.close()
+    while True:
+
+        secrets = defaultdict(list)
+        for _ in range(args.num_ships):
+            instance = client.lobby.register(make_random_name(10), make_random_name(5))
+            secrets[instance.game].append(instance.secret)
+
+        for game in secrets:
+
+            state_client = StateClient(args.hostname, args.state_port, context).subscribe(game)
+
+            for _ in state_client.state_gen():
+                for secret in secrets[game]:
+                    client.control.send(secret, *make_random_control())
+
+            state_client.close()
+
+    client.close()

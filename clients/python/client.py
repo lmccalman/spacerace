@@ -104,14 +104,12 @@ class ControlClient(BaseClient):
 
 class StateClient(BaseClient):
 
-    def __init__(self, game_name, *args, **kwargs):
-        self.game_name = game_name
-        super(StateClient, self).__init__(*args, **kwargs)
-
     def make_socket(self):
-        sock = self.context.socket(zmq.SUB)
-        sock.setsockopt_string(zmq.SUBSCRIBE, self.game_name)
-        return sock 
+        return self.context.socket(zmq.SUB)
+        
+    def subscribe(self, game_name):
+        self.sock.setsockopt_string(zmq.SUBSCRIBE, game_name)
+        return self
 
     def recv(self):
         msg_filter_b, msg_b = self.sock.recv_multipart()
@@ -123,6 +121,24 @@ class StateClient(BaseClient):
             if state_data['state'] == 'finished':
                 break
             yield state_data
+
+class Client:
+
+    def __init__(self, hostname, lobby_port, control_port, state_port, context=None):
+
+        if context is None:
+            self.context = make_context()
+        else:
+            self.context = context
+
+        self.lobby = LobbyClient(hostname, lobby_port, self.context)
+        self.control = ControlClient(hostname, control_port, self.context)
+        self.state = StateClient(hostname, state_port, self.context)
+
+    def close(self):
+        self.state.close()
+        self.control.close()
+        self.lobby.close()
 
 # class StateClientIOLoop(BaseClient):
 
