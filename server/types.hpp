@@ -19,6 +19,7 @@ using ControlMatrix = Eigen::Matrix<float, Eigen::Dynamic, CONTROL_LENGTH>;
 using StateVector = Eigen::Matrix<float,1,STATE_LENGTH>;
 using ControlVector = Eigen::Matrix<float,1,CONTROL_LENGTH>;
 
+
 namespace Eigen
 {
   using MatrixXb = Matrix<bool, Dynamic, Dynamic>;
@@ -32,6 +33,16 @@ struct ControlData
   std::mutex mutex;
 };
 
+
+struct Error
+{
+  Error(std::string&& c, std::string&& s, json&& d)
+    : category(c), subject(s), data(d){}
+
+  std::string category;
+  std::string subject;
+  json data;
+};
 
 struct Player
 {
