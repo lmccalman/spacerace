@@ -108,13 +108,6 @@ class StateClient(BaseClient):
         self.game_name = game_name
         super(StateClient, self).__init__(*args, **kwargs)
 
-    def state_gen(self):
-        while True:
-            state_data = self.recv()
-            if state_data['state'] == 'finished':
-                break
-            yield state_data
-
     def make_socket(self):
         sock = self.context.socket(zmq.SUB)
         sock.setsockopt_string(zmq.SUBSCRIBE, self.game_name)
@@ -123,6 +116,13 @@ class StateClient(BaseClient):
     def recv(self):
         msg_filter_b, msg_b = self.sock.recv_multipart()
         return json.loads(msg_b.decode())
+
+    def state_gen(self):
+        while True:
+            state_data = self.recv()
+            if state_data['state'] == 'finished':
+                break
+            yield state_data
 
 # class StateClientIOLoop(BaseClient):
 
