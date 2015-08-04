@@ -110,11 +110,33 @@ void playerScore(const StateMatrix& state,
 
 }
 
+void updateRanks(const PlayerSet& players,
+                 const ControlData& control,
+                 const Map& map,
+                 GameStats& gameStats)
+{
+  for (auto const& pair : players.fromId)
+  {
+    const Player& player = pair.second;
+    float score = (map.maxDistance - gameStats.playerDists[player.id])/map.maxDistance * 100.0;
+    if (gameStats.totalPlayerScore.count(player.id))
+      gameStats.totalPlayerScore[player.id] += score;
+    else
+      gameStats.totalPlayerScore[player.id] = score;
+       
+    if (gameStats.totalTeamScore.count(player.team))
+      gameStats.totalTeamScore[player.team] += score;
+    else
+      gameStats.totalTeamScore[player.id] = score;
+  }
+}
+
 void runGame(PlayerSet& players, 
              ControlData& control, 
              const GameState& gameState, 
              const Map& map, 
              const SimulationParameters& params,
+             GameStats& gameStats,
              zmq::socket_t& stateSocket, 
              const json& settings, 
              InfoLogger& logger)
@@ -124,12 +146,15 @@ void runGame(PlayerSet& players,
   uint totalGameTimeSeconds = settings["gameTime"];
   uint integrationSteps = uint(1. / float(targetFPS) / params.timeStep);
 
+  // Make sure the per-game stats are cleared
+  gameStats.playerRanks.clear();
+  gameStats.playerDists.clear();
+
   uint nShips = players.fromId.size();
   uint targetMicroseconds = 1000000 / targetFPS;
   StateMatrix state(nShips, STATE_LENGTH);
   initialiseState(state, map, params);
   ControlMatrix inputs = control.inputs;
-  GameStats gameStats;
   bool running = true;
   unsigned int fpscounter = 0;
   
@@ -174,9 +199,11 @@ void runGame(PlayerSet& players,
 
   // Game over, so tell the clients
   playerScore(state, control, map, params, gameStats); // get final score
+  updateRanks(players, control,map, gameStats);
   logger("game", "status",
          {{"state","finished"},{"map",map.name}, {"game",gameState.name},
-          {"ranking", gameStats.playerRanks}}); 
+          {"ranking", gameStats.playerRanks}, {"totalScore", gameStats.totalPlayerScore},
+          {"teamScore", gameStats.totalTeamScore}}); 
   send(stateSocket, {gameState.name,"{\"state\":\"finished\"}"});
 
 }

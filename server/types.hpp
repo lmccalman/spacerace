@@ -65,6 +65,9 @@ struct Map
 
   Eigen::MatrixXf wallNormalx;
   Eigen::MatrixXf wallNormaly;
+
+  float maxDistance;
+
 };
 
 struct MapData
@@ -87,6 +90,8 @@ struct GameStats
 {
   std::map<std::string, float> playerDists;
   std::map<std::string, unsigned int> playerRanks;
+  std::map<std::string, float> totalPlayerScore;
+  std::map<std::string, float> totalTeamScore;
 };
 
 

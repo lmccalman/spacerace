@@ -70,6 +70,7 @@ int main(int ac, char* av[])
   ControlData control;
   GameState currentGameState;
   GameState nextGameState;
+  GameStats stats;
   nextGameState.name = gameName(gameNumber);
   SimulationParameters params = readParams(settings);
    
@@ -157,7 +158,7 @@ int main(int ac, char* av[])
     
     currentGameState.running = true;
     runGame(currentPlayers, control, currentGameState,
-        mapData.maps[mapData.currentMap], params, stateSocket, settings, 
+        mapData.maps[mapData.currentMap], params, stats, stateSocket, settings, 
         logger);
     currentGameState.running = false;
     LOG(INFO) << "Game Over";

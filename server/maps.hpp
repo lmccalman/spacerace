@@ -46,6 +46,7 @@ void loadMaps(const json& settings, MapData& mapData)
     m.wallNormaly = loadFloatFromNumpy(prefix + "_wnormy.npy");
     float mapScale = settings["simulation"]["world"]["mapScale"];
     m.wallDistance = m.wallDistance / mapScale;
+    m.maxDistance = m.endDistance.maxCoeff();
     Eigen::MatrixXb start = loadBoolFromNumpy(prefix + "_start.npy");
     Eigen::MatrixXb finish = loadBoolFromNumpy(prefix + "_end.npy"); 
 

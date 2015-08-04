@@ -1,6 +1,6 @@
 {
   "lobbyWait": 15,
-  "gameTime": 360,
+  "gameTime": 10,
   "maxPlayers": 10000,
   "mapPath": "./maps",
   "maps": ["testmap"],
