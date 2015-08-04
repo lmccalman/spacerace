@@ -4,7 +4,7 @@
   "maxPlayers": 10000,
   "mapPath": "./maps",
   "maps": ["swish", "nautilus", "switchbacks", "dilemma", "fishcatcher", 
-           "starmap"],
+           "starmap", "bt-circle1"],
 
   "simulation": {
     "timeStep": 0.01,
