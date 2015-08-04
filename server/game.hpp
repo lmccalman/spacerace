@@ -1,6 +1,7 @@
 #include "types.hpp"
 #include "time.hpp"
 #include <math.h>
+#include "argsort.hpp"
 /* #include <unordered_map> */
 
 
@@ -39,7 +40,6 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state,
         {"Tr", Tr}
         });
   }
-  j["stats"] = json::array();
   send(socket, {gameState.name, j.dump()});
 }
 
@@ -86,6 +86,7 @@ std::string winner(const PlayerSet& players,
   return winnerName;
 }
 
+
 void playerScore(const StateMatrix& state,
                  const ControlData& control,
                  const Map& map,
@@ -99,6 +100,12 @@ void playerScore(const StateMatrix& state,
     std::pair<uint,uint> coords = indices(state(i,0), state(i,1), map, params);
     distance[i] = map.endDistance(coords.first, coords.second);
     gameStats.playerDists[control.ids.at(i)] = distance[i];
+  }
+
+  std::vector<int> ranks = argsort(distance);
+  for (uint i=0; i<state.rows();i++)
+  {
+    gameStats.playerRanks[control.ids.at(i)] = ranks[i];
   }
 
 }
@@ -148,6 +155,9 @@ void runGame(PlayerSet& players,
     {
         fpscounter = 0;
         playerScore(state, control, map, params, gameStats);
+        logger("game", "status",
+            {{"state","running"},{"map",map.name}, {"game",gameState.name},
+             {"ranking", gameStats.playerRanks}}); 
     }
     
     //check we don't need to end the game

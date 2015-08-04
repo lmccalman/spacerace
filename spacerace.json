@@ -19,10 +19,10 @@
       "maximumDensity": 4.0},
     
     "world": {
-      "mapScale": 5.0,
+      "mapScale": 10.0,
       "linearDrag": 1.0,
       "restitution": 0.5,
-      "rotationalDrag": 1.8,
+      "rotationalDrag": 4.0,
       "friction": 0.05,
       "elasticity": 4000.0}},
 
