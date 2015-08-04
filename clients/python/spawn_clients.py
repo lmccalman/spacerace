@@ -9,8 +9,6 @@ import zmq
 from client import Client, StateClient
 from collections import defaultdict
 from argparse import ArgumentParser
-from threading import Thread
-
 
 DEFAULTS = {
     'hostname': 'localhost',

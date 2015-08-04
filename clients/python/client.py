@@ -58,6 +58,24 @@ class Bunch(dict):
         dict.__init__(self,kw)
         self.__dict__.update(kw)
 
+class Client:
+
+    def __init__(self, hostname, lobby_port, control_port, state_port, context=None):
+
+        if context is None:
+            self.context = make_context()
+        else:
+            self.context = context
+
+        self.lobby = LobbyClient(hostname, lobby_port, self.context)
+        self.control = ControlClient(hostname, control_port, self.context)
+        self.state = StateClient(hostname, state_port, self.context)
+
+    def close(self):
+        self.state.close()
+        self.control.close()
+        self.lobby.close()
+
 class BaseClient:
 
     def __init__(self, hostname, port, context=None):
@@ -121,24 +139,6 @@ class StateClient(BaseClient):
             if state_data['state'] == 'finished':
                 break
             yield state_data
-
-class Client:
-
-    def __init__(self, hostname, lobby_port, control_port, state_port, context=None):
-
-        if context is None:
-            self.context = make_context()
-        else:
-            self.context = context
-
-        self.lobby = LobbyClient(hostname, lobby_port, self.context)
-        self.control = ControlClient(hostname, control_port, self.context)
-        self.state = StateClient(hostname, state_port, self.context)
-
-    def close(self):
-        self.state.close()
-        self.control.close()
-        self.lobby.close()
 
 # class StateClientIOLoop(BaseClient):
 
