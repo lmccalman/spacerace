@@ -29,7 +29,8 @@ logging.basicConfig(
 # Helper functions
 make_random_name = lambda length: ''.join(random.choice(string.ascii_letters) \
     for _ in range(length))
-make_random_control = lambda: (random.choice([1,1,1,1,0]), random.choice([-1,-1,1,1,0,0,0,0,0,0,0]))
+make_random_control = lambda: (random.choice([1,1,1,1,0]),
+                               random.choice([-1,-1,-1,0,1]))
 
 def make_context():
     context = zmq.Context()

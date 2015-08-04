@@ -106,18 +106,22 @@ class Client:
         logger.info('Sending control string "{}"'.format(control_str))
         self.control_sock.send_string(control_str)
 
-    def press(self, event):
-        self.pressed.add(event.key)
+    def update_control(self):
         linear = int('up' in self.pressed)
         rotation = 0
         rotation += int('left' in self.pressed)
         rotation -= int('right' in self.pressed)
         self.send_control(linear, rotation)
 
+    def press(self, event):
+        self.pressed.add(event.key)
+        self.update_control()
+
     def release(self, event):
         self.pressed.discard(event.key)
-        if not self.pressed:
-            self.send_control(0, 0)
+        self.update_control()
+
+
 
 if __name__ == '__main__':
 
