@@ -82,6 +82,14 @@ struct GameState
   std::mutex mutex;
 };
 
+
+struct GameStats
+{
+  std::map<std::string, float> playerDists;
+  std::map<std::string, unsigned int> playerRanks;
+};
+
+
 struct SimulationParameters
 {
   float linearThrust;
