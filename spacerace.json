@@ -3,7 +3,7 @@
   "gameTime": 360,
   "maxPlayers": 10000,
   "mapPath": "./maps",
-  "maps": ["testmap"],
+  "maps": ["testmap", "failmode"],
 
   "simulation": {
     "timeStep": 0.01,
