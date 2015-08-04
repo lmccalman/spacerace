@@ -8,9 +8,9 @@ Multiplayer Asteroids-like racing game for the 2015 ETD winter retreat.
 This is a multi-round racing game in which the game state is managed from a
 central game server. The aim of this game is for the player's spaceship(s) to
 complete the track before anyone else's, and within the time limit of the
-round.  The round ends as soon as the first player reaches a finish, or the
-time is up.  Then each player is assigned as score which is the percentage of
-the track they completed by the finish of the round. 
+round. The round ends as soon as the first player reaches a finish, or the time
+is up. Then each player is assigned a score which is the percentage of the
+track they completed by the finish of the round. 
 
 ![Coodinate system](coords.png)
 

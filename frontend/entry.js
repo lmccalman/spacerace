@@ -115,35 +115,35 @@ var svgContainer = d3.select('#game')
 var mapContainer = svgContainer.append("g");
 
 var shipG = svgContainer.append("defs")
-    .append("symbol")
-    .attr("viewBox", "0 0 50 50")
+    .append("g")
+    //.attr("viewBox", "-25 -25 50 50")
     .attr("id", "ship")
     .attr("class", "ship");
 
 shipG.append("polygon")
-    .attr("points", "25,2 47,37 3,37")
+    .attr("points", "0,-23 22,12 -22,12")
     .attr("class", "shipWings");
 
 // For now the jet "backwards" is simply a solid line
 shipG.append("line")
     .attr("class", "shipJet")
-    .attr("x1", 25)
-    .attr("y1", 35)
-    .attr("x2", 25)
-    .attr("y2", 45);
+    .attr("x1", 0)
+    .attr("y1", 10)
+    .attr("x2", 0)
+    .attr("y2", 20);
 
 // Main circular body of the ship
 shipG.append("circle")
     .attr("class", "shipBody")
-    .attr('cx', 25)
-    .attr('cy', 25)
+    .attr('cx', 0)
+    .attr('cy', 0)
     .attr('r', function (d, i) {
         return 16;
     });
 
 
 shipG.append("polygon")
-    .attr("points", "23,30 27,30 25,5")
+    .attr("points", "-2,5 2,5 0,-20")
     .attr("class", "shipStripe");
 
 
@@ -194,7 +194,7 @@ function loadMap(cb) {
 
 
         /* Set up mappings between image pixels, game units, and display pixels
-         * pixelSize is approx 10.
+         * mapScale is approx 10.
          * If a map is 1500px wide, the physics engine will give positions between [0,150]
          * (0,0) is at the bottom left
          * */
@@ -227,7 +227,7 @@ var setupGame = function () {
 
     // Note: The ship is rendered as 2 * mapScale wide in game units (radius of the ship = 1 map scale)
     // Ship size in display pixels
-    SHIPSIZE = x(2 * mapScale);
+    SHIPSIZE = x(1)/16;
 
     console.log("Ship size will be " + SHIPSIZE);
 
@@ -254,8 +254,6 @@ var setupGame = function () {
         });
 
 
-
-
     ships = shipGroup
         .selectAll('.ship')
         .data(initState);
@@ -266,15 +264,11 @@ var setupGame = function () {
         .enter()
         .append('use')
         .attr("class", "ship")
-        //.attr("transform", function (d, i) {
-        //    return "translate(" + SHIPSIZE/2+ "," + SHIPSIZE/2 + ")";
-        //})
         .attr("id", function (d, i) {
             return "ship" + i;
         })
         .attr("xlink:href", "#ship")
-        .attr("width", SHIPSIZE.toString())
-        .attr("height", SHIPSIZE.toString())
+
         .attr('fill', function (d) {
             return d.color;
         });
@@ -318,20 +312,15 @@ var updateState = function (highResTimestamp) {
             //    return y(d.y);
             //})
             .attr("transform", function (d, i) {
-                // It is possible to both update ships' position and rotation using a single SVG transform/rotation
-                // command however it doesn't seem as performant as using the x,y attributes as above.
-                // Note SVG rotate takes degrees not radians, and it also takes positon (X, Y)
+                // Note SVG rotate takes degrees not radians, and it also takes position (X, Y)
                 // to center the rotation around.
-                var shipX = SHIPSIZE/2,
-                    shipY = SHIPSIZE/2;
-
+                // scale(0.5, 0.5) translate(200, 0) rotate(45)
                 var shipHeadingRads = d.theta;
 
-                return "translate(" + (x(d.x) - SHIPSIZE/2) + ", " +
-                    (y(d.y) - SHIPSIZE/2) + ") rotate(" +
-                    (90 - shipHeadingRads * 360 / (2 * Math.PI)) +
-                    "," + shipX + ", " + shipY +
-                    ")";
+                return "translate(" + (x(d.x)) + ", " + (y(d.y)) + ")" +
+                    "scale(" + SHIPSIZE + ", " + SHIPSIZE + ") " +
+                    " rotate(" + (90 - shipHeadingRads * 360 / (2 * Math.PI)) + ")"
+                    ;
             });
     }
 };
