@@ -14,7 +14,7 @@ import string
 import random
 import zmq
 
-from client import LobbyClient, ControlClient, StateClient
+from client import Client
 from argparse import ArgumentParser
 
 DEFAULTS = {
@@ -65,19 +65,14 @@ if __name__ == '__main__':
     logger.debug(args)
 
     with make_context() as context:
-        lobby_client = LobbyClient(args.hostname, args.lobby_port, context)
-        control_client = ControlClient(args.hostname, args.control_port, context)
+        client = Client(args.hostname, args.lobby_port, args.control_port, args.state_port, context)
 
         while True:
-            response = lobby_client.register(args.ship_name, args.team_name)
+            response = client.lobby.register(args.ship_name, args.team_name)
+            client.state.subscribe(response.game)
 
-            state_client = StateClient(response.game, args.hostname, args.state_port, context)
-            
-            for state_data in state_client.state_gen():
+            for state_data in client.state.state_gen():
                 logger.debug(state_data)
-                control_client.send(response.secret, *make_random_control())
+                client.control.send(response.secret, *make_random_control())
 
-            state_client.close()
-
-        lobby_client.close()
-        control_client.close()
+        client.close()
