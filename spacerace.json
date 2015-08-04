@@ -3,7 +3,8 @@
   "gameTime": 10,
   "maxPlayers": 10000,
   "mapPath": "./maps",
-  "maps": ["testmap", "nautilus", "switchbacks", "dilemma", "fishcatcher"],
+  "maps": ["swish", "nautilus", "switchbacks", "dilemma", "fishcatcher", 
+           "starmap"],
 
   "simulation": {
     "timeStep": 0.01,
