@@ -17,13 +17,14 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state,
   json j; 
   j["state"] = "running";
   j["data"] = json::array();
+  float mapScale = j["simulation"]["world"]["mapScale"];
   for (auto const& p : players.fromId)
   {
     uint idx = control.idx.at(p.second.secretKey);
-    float x = state(idx, 0);
-    float y = state(idx, 1);
-    float vx = state(idx, 2);
-    float vy = state(idx, 3);
+    float x = state(idx, 0) * mapScale;
+    float y = state(idx, 1) * mapScale;
+    float vx = state(idx, 2) * mapScale;
+    float vy = state(idx, 3) * mapScale;
     float theta = state(idx, 4);
     float omega = state(idx, 5);
     float Tl = control.inputs(idx, 0);

@@ -20,9 +20,10 @@ var nextMap = false;
 var updates = 0;
 var draws = 0;
 var fpsqueue = [];
+var playerNames = [];
 
 var playerDiv = d3.select("#leaderboard");
-var playerContainer = playerDiv.append("ul");
+var playerContainer = playerDiv.append("div");
 
 function checkStarted(data){
     if(nextMap === false){
@@ -35,7 +36,7 @@ function checkStarted(data){
 
 socket.on('Log', function (msg) {
     var rawPacket = JSON.parse(msg);
-    //console.log(rawPacket);
+    console.log(rawPacket);
 
     if(rawPacket.category === "lobby"){
         console.log("Lobby Message received");
@@ -61,6 +62,7 @@ socket.on('Log', function (msg) {
     }
 
     if (rawPacket.category === "game") {
+
         // General Game updates
         if (rawPacket.subject === "status"){
             var d = rawPacket.data;
@@ -69,6 +71,15 @@ socket.on('Log', function (msg) {
             if (d.state === 'finished'){
                 console.log("Stopping animation");
                 //cancelAnimationFrame(requestID);
+            }
+
+            if (d.state == 'running') {
+                // Update the players rankings
+                // d.ranking is a map of player name -> score
+                var playerScore = playerContainer.selectAll(".score")
+                    .data(playerNames);
+
+                playerScore.text(function(id, i){ return d.ranking[id]; });
             }
         } else {
             console.log("unknown subject");
@@ -231,7 +242,7 @@ var setupGame = function () {
     }
 
     var initState = gameState;
-
+    selectedShip = null;
     // Note: The ship is rendered as 2 * mapScale wide in game units (radius of the ship = 1 map scale)
     // Ship size in display pixels
     SHIPSIZE = x(1)/16;
@@ -243,11 +254,14 @@ var setupGame = function () {
     });
 
     // Show each player
-    var players = playerContainer.selectAll("li")
+    playerNames = initState.map(function(d){return d.id;});
+    var players = playerContainer.selectAll("div")
         .data(initState);
 
     players.exit().remove();
-    players.enter().append("li").append("button")
+    var d = players.enter().append("div");
+
+    d.append("button")
         .attr("class", "btn btn-block")
         .attr("title", "Click to select")
         .on("click", function(d, i){
@@ -260,6 +274,11 @@ var setupGame = function () {
         .text(function(d, i){
             return d.id;
         });
+
+    d.append("strong")
+        .attr('class', 'score')
+        .attr("title", "score")
+        .text(0);
 
 
     ships = shipGroup
