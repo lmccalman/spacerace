@@ -26,7 +26,7 @@ approximated, so glancing off a wall or another ship can send your ship into a
 spin.
 
 Multiple ships can form a team, and the game keeps both a team score and an
-invididual ship score. Clients are welcome to add multiple ships to the game,
+individual ship score. Clients are welcome to add multiple ships to the game,
 but the server may limit the total number of clients in a game or playing for a
 particular team.
 
