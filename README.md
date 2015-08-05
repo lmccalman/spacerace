@@ -212,20 +212,25 @@ TODO
 
 ## Maps
 
-The maps are raster data, and will be stored in a location separately to the
-game server. The location and name of the map for the upcoming round will be
-communicated by the game server once the player has connected.
+The maps are raster data, and will be stored in a location that we will
+communicate on the day. The map name that will be in the next round is
+communicated upon connection to the lobby in the confirmation JSON object (the
+"map" property), see point **2** above.
 
-The top level JSON object shall comprise:
-- **TODO:** Lachy, you may want to check below:
-- `version`: The version of the Map format, as a string. (e.g., `"1.0"`)
-- `location`: The location and name where you can retrieve the map and
-  associated information.
+It is then up to you to download the map information from the supplied
+location. There are a number of bitmap and (compressed) CSV files that convey
+different information about the upcoming round that you may find useful
+(especially for path planning).
+
+Also, if you don't feel like making an AI, please have a go at making a map, or
+even a front-end to visually display the game state!
+
 
 ### Game Map Files
 
-The following files are associated with each map (`.png` or any bitmap format,
-`.csv.gz` are gzipped space-separated value files):
+The following files are associated with each map. There are two file types,
+`.png` or any bitmap format and `.csv.gz` are gzipped space-separated 32-bit 
+float value files:
 - `mapname.png` the actual track bitmap 
 - `mapname_start.csv.gz` bitmask of the location(s) of the start
 - `mapname_end.csv.gz` bitmask of the location(s) of the end
