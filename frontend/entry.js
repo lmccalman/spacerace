@@ -36,7 +36,7 @@ function checkStarted(data){
 
 socket.on('Log', function (msg) {
     var rawPacket = JSON.parse(msg);
-    console.log(rawPacket);
+    //console.log(rawPacket);
 
     if(rawPacket.category === "lobby"){
         console.log("Lobby Message received");
@@ -66,11 +66,26 @@ socket.on('Log', function (msg) {
         // General Game updates
         if (rawPacket.subject === "status"){
             var d = rawPacket.data;
-            console.log(d.game + ' on ' + d.map + ' is ' + d.state);
+            d3.select("#statusMessage").text(d.game + ' on ' + d.map + ' is ' + d.state);
 
             if (d.state === 'finished'){
                 console.log("Stopping animation");
-                //cancelAnimationFrame(requestID);
+                console.log("Updating score board");
+                console.log(d);
+
+
+                var teamScores = Object.keys(d.teamScore).map(function(playerName) {
+                    return {"name" : playerName, "score" : d.teamScore[playerName] };
+                });
+
+                var teamScore = d3.select("#GlobalLeaderboard")
+                    .selectAll("li")
+                    .data(teamScores);
+
+                teamScore.exit().remove();
+                teamScore.enter().append("li").text(function(d, i){
+                    return d.name + " - " + d.score;
+                })
             }
 
             if (d.state == 'running') {
@@ -96,9 +111,6 @@ socket.on('Log', function (msg) {
 socket.on('GameState', function (msg) {
     var rawPacket = JSON.parse(msg);
 
-    d3.select("#statusMessage").text(msg.state);
-
-
     if (rawPacket.state === "running") {
         gameState = rawPacket.data;
         updates += 1;
@@ -113,6 +125,10 @@ socket.on('GameState', function (msg) {
         updates = 0;
         draws = 0;
         cancelAnimationFrame(requestID);
+
+        // Update the global score board
+        console.log(" GAME VER");
+        console.log(rawPacket);
     }
 });
 

@@ -10,6 +10,9 @@ console.log("Game Server:" + server);
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
+app.get('/help', function (req, res) {
+    res.sendFile(__dirname + '/help.html');
+});
 app.get('/bundle.js', function (req, res) {
     res.sendFile(__dirname + '/bundle.js');
 });
