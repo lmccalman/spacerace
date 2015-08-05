@@ -33,6 +33,20 @@ The game cycles through a list of different maps. If a player tries to join a
 whilst a game is in progress, they will be added to the lobby for the next
 game.
 
+## Directory Structure
+
+```
+.
++--clients
+|  +--python        Example players/clients in python
++--fontend          Front end (node.js)
++--mapbuilder       Python script for building maps from bitmaps
++--maps             A few example maps (png, svg etc)
++--physics          Prototype implementation of the game physics in python
++--server           This is all of the C++ server code, physics engine, and
+                    other good stuff.
+```
+
 
 ## Coordinate System
 
@@ -165,7 +179,41 @@ game times out. Then you will receive the following on the state socket;
 
 ### Info Socket
 
-TODO
+This is an additional socket that is essentially just a way for the server to 
+send messages to all players that are not game-state critical. This includes
+things like:
+ * Malformed messages
+ * Current round scores (players who are closest to an end)
+ * Final round scores
+ * Other potentially useful stuff
+
+This is just a ZeroMQ subscribe socket, simply subscribe to "" (empty string)
+to *get everything* - i.e. this is a fire-hose (you will be getting everyone's
+malformed messages)!
+
+You don't have to explicitly write code to view messages on this socket, have a
+look at
+[clients/python/log_client.py](https://github.com/lmccalman/spacerace/blob/master/clients/python/log_client.py)
+for a terminal client that subscribes to, and prints messages from this socket.
+
+
+## Physics Engine
+
+The state of each ship is 6 dimensional - positions *x*, *y*, velocities *v_x*,
+*v_y*, and the orientation and angular rate *theta* and *omega = dtheta/dt*.
+
+The server implements drag, and simple collision physics with friction.
+
+Ships are radius 1 game unit about their center. Thus they will collide with
+each other when their centers are 2 game units apart, or with barriers when the
+center is 1 unit from a boundary. Collisions are implemented in simulation by
+applying elastic forces.
+
+Upon colliding, ships also experience surface friction. Depending on the
+relative surface velocities at the contact point, forces and torques are
+imparted on the ships - spin affects your bounce direction, and bounce affects
+imparted spin.
+
 
 ## Maps
 
