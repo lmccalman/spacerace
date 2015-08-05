@@ -75,8 +75,8 @@ std::pair<uint,uint> indices(float x, float y, const Map& map,
         const SimulationParameters& params)
 {
   int iy = int(y * params.mapScale);
-  iy = std::max(0, std::min(iy, int(map.occupancy.rows())));
+  iy = std::max(0, std::min(iy, int(map.occupancy.rows()-1)));
   int ix = int(x * params.mapScale);
-  ix = std::max(0, std::min(ix, int(map.occupancy.cols())));
+  ix = std::max(0, std::min(ix, int(map.occupancy.cols()-1)));
   return std::make_pair(uint(iy), uint(ix));
 }
