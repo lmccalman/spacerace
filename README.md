@@ -346,6 +346,21 @@ Just make sure it is the same size as your original map and has the suffix
 
 Now just upload all of the generated files to the location we will specify!
 
+# Frontend
+
+The server runs a simple html visualization on port `8000`. This includes
+a rendering of the current game - with current scores, a list of players 
+in the lobby, and a global score board. Data is piped from ZeroMQ to
+websockets at 60Hz and the `SVG` rendering is done with the `d3` library.
+
+## Creating another frontend
+
+There are two options for creating another front end; either directly 
+connecting to the *State* and *Info* zeroMQ sockets, or by using `socket.io`
+websockets.
+
+
+
 # Building the Server
 
 You may wish to build the server so as to run a local copy for debugging
@@ -362,4 +377,3 @@ zeromq-devel and zeromq libraries installed.
 
 We should be running at least 1 server at all times during the day so probably
 best to connect to this unless you're really trying something pathological.
-
