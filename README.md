@@ -94,6 +94,16 @@ Each of these sockets, and the message formats they send and expect to receive,
 are outlined in the following sections.
 
 
+### Ports
+
+These are the ports for the various sockets:
+
+- State: 5556
+- Control: 5557
+- Lobby: 5558
+- Info: 5559
+
+
 ### Lobby socket
 
 The lobby socket is used by players to join a game. The server starts and
@@ -251,9 +261,9 @@ The state of each ship is 6 dimensional - positions *x*, *y*, velocities *v_x*,
 
 The server implements drag, and simple collision physics with friction.
 
-Ships are radius 1 game unit about their center. Thus they will collide with
-each other when their centers are 2 game units apart, or with barriers when the
-center is 1 unit from a boundary. Collisions are implemented in simulation by
+Ships are radius 10 game units about their center. Thus they will collide with
+each other when their centers are 20 game units apart, or with barriers when the
+center is 10 units from a boundary. Collisions are implemented in simulation by
 applying elastic forces.
 
 Upon colliding, ships also experience surface friction. Depending on the
@@ -335,9 +345,20 @@ Just make sure it is the same size as your original map and has the suffix
 
 Now just upload all of the generated files to the location we will specify!
 
+# Building the Server
 
+You may wish to build the server so as to run a local copy for debugging
+purposes. With docker simply run:
 
-
-# Docker
     docker build -t spacerace .
     docker run -it -p 5556-5559:5556-5559 spacerace 
+
+However, don't forget about the internet constraints! (ie this uses an Ubuntu
+base image that you'd better have on your machine already)
+
+Alternatively, use cmake. You need boost-devel and boost-static and
+zeromq-devel and zeromq libraries installed. 
+
+We should be running at least 1 server at all times during the day so probably
+best to connect to this unless you're really trying something pathological.
+
