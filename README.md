@@ -13,10 +13,9 @@ round. The round ends as soon as the first player reaches a finish, or the time
 is up. Then each player is assigned a score which is the percentage of the
 track they completed by the finish of the round. 
 
-
 The game involves controlling a spaceship that has a main thruster to
 accelerate it forward, and small rotational thrusters to spin it. The world is
-2D and flat, and the ships encounter air resistance which limits their maximum
+2D and flat, and the ships encounter air resistance that limits their maximum
 velocity and turn rate.
 
 There is no friction on the track, and so ships behave much like a hovercraft.
@@ -38,7 +37,8 @@ game.
 ## Coordinate System
 
 We use "mathematical" co-ordinate conventions. These may be different from the
-conventions used in computer graphics.
+conventions used in computer graphics. With respect to your screen, the
+coordinate system is described below:
 
 
 ![Coodinate system](coords.png)
@@ -54,6 +54,29 @@ confirmation of the next game that will be joined.
 current games state (details below).
 3. *Control*: a "push" socket, push your client control actions as a ZeroMQ
 frame (see below for details).
+
+There is an additional (optional) *info* socket that may send useful error and
+status messages to debug clients.
+
+The pseudo-code of a very simple single-threaded client is given below:
+
+### Pseudo code
+
+    while(true) // loop that connects and plays in every round of the game
+        send a connection message over the lobby socket
+        receive a confirmation message from the lobby about your next game
+        subscribe your state socket to the game name given by the lobby
+        running = true
+        while(running)
+          receive the game state from the state socket
+          send a control command on the control socket 
+          set running = false if the game has finished
+
+Each of these sockets, and the message formats they send and expect to receive,
+are outlined in the following sections.
+
+
+### Lobby socket
 
 Some more detailed information on how a game is run:
 
@@ -78,6 +101,10 @@ Some more detailed information on how a game is run:
 ```
 
 If there is an error TODO.
+
+
+### State Socket
+
 Then you will need to subscribe your *state* socket to "gamename".
 
 **3.** Some time later when the game starts, you will start receiving game
@@ -107,12 +134,20 @@ A player has the following attributes:
     }
 ```
 
-**4.** Sending a ship control message. The following is sent to the control "push"
+
+### Control Socket
+
+Sending a ship control message. The following is sent to the control "push"
 socket, which is a single ZMQ frame,
 
 ```
-    "yoursecretcode,{0,1},{-1,0,1}"
+    <yoursecretkey>,<main_engine>,<rotation>
 ```
+
+- `<yoursecretkey>` is the string you were given by the lobby upon connection
+- `<main_engine>` is either a 0 or a 1, for the main engine being off or on
+- `<rotation>` is either a -1, 0 or 1. 1 is for +ve (anti-clockwise) rotation
+thrust, -1 is for -ve (clockwise) rotation thrust, and 0 is no rotation thrust
 
 The last command is repeated each time-step, and only the last command received
 in each time step is used.
@@ -127,18 +162,10 @@ game times out. Then you will receive the following on the state socket;
     }
 ```
 
-### Pseudo code
 
-    while(true)
-        send(lobby_socket, conn_message)
-        recv(control_socket, reply_message)
-        state_socket.subscribe(reply_message.game)
-        running = true
-        while(running)
-            send(control_socket, control_action)
-            recv(state_socket, game_state)
-            running = game_state.state
-    
+### Info Socket
+
+TODO
 
 ## Maps
 
@@ -209,46 +236,6 @@ Just make sure it is the same size as your original map and has the suffix
 Now just upload all of the generated files to the location we will specify!
 
 
-##Lobby
-TODO -- connect to lobby with a REQ socket. Send a message with an ascii string
-containing your ships name. The server will send a reply with 2 frames -- the
-first is a secret key used to make sure only you can control your ship, and the
-second is the map specification for the next game.
-
-Once this has happened you're ready to play, start listening on the game state
-socket for the beginning of the game!
-
-## GameState
-
-Is a plain json object. There is one key **ships** - an array of 
-Player State objects:
-
-### Player State
-
-- **id [string]** - The player's chosen identifier.
-- **x, y** - position
-- **vx, vy** - linear velocity
-- **theta** - orientation
-- **omega** - rotational velocity
-- **Tl** - is accelerating (linear thrusters are on). `0 or 1`
-- **Tr** - is rotating (rotational thrusters on). `-1 or 0 or 1`
-
-All values are JSON Numbers - not strings.
-
-
-## Control Input
-
-Control messages are sent from a client to the server during a game via a
-zeromq "push" socket. The control input is a simple comma separated string.
-The string is of the form:
-
-    <yoursecretkey>,<main_engine>,<rotation>
-
-
-- `<yoursecretkey>` is the string you were given by the lobby upon connection
-- `<main_engine>` is either a 0 or a 1, for the main engine being off or on
-- `<rotation>` is either a -1, 0 or 1. 1 is for +ve (anti-clockwise) rotation
-thrust, -1 is for -ve (clockwise) rotation thrust, and 0 is no rotation thrust
 
 
 # Docker
