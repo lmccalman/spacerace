@@ -35,6 +35,9 @@ game.
 
 ## Directory Structure
 
+You may find some of the code in the following folders great inspiration for
+your creations (particularly `clients`, `frontend` and `maps`).
+
 ```
 .
 +--clients
@@ -51,8 +54,9 @@ game.
 ## Coordinate System
 
 We use "mathematical" co-ordinate conventions. These may be different from the
-conventions used in computer graphics. With respect to your screen, the
-coordinate system is described below:
+conventions used in computer graphics. One unit in the coordinate frame is
+equivalent to one pixel in the map of the current round. With respect to your
+screen, the coordinate system is described below:
 
 
 ![Coodinate system](coords.png)
@@ -310,7 +314,7 @@ specifications:
 Also, we haven't put a constraint on the size, but I recommend less than 
 1500px X 1500px. Here is an example:
 
-![Example map](mapbuilder/testmap.png)
+![Example map](maps/swish.png)
 
 To then make this map readable by the game engine, you need to run the
 `buildmap.py` script in the `mapbuilder` directory. Here is an example (from
@@ -327,7 +331,7 @@ Finally, you can optionally provide a skin for you map to make it look pretty!
 Just make sure it is the same size as your original map and has the suffix
 `_skin`, e.g.
 
-![Example map skin](mapbuilder/testmap_skin.png)
+![Example map skin](maps/swish_skin.png)
 
 Now just upload all of the generated files to the location we will specify!
 
