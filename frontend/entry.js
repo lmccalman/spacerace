@@ -157,9 +157,16 @@ var mapWidth, mapHeight;
 
 function loadMap(cb) {
     if(!nextMap){return;}
-    // Deal with all the maps
-    // => DataUrl if the map file is smaller that 1Mb
-    var mapData = require("url?limit=1000000!../maps/" + nextMap + ".png");
+
+    function imageExists(image_url){
+        var http = new XMLHttpRequest();
+        http.open('HEAD', image_url, false);
+        http.send();
+        return http.status != 404;
+    }
+
+    var baseUrl = "../maps/" + nextMap;
+    var mapData = imageExists(baseUrl + "_skin.png") ? baseUrl + "_skin.png" : baseUrl + ".png";
 
     var mapImage = document.createElement('img');
     mapImage.addEventListener('load', function () {
@@ -241,6 +248,7 @@ var setupGame = function () {
 
     players.exit().remove();
     players.enter().append("li").append("button")
+        .attr("class", "btn btn-block")
         .attr("title", "Click to select")
         .on("click", function(d, i){
             console.log("Selecting ship for player " + d.id);
@@ -282,9 +290,9 @@ var updateState = function (highResTimestamp) {
     requestID = requestAnimationFrame(updateState);
 
     if (updates >= draws) {
-        if(updates % 60*5 == 0){
-            console.log(gameState.map(function(s){return "(" + s.x + ',' + s.y + ")";}).join(' '));
-        }
+        //if(updates % 60*5 == 0){
+        //    console.log(gameState.map(function(s){return "(" + s.x + ',' + s.y + ")";}).join(' '));
+        //}
         // Only update the ships if we have gotten an update from the server
         draws += 1;
 

@@ -166,7 +166,7 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
 
       Eigen::Vector2f dP = pos_j - pos_i;
       float dist = dP.norm() + eps - diameter;
-      Eigen::Vector2f dPhat = dP / dP.norm();
+      Eigen::Vector2f dPhat = dP / (dP.norm() + eps);
       if (dist < 0) {
         // we have a collision interaction
         
@@ -180,7 +180,7 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
         f(j, 0) += f_norm(0);
         f(j, 1) += f_norm(1);
 
-        // B. Surface friction: approximate spin effects
+        // B. Surface frictions: approximate spin effects
         Eigen::Vector2f perp;  // surface tangent pointing +theta direction
         perp(0) = -dPhat(1);
         perp(1) = dPhat(0);

@@ -1,6 +1,6 @@
 {
-  "lobbyWait": 15,
-  "gameTime": 10,
+  "lobbyWait": 10,
+  "gameTime": 60,
   "maxPlayers": 10000,
   "mapPath": "./maps",
   "maps": ["swish", "nautilus", "switchbacks", "dilemma", "fishcatcher", 
@@ -11,7 +11,7 @@
     "targetFPS": 60,
     "ship": {
       "linearThrust" : 100.0,
-      "friction" : 0.025,
+      "friction" : 0.1,
       "restitution" : 0.5,
       "rotationalThrust": 10.0,
       "radius": 1.0,
@@ -21,10 +21,10 @@
     
     "world": {
       "mapScale": 10.0,
-      "linearDrag": 1.0,
+      "linearDrag": 0.5,
       "restitution": 0.5,
-      "rotationalDrag": 4.0,
-      "friction": 0.05,
+      "rotationalDrag": 3.0,
+      "friction": 0.025,
       "elasticity": 4000.0}},
 
   "stateSocket": {
