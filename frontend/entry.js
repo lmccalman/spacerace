@@ -242,7 +242,7 @@ var setupGame = function () {
     selectedShip = null;
     // Note: The ship is rendered as 2 * mapScale wide in game units (radius of the ship = 1 map scale)
     // Ship size in display pixels
-    SHIPSIZE = x(1)/16;
+    SHIPSIZE = x(10)/16;
 
     console.log("Ship size will be " + SHIPSIZE);
 
@@ -259,7 +259,7 @@ var setupGame = function () {
     var d = players
         .enter()
         .append("div")
-        .attr("class", "btn btn-block")
+        .attr("class", "")
         .attr("title", "Click to select")
         .on("click", function(d, i){
             console.log("Selecting ship for player " + d.id);
@@ -272,7 +272,7 @@ var setupGame = function () {
     d.append("span")
         .attr("class", "playerName")
         .text(function(d, i){
-            return d.id;
+            return d.id + " - ";
         });
 
     d.append("strong")
