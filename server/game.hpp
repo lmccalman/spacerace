@@ -11,13 +11,13 @@ std::string gameName(uint n)
 }
 
 void broadcastState(const PlayerSet& players, const StateMatrix& state, 
-    const GameState& gameState, const ControlData& control, 
+    const GameState& gameState, const ControlData& control, const SimulationParameters& params,
     zmq::socket_t& socket)
 {
   json j; 
   j["state"] = "running";
   j["data"] = json::array();
-  float mapScale = j["simulation"]["world"]["mapScale"];
+  float mapScale = params.mapScale;
   for (auto const& p : players.fromId)
   {
     uint idx = control.idx.at(p.second.secretKey);
@@ -192,7 +192,7 @@ void runGame(PlayerSet& players,
     running = (!timeout) && (!raceWon);
 
     // get control inputs from control thread
-    broadcastState(players, state, gameState, control, stateSocket);
+    broadcastState(players, state, gameState, control, params, stateSocket);
 
     // make sure we target a particular frame rate
     waitPreciseInterval(frameStart, targetMicroseconds);
