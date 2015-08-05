@@ -1,16 +1,38 @@
 # spacerace
 
-Multiplayer Asteroids-like racing game for the 2015 ETD winter retreat.
+Spacerace is a multiplayer Asteroids-like racing game for the 2015 ETD winter retreat.
 
 
 ## Overview
 
 This is a multi-round racing game in which the game state is managed from a
-central game server. The aim of this game is for the player's spaceship(s) to
+central game server. The aim of this game is for the player's spaceship to
 complete the track before anyone else's, and within the time limit of the
 round. The round ends as soon as the first player reaches a finish, or the time
 is up. Then each player is assigned a score which is the percentage of the
 track they completed by the finish of the round. 
+
+
+The game involves controlling a spaceship that has a main thruster to
+accelerate it forward, and small rotational thrusters to spin it. The world is
+2D and flat, and the ships encounter air resistance which limits their maximum
+velocity and turn rate.
+
+There is no friction on the track, and so ships behave much like a hovercraft.
+However the walls are (semi) elastic, and the ships will bounce off them. Ships
+can also collide with eachother without damage. Spin forces are reasonably well
+approximated, so glancing off a wall or another ship can send your ship into a
+spin.
+
+Multiple ships can form a team, and the game keeps both a team score and an
+invididual ship score. Clients are welcome to add multiple ships to the game,
+but the server may limit the total number of clients in a game or playing for a
+particular team.
+
+The game cycles through a list of different maps. If a player tries to join a
+whilst a game is in progress, they will be added to the lobby for the next
+game.
+
 
 ![Coodinate system](coords.png)
 
