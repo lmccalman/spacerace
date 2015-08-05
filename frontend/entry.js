@@ -9,7 +9,7 @@ console.log("Welcome to spacerace");
 console.log("Global Settings");
 console.log(spaceraceSettings);
 
-var mapScale = spaceraceSettings.simulation.world.mapScale;
+var mapScale = 1.0;//spaceraceSettings.simulation.world.mapScale;
 var SHIPSIZE;
 var socket = io();
 var requestID;
@@ -95,7 +95,9 @@ socket.on('Log', function (msg) {
 
 socket.on('GameState', function (msg) {
     var rawPacket = JSON.parse(msg);
-    //console.log(rawPacket);
+
+    d3.select("#statusMessage").text(msg.state);
+
 
     if (rawPacket.state === "running") {
         gameState = rawPacket.data;
@@ -103,7 +105,6 @@ socket.on('GameState', function (msg) {
 
         if (updates == 1) {
             loadMap(setupGame);
-
         }
     }
 
@@ -112,9 +113,6 @@ socket.on('GameState', function (msg) {
         updates = 0;
         draws = 0;
         cancelAnimationFrame(requestID);
-
-        // Load the next map (assuming it has changed)
-        //loadMap();
     }
 });
 
@@ -127,7 +125,6 @@ var mapContainer = svgContainer.append("g");
 
 var shipG = svgContainer.append("defs")
     .append("g")
-    //.attr("viewBox", "-25 -25 50 50")
     .attr("id", "ship")
     .attr("class", "ship");
 
@@ -259,9 +256,9 @@ var setupGame = function () {
         .data(initState);
 
     players.exit().remove();
-    var d = players.enter().append("div");
-
-    d.append("button")
+    var d = players
+        .enter()
+        .append("div")
         .attr("class", "btn btn-block")
         .attr("title", "Click to select")
         .on("click", function(d, i){
@@ -270,16 +267,18 @@ var setupGame = function () {
         })
         .style("color", function(d, i){
             return d.color;
-        })
+        });
+
+    d.append("span")
+        .attr("class", "playerName")
         .text(function(d, i){
             return d.id;
         });
 
     d.append("strong")
         .attr('class', 'score')
-        .attr("title", "score")
+        .attr("title", "Player's score")
         .text(0);
-
 
     ships = shipGroup
         .selectAll('.ship')
