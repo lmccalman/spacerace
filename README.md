@@ -78,9 +78,17 @@ are outlined in the following sections.
 
 ### Lobby socket
 
-Some more detailed information on how a game is run:
+The lobby socket is used by players to join a game. The server starts and
+begins to accept new players into the first game lobby. Some time later, when
+the first game starts, the server creates the lobby for the second game. This
+means that a player trying to join during a game will simply be placed in the
+lobby for the next game.
 
-**1.** Connect to the lobby by sending:
+For clients, the lobby socket is a ZMQ "REQ" (request) socket. These operate
+sychronously, requiring a request/reply message pattern.
+
+Initialise your lobby socket, and connect to the server on the lobby port.
+Then, send the following json message:
 
 ```
     { 
@@ -89,7 +97,13 @@ Some more detailed information on how a game is run:
     }
 ```
 
-**2.** You will receive the following confirmation json:
+The name will be reflected in the state sent out by the server, and the
+visualisation of your ship. The team is used to collate the scores of multiple
+related AIs. Feel free to choose any alphanumeric values for both your name and
+your team name.
+
+After sending your message, call receive on your lobby socket. The server
+should send you a json message of the following form:
 
 ```
     {
@@ -100,16 +114,40 @@ Some more detailed information on how a game is run:
     }
 ```
 
-If there is an error TODO.
+The name should be the name you gave the server, the game name is an important
+variable used by the state socket, to make sure you're actually receiving state
+for a game you're playing in. The map name will be the name of the map you'll
+be playing, and you will need to have pulled down these maps from the map
+server beforehand.
 
+The secret key is used in your control messages. Because the server does not
+care where control messages come from, using this secret key prevents other
+people controlling your ship!
+
+Once this request/reply sequence has completed, you're ready to play the game.
+You'll know a game has started when you start receiving state over your state
+socket.
 
 ### State Socket
 
-Then you will need to subscribe your *state* socket to "gamename".
+The state socket is a ZMQ "SUB" (subscribe) socket that is receive-only. It is
+the socket over which the server broadcasts the game state. In this case, the
+game state is the position, velocity, and control inputs of every ship
+currently playing. Note that other ship's state may be useful for collision
+avoidance!
 
-**3.** Some time later when the game starts, you will start receiving game
-state on the state socket. The game state will be received periodically (approx
-60 Hz), with the following format,
+ZMQ subscribe sockets can filter messages based on a string "subscription". The
+server uses this feature to make sure players waiting in the lobby of a game to
+not receive spurious game state for the game their not playing. Therefore it's
+critical that once you have received the game name of your next game from the
+lobby, you subscribe the state socket to this name. 
+
+Some time later, you'll start receiving state messages on this socket,
+indicating that the game has begun. The sever broadcasts the state
+periodically. At the moment this happens at 60Hz but we may move this number
+around on the day depending on the network.
+
+The state message is a json object of the following form:
 
 ```
     {
@@ -118,27 +156,45 @@ state on the state socket. The game state will be received periodically (approx
     }
 ```
 
-A player has the following attributes:
+The state variable will be "running" while the game is running, and "finished"
+when someone wins the game or it times out. Make sure you check the status
+before you try to access the data member, because it isn't in the final
+"finished" message
+
+in the data array, each player has the following attributes:
 
 ```
     {
-        "id": "xxxx",
-        "x":
-        "y":
-        "vx":
-        "vy":
-        "theta": float,     (heading, angle w.r.t. counter-clockwise from horizontal)
-        "omega": float,     (angular velocity)
-        "Tl": float,        ({0,1} for linear thrust off/on)
-        "Tr": float         ({-1, 0, 1} for angular thrust clockwise/off/ counter-clockwise)
+        "id": "shipname",
+        "x": <xposition in float>
+        "y": <yposition in float>
+        "vx": <x velocity in float>
+        "vy": <y velocity in float>
+        "theta": <heading in float>
+        "omega": <angular velocity in float> 
+        "Tl": <0 or 1 for linear thrust off/on>
+        "Tr": <-1, 0 or 1 for angular thrust clockwise/off/ counter-clockwise>
     }
 ```
 
+Note the the units of x y, theta and omega all relate to pixels in the map.
+So an x position of 0.5 is half way into the first map pixel in the x
+direction.
 
 ### Control Socket
 
-Sending a ship control message. The following is sent to the control "push"
-socket, which is a single ZMQ frame,
+The control socket is used to send control commands for your ship during a
+game. It is a ZMQ PUSH socket that is send-only. If you send control commands
+to a game you're not in, or while no game is running, they will be ignored.
+
+A client can send control messages whenever they would like and as frequently
+or infrequently as they would like, but the server will only process the last
+message it received each timestep. So if you send 100 control inputs between
+the server sending its state message, only the last one will actually be used
+to control your ship.
+
+The message format for control messages is not JSON for reasons of efficiency.
+It is a simple CSV format in a single short string, of the following form:
 
 ```
     <yoursecretkey>,<main_engine>,<rotation>
@@ -148,19 +204,6 @@ socket, which is a single ZMQ frame,
 - `<main_engine>` is either a 0 or a 1, for the main engine being off or on
 - `<rotation>` is either a -1, 0 or 1. 1 is for +ve (anti-clockwise) rotation
 thrust, -1 is for -ve (clockwise) rotation thrust, and 0 is no rotation thrust
-
-The last command is repeated each time-step, and only the last command received
-in each time step is used.
-
-**5.** Game ending, this happens when either a player finishes the track or the
-game times out. Then you will receive the following on the state socket;
-
-```
-    {
-        "state": "finished"
-        some other end stuff here, like score etc. TODO
-    }
-```
 
 
 ### Info Socket
