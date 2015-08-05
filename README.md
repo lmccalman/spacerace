@@ -236,7 +236,7 @@ things like:
 
 This is just a ZeroMQ subscribe socket, simply subscribe to "" (empty string)
 to *get everything* - i.e. this is a fire-hose (you will be getting everyone's
-malformed messages)!
+malformed messages)! All messages are JSON objects with obvious formatting.
 
 You don't have to explicitly write code to view messages on this socket, have a
 look at
@@ -284,9 +284,10 @@ The following files are associated with each map. There are two file types,
 `.png` or any bitmap format and `.csv.gz` are gzipped space-separated 32-bit 
 float value files:
 - `mapname.png` the actual track bitmap 
-- `mapname_start.csv.gz` bitmask of the location(s) of the start
-- `mapname_end.csv.gz` bitmask of the location(s) of the end
-- `mapname_occupancy.csv.gz` bitmask of the obstacles
+- `mapname_start.csv.gz` {1.0, 0.0} values indicating the location(s) of the 
+    start
+- `mapname_end.csv.gz` {1.0, 0.0} values indicating the location(s) of the end
+- `mapname_occupancy.csv.gz` {1.0, 0.0} values indicating the obstacles
 - `mapname_enddist.csv.gz` distance to nearest end (pixels)
 - `mapname_flowx.csv.gz` flow-field to nearest end, unit vector horizontal
   component 
