@@ -7,7 +7,7 @@
            "starmap", "bt-circle2", "fire"],
 
   "simulation": {
-    "timeStep": 0.01,
+    "timeStep": 0.004,
     "targetFPS": 60,
     "ship": {
       "linearThrust" : 100.0,
