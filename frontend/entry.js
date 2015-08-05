@@ -248,6 +248,7 @@ var setupGame = function () {
 
     players.exit().remove();
     players.enter().append("li").append("button")
+        .attr("class", "btn btn-block")
         .attr("title", "Click to select")
         .on("click", function(d, i){
             console.log("Selecting ship for player " + d.id);
