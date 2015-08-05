@@ -1,6 +1,7 @@
 # spacerace
 
-Spacerace is a multiplayer Asteroids-like racing game for the 2015 ETD winter retreat.
+Spacerace is a multiplayer Asteroids-like racing game for the 2015 ETD winter
+retreat.
 
 
 ## Overview
@@ -32,6 +33,12 @@ particular team.
 The game cycles through a list of different maps. If a player tries to join a
 whilst a game is in progress, they will be added to the lobby for the next
 game.
+
+
+## Coordinate System
+
+We use "mathematical" co-ordinate conventions. These may be different from the
+conventions used in computer graphics.
 
 
 ![Coodinate system](coords.png)
