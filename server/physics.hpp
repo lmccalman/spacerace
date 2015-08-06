@@ -86,7 +86,6 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
   float ship_restitution = params.shipRestitution; // circa 0.5
   float diameter = 2.*rad;  // rad(i) + rad(j) for any i, j
   float inertia_mass_ratio = 0.25;
-
   float map_grid = rad * 2. + eps; // must be 2*radius + eps
   std::unordered_map<std::pair<int, int>, std::vector<uint>, 
                      boost::hash<std::pair<int, int>>> bins;
@@ -213,9 +212,22 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
       float f_norm_mag = -dist*k_elastic;  // dist is negative, f_norm is +ve
       if (norm_x*vel_i(0) + norm_y*vel_i(1) > 0)
           f_norm_mag *= wall_restitution;
-      f(i, 0) += f_norm_mag * norm_x;
-      f(i, 1) += f_norm_mag * norm_y;
-
+      
+      if (dist > -rad*0.25)
+      {
+        // not significantly through wall yet
+        f(i, 0) += f_norm_mag * norm_x;
+        f(i, 1) += f_norm_mag * norm_y;
+      }
+      else
+      {
+        // uh-oh - lets just SET normal forces and seriously damp vel
+        f(i, 0) = f_norm_mag * norm_x;
+        f(i, 1) = f_norm_mag * norm_y;
+        f(i, 0) -= 100. * vel_i(0);
+        f(i, 1) -= 100. * vel_i(1);
+        
+      }
       // Surface friction
       Eigen::Vector2f perp;  // surface tangent pointing +theta direction
       perp(0) = -norm_y;
@@ -230,16 +242,29 @@ void derivatives(const StateMatrix& states, StateMatrix& derivs,
 
   // std::cout << "Collision checks:" << collide_checks << "\n";
   // Compose the vector of derivatives:
+  float vmax = 40.0;
   for (int i=0; i<n; i++)
   {
+    float vx = states(i,2);
+    float vy = states(i,3);
+    float speed = std::sqrt(vx*vx + vy*vy);
+    if (speed > vmax)
+    {
+      vx *= vmax/speed;
+      vy *= vmax/speed;
+    }
+    
     // x_dot = vx
-    derivs(i, 0) = states(i, 2);
+    derivs(i, 0) = vx;
     // y_dot = vy
-    derivs(i, 1) = states(i, 3); 
+    derivs(i, 1) = vy; 
     // vx_dot = fx / m
-    derivs(i, 2) = f(i, 0) / masses(i);
+    float ax = f(i,0)/masses(i);
+    float ay = f(i,1)/masses(i);
+    
+    derivs(i, 2) = ax;
     // vy_dot = fy / m
-    derivs(i, 3) = f(i, 1) / masses(i);
+    derivs(i, 3) = ay;
     // theta_dot = omega
     derivs(i, 4) = states(i, 5);
     // omega_dot = T_r / (inertia_mass_ratio*m)
@@ -270,6 +295,7 @@ void rk4TimeStep(StateMatrix& s, const ControlMatrix& c, const
   derivatives(s + k3*dt, k4, c, params, m);
   
   s += (k1 + 2.*k2 + 2.*k3 + k4) * dt/6.;
+
 }
 
 SimulationParameters readParams(const json& j)

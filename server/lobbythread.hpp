@@ -66,7 +66,7 @@ Player processMessage(const std::vector<std::string>& rawMsg,
   }
   catch(...)
   {
-    throw Error("lobby", "error", {"message", "could not process json from " + rawMsg[0]}); 
+    throw Error("lobby", "error", {"message", "could not process json!"}); 
   }
 }
 
