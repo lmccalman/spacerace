@@ -1,13 +1,13 @@
 {
-  "lobbyWait": 2,
-  "gameTime": 120,
+  "lobbyWait": 10,
+  "gameTime": 30,
   "maxPlayers": 200,
   "mapPath": "./maps",
   "maps": ["swish", "nautilus", "switchbacks", "dilemma", "starmap", "fire"],
 
   "simulation": {
     "timeStep": 0.004,
-    "targetFPS": 60,
+    "targetFPS": 20,
     "ship": {
       "linearThrust" : 60.0,
       "friction" : 0.1,
