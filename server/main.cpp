@@ -88,6 +88,7 @@ int main(int ac, char* av[])
       std::ref(nextGameState),
       std::cref(settings));
 
+
   LOG(INFO) << "Starting control thread";
   std::future<void> controlThread = std::async(std::launch::async, runControlThread,
       std::ref(*context), 
@@ -120,7 +121,7 @@ int main(int ac, char* av[])
       std::lock_guard<std::mutex> currentGameStateLock(nextGameState.mutex);
 
       // Update the game states
-      currentGameState.name = nextGameState.name;
+      currentGameState.name = gameName(gameNumber);
       nextGameState.name = gameName(gameNumber+1);
       
       // get list of players
@@ -153,6 +154,7 @@ int main(int ac, char* av[])
     if (currentPlayers.fromId.size() == 0)
     {
       LOG(INFO) << "Skipping match because no-one has connected";
+      gameNumber++;
       continue; 
     }
     
