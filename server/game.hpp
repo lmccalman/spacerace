@@ -116,19 +116,37 @@ void updateRanks(const PlayerSet& players,
                  const Map& map,
                  GameStats& gameStats)
 {
+
+  // Get number of players in a team
+  std::map<std::string, unsigned int> playersPerTeam;
   for (auto const& pair : players.fromId)
   {
     const Player& player = pair.second;
-    float score = (map.maxDistance - gameStats.playerDists[player.id])/map.maxDistance * 100.0;
+
+    if (playersPerTeam.count(player.team))
+        playersPerTeam[player.team]++;
+    else
+        playersPerTeam[player.team] = 1;
+  }
+
+
+  // Tally scores
+  for (auto const& pair : players.fromId)
+  {
+    const Player& player = pair.second;
+    float score = (map.maxDistance - gameStats.playerDists[player.id])
+        / map.maxDistance * 100.0;
     if (gameStats.totalPlayerScore.count(player.id))
       gameStats.totalPlayerScore[player.id] += score;
     else
       gameStats.totalPlayerScore[player.id] = score;
        
     if (gameStats.totalTeamScore.count(player.team))
-      gameStats.totalTeamScore[player.team] += score;
+      gameStats.totalTeamScore[player.team] += score 
+          / (float) playersPerTeam[player.team];
     else
-      gameStats.totalTeamScore[player.id] = score;
+      gameStats.totalTeamScore[player.id] = score
+          / (float) playersPerTeam[player.team];
   }
 }
 

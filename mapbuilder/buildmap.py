@@ -113,14 +113,20 @@ def buildmap(image, mapname, settingsfile, visualise):
         pl.imshow(mapim, interpolation='none')
         pl.title('Original map image')
 
+        # pl.figure()
+        # skip = (slice(None, None, 1), slice(None, None, 1))
+        # pl.quiver(x[skip], y[skip], dfx[skip], dfy[skip], color='r',
+        #           angles='xy')
+        # pl.gca().invert_yaxis()
+        # pl.imshow(distfromend, interpolation='none', cmap=pl.cm.gray)
+        # pl.title('Distance to end, flow to end')
+
         pl.show()
 
     # Process output names
     print("Saving results...")
     mapnamebits = image.partition('.')
     mapname = mapnamebits[0] if mapname is None else mapname.partition[0]
-
-    # import IPython; IPython.embed()
 
     # Save padded map
     print('\t- padded image')
