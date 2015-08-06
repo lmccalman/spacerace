@@ -94,7 +94,7 @@ socket.on('Log', function (msg) {
                 var playerScore = playerContainer.selectAll(".score")
                     .data(playerNames);
 
-                playerScore.text(function(id, i){ return d.ranking[id]; });
+                playerScore.text(function(id, i){ return d.ranking[id] + 1; });
             }
         } else {
             console.log("unknown subject");

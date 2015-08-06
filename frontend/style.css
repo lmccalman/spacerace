@@ -29,3 +29,8 @@ line.shipJet {
 use {
     will-change: transform;
 }
+
+
+#leaderboard {
+    font-size: larger;
+}
