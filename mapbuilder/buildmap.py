@@ -2,6 +2,7 @@
 """ Turn a bitmap of appropriate format into a map for the spacerace game. """
 
 
+import sys
 import click
 import json
 import skfmm
@@ -26,6 +27,9 @@ def buildmap(image, mapname, settingsfile, visualise):
     # Read in map
     print("Reading and processing map image...")
     mapim = imread(image)
+    if mapim.ndim < 3:
+        print("The bitmaps need to be 3 layers!")
+        sys.exit(1)
     if mapim.shape[2] > 3:
         mapim = mapim[:, :, 0:3]  # ignore alpha
 
