@@ -1,7 +1,7 @@
 {
-  "lobbyWait": 10,
-  "gameTime": 60,
-  "maxPlayers": 10000,
+  "lobbyWait": 2,
+  "gameTime": 120,
+  "maxPlayers": 200,
   "mapPath": "./maps",
   "maps": ["swish", "nautilus", "switchbacks", "dilemma", "fishcatcher", 
            "starmap", "bt-circle2", "fire"],
