@@ -66,6 +66,8 @@ socket.on('Log', function (msg) {
         // General Game updates
         if (rawPacket.subject === "status"){
             var d = rawPacket.data;
+
+            //console.log(d);
             d3.select("#statusMessage").text(d.game + ' on ' + d.map + ' is ' + d.state);
 
             if (d.state === 'finished'){
@@ -74,9 +76,20 @@ socket.on('Log', function (msg) {
                 console.log(d);
 
 
+                // Show who won. Note d.ranking has the final order
+                var winner;
                 var teamScores = Object.keys(d.teamScore).map(function(playerName) {
-                    return {"name" : playerName, "score" : d.teamScore[playerName] };
+                    if (d.ranking[playerName] == 0){
+                        winner = playerName;
+                    }
+                    return {
+                        "name" : playerName,
+                        "score" : d.totalScore[playerName]
+                    };
                 });
+
+                d3.select("#statusMessage").text(
+                    d.game + ' on map ' + d.map + ' was won by ' + winner);
 
                 var teamScore = d3.select("#GlobalLeaderboard")
                     .selectAll("li")
@@ -84,7 +97,7 @@ socket.on('Log', function (msg) {
 
                 teamScore.exit().remove();
                 teamScore.enter().append("li").text(function(d, i){
-                    return d.name + " - " + d.score;
+                    return d.name + " - " + d.score.toFixed(2);
                 })
             }
 
@@ -94,7 +107,21 @@ socket.on('Log', function (msg) {
                 var playerScore = playerContainer.selectAll(".score")
                     .data(playerNames);
 
-                playerScore.text(function(id, i){ return d.ranking[id] + 1; });
+
+                // It appears ranking won't always be here
+                if(d.ranking) {
+                    playerScore.text(function (id, i) {
+                        var rank = d.ranking[id] + 1;
+                        if(rank == 1){
+                            return "WINNING";
+                        } else {
+                            return rank;
+                        }
+
+                    });
+                } else {
+                    playerScore.text("");
+                }
             }
         } else {
             console.log("unknown subject");
@@ -267,15 +294,20 @@ var setupGame = function () {
     });
 
     // Show each player
+    console.log(initState);
     playerNames = initState.map(function(d){return d.id;});
-    var players = playerContainer.selectAll("div")
-        .data(initState);
+    console.log(playerNames);
+
+
+    //playerContainer.selectAll()
+    var players = playerContainer.selectAll(".playerIndivdualScore")
+        .data(initState, function(d){return d.id;});
 
     players.exit().remove();
     var d = players
         .enter()
         .append("div")
-        .attr("class", "")
+        .attr("class", "playerIndivdualScore")
         .attr("title", "Click to select")
         .on("click", function(d, i){
             console.log("Selecting ship for player " + d.id);
@@ -287,8 +319,8 @@ var setupGame = function () {
 
     d.append("span")
         .attr("class", "playerName")
-        .text(function(d, i){
-            return d.id + " - ";
+        .text(function(shipState, i){
+            return shipState.id + " - ";
         });
 
     d.append("strong")
@@ -298,7 +330,7 @@ var setupGame = function () {
 
     ships = shipGroup
         .selectAll('.ship')
-        .data(initState);
+        .data(initState, function(d){return d.id;});
 
     ships.exit().remove();
 
@@ -339,7 +371,7 @@ var updateState = function (highResTimestamp) {
         lastUpdateTime = highResTimestamp;
 
         ships
-            .data(gameState)
+            .data(gameState, function(d){return d.id;})
 
             .style("fill", function(d, i){
                 if(selectedShip === i){

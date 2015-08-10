@@ -34,7 +34,7 @@ DEFAULTS = {
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(
-    level = logging.DEBUG,
+    level = logging.INFO,
     datefmt = '%H:%M:%S',
     format = '%(asctime)s,%(msecs)03d (%(threadName)s) [%(levelname)s]: %(message)s'
 )

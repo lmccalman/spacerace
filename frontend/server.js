@@ -18,6 +18,7 @@ app.get('/bundle.js', function (req, res) {
 });
 // Serve the maps folder as static assets
 app.use('/maps', express.static('../maps'));
+app.use('/lib', express.static('./node_modules'));
 http.listen(8000, function () {
     console.log('listening on *:8000');
 });

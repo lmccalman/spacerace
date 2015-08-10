@@ -3,8 +3,8 @@
 <head>
     <title>Spacerace</title>
     <meta name="viewport" content="width=device-width, minimum-scale=1.0">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap-theme.min.css">
 
 </head>
 <body>
@@ -26,19 +26,19 @@
                 <div id="lobby"></div>
             </div>
         </div>
-
-        <div class="row">
-            <h3>Team Scores</h3>
-            <ul id="GlobalLeaderboard"></ul>
-        </div>
         <div class="row">
             <p id="statusMessage" class="muted">Waiting to connect to game...</p>
         </div>
+        <div class="row">
+            <h3>Tournament Scores</h3>
+            <ul id="GlobalLeaderboard"></ul>
+        </div>
+
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src="lib/jquery/dist/jquery.min.js"></script>
+    <script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="bundle.js" charset="utf-8"></script>
 </body>
 </html>
