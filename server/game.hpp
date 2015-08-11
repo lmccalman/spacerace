@@ -103,7 +103,10 @@ void playerScore(const StateMatrix& state,
     gameStats.playerDists[control.ids.at(i)] = distance[i];
   }
 
-  std::vector<int> ranks = argsort(distance);
+  std::vector<int> indices = argsort(distance);
+  std::vector<int> ranks(indices.size());
+  for (int i=0;i<indices.size();i++)
+    ranks[indices[i]] = i;
   for (uint i=0; i<state.rows();i++)
   {
     gameStats.playerRanks[control.ids.at(i)] = ranks[i];

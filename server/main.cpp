@@ -131,12 +131,15 @@ int main(int ac, char* av[])
       nextPlayers.idFromSecret.clear();
 
       // build the control structures, index maps and densities for the current game
+      control.idx.clear();
+      control.ids.clear();
       uint nShips = currentPlayers.fromId.size();
       control.inputs = Eigen::MatrixXf::Zero(nShips, CONTROL_LENGTH);
       params.shipDensities = Eigen::VectorXf(nShips);
       uint idx=0;
       for (auto const& p : currentPlayers.fromId)
       {
+        assert(p.first == p.second.id);
         control.idx[p.second.secretKey] = idx;
         control.ids[idx] = p.first;
         params.shipDensities[idx] = p.second.density;
