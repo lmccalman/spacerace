@@ -9,7 +9,11 @@ RUN apt-get update && apt-get install -y \
   libboost-filesystem1.55.0\
   libzmq3\
   libzmq3-dev
-  
+
+RUN apt-get install -y nodejs npm && \
+    ln -s /usr/bin/nodejs /usr/bin/node && \
+    npm install -g webpack
+
 RUN mkdir -p /usr/src/spacerace /spacerace
 COPY . /usr/src/spacerace
 
@@ -17,8 +21,17 @@ WORKDIR /spacerace
 RUN cp -r /usr/src/spacerace/maps /spacerace/maps
 RUN cmake /usr/src/spacerace && make
 
+# Front end
+RUN cp -r /usr/src/spacerace/frontend /spacerace/frontend
+WORKDIR /spacerace/frontend
+RUN webpack && \
+    npm install
+
+
 # Clean up APT when done
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-EXPOSE 5556 5557 5558 5559
-CMD ["./spacerace-server", "-s", "/usr/src/spacerace/spacerace.json"]
+
+WORKDIR /spacerace
+EXPOSE 5556 5557 5558 5559 8000
+CMD /bin/bash -c '/spacerace/spacerace-server -s /usr/src/spacerace/spacerace.json & node /spacerace/frontend/server.js'
 

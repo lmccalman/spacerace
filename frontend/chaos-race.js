@@ -26,7 +26,7 @@ stateSocket.subscribe('');
 stateSocket.on('message', function (topic, msg) {
     console.log('[GAME] Received State for: %s', topic.toString());
     latestState = JSON.parse(msg.toString());
-    if (latestState.status === "GAME OVER") {
+    if (latestState.state === "finished") {
         gameNotOver = false;
     }
 });
@@ -51,9 +51,7 @@ var playGame = function (gameData) {
     step();
 };
 console.log("Reeking havoc with " + NUM_SHIPS + " random ships");
-var r = function (n) {
-    return Math.random() * n;
-};
+var r = function (n) { return Math.random() * n; };
 for (var i = 0; i < NUM_SHIPS; i++) {
     var monkeyID = "chaos-" + i;
     connect(monkeyID);

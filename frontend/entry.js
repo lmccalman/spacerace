@@ -3,13 +3,10 @@ var d3 = require("d3/d3.min.js");
 
 require("./style.css");
 
-var spaceraceSettings = require("json!./../spacerace.json");
+
 console.log("Welcome to spacerace");
 
-console.log("Global Settings");
-console.log(spaceraceSettings);
-
-var mapScale = 1.0;//spaceraceSettings.simulation.world.mapScale;
+var mapScale = 1.0;
 var SHIPSIZE;
 var socket = io();
 var requestID;

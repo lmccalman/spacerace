@@ -34,7 +34,7 @@ stateSocket.subscribe('');
 stateSocket.on('message', function(topic, msg) {
     console.log('[GAME] Received State for: %s', topic.toString());
     latestState = JSON.parse(msg.toString());
-    if (latestState.status === "GAME OVER"){
+    if (latestState.state === "finished"){
         gameNotOver = false;
     }
 });

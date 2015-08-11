@@ -367,7 +367,7 @@ You may wish to build the server so as to run a local copy for debugging
 purposes. With docker simply run:
 
     docker build -t spacerace .
-    docker run -it -p 5556-5559:5556-5559 spacerace 
+    docker run -it --rm -p 5556-5559:5556-5559 -p 8000:8000 spacerace 
 
 However, don't forget about the internet constraints! (ie this uses an Ubuntu
 base image that you'd better have on your machine already)
