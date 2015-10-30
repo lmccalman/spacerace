@@ -6,9 +6,9 @@
 # Game client for 2015 ETD Winter retreat
 # Client-side Visualization
 # https://github.com/lmccalman/spacerace
-# 
+#
 # Created by Louis Tiao on 28/07/2015.
-# 
+#
 
 # For Mac OS X
 import matplotlib
@@ -23,8 +23,9 @@ import string
 import random
 import zmq
 
-from client import Client
+from matplotlib.patches import Wedge
 from argparse import ArgumentParser
+from client import Client
 
 DEFAULTS = {
     'hostname': 'localhost',
@@ -46,13 +47,14 @@ logging.basicConfig(
 make_random_name = lambda length: ''.join(random.choice(string.ascii_letters) \
     for _ in range(length))
 
+
 class MPLController:
 
     def __init__(self, ship_name, team_name, fig, ax, client=None, *args, **kwargs):
 
         if client is None:
             client = Client(*args, **kwargs)
-        
+
         self.client = client
         self.keys = set()
 
@@ -61,30 +63,23 @@ class MPLController:
 
         self.text = ax.text(0.25, 0.25, 'Hello!')
 
-        anim = animation.FuncAnimation(fig, self.anim, frames=self.state_gen(), \
-            init_func=self.init_anim, interval=25, blit=True, repeat=False)
+        anim = animation.FuncAnimation(fig, self.anim, frames=self.state_gen(),
+                                       init_func=self.init_anim, interval=25,
+                                       blit=True, repeat=False)
 
         response = self.client.lobby.register(ship_name, team_name)
-        
+
         self.game = response.game
         self.ship = response.name
         self.secret = response.secret
 
         self.client.state.subscribe(self.game)
 
-        self.map = 
-
-<<<<<<< Updated upstream
     def update_control(self):
         linear = int('up' in self.pressed)
-=======
-    def press(self, event):
-        self.keys.add(event.key)
-        linear = int('up' in self.keys)
->>>>>>> Stashed changes
         rotation = 0
-        rotation += int('left' in self.keys)
-        rotation -= int('right' in self.keys)
+        rotation += int('left' in self.pressed)
+        rotation -= int('right' in self.pressed)
         self.client.control.send(self.secret, linear, rotation)
 
     def press(self, event):
@@ -92,13 +87,8 @@ class MPLController:
         self.update_control()
 
     def release(self, event):
-<<<<<<< Updated upstream
         self.pressed.discard(event.key)
         self.update_control()
-
-
-=======
-        self.keys.discard(event.key)
 
     def init_anim(self):
         self.text.set_text('')
@@ -110,7 +100,6 @@ class MPLController:
 
     def state_gen(self):
         return self.client.state.state_gen()
->>>>>>> Stashed changes
 
 if __name__ == '__main__':
 
@@ -124,11 +113,11 @@ if __name__ == '__main__':
     parser.add_argument('--lobby_port', type=int, help='Lobby port', default=DEFAULTS['lobby_port'])
 
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
-    
+
     parser.add_argument('--ship_name', '-n', type=str,
-        default=make_random_name(10), help='Ship Name')
+                        default=make_random_name(10), help='Ship Name')
     parser.add_argument('--team_name', '-t', type=str,
-        default=make_random_name(10), help='Ship Name')
+                        default=make_random_name(10), help='Ship Name')
 
     args = parser.parse_args()
 

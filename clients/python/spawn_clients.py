@@ -21,16 +21,16 @@ DEFAULTS = {
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(
-    level = logging.DEBUG,
-    datefmt = '%I:%M:%S %p',
-    format = '%(asctime)s [%(levelname)s]: %(message)s'
+    level=logging.DEBUG,
+    datefmt='%I:%M:%S %p',
+    format='%(asctime)s [%(levelname)s]: %(message)s'
 )
 
 # Helper functions
-make_random_name = lambda length: ''.join(random.choice(string.ascii_letters) \
-    for _ in range(length))
-make_random_control = lambda: (random.choice([1,1,1,1,0]),
-                               random.choice([-1,-1,-1,0,1]))
+make_random_name = lambda length: ''.join(random.choice(string.ascii_letters) for _ in range(length))
+make_random_control = lambda: (random.choice([1, 1, 1, 1, 0]),
+                               random.choice([-1, -1, -1, 0, 1]))
+
 
 def make_context():
     context = zmq.Context()
@@ -60,13 +60,14 @@ if __name__ == '__main__':
     context = make_context()
 
     client = Client(args.hostname, args.lobby_port, args.control_port, args.state_port, context)
-    
+
     game_num = 0
+
     while True:
 
         secrets = defaultdict(list)
         for i in range(args.num_ships):
-            instance = client.lobby.register("g{}team{}".format(game_num,i), "g{}player{}".format(game_num,i))
+            instance = client.lobby.register("g{}team{}".format(game_num, i), "g{}player{}".format(game_num,i))
             secrets[instance.game].append(instance.secret)
 
         for game in secrets:
@@ -79,6 +80,7 @@ if __name__ == '__main__':
                     client.control.send(secret, *make_random_control())
 
             state_client.close()
-        game_num = game_num + 1
+
+        game_num += 1
 
     client.close()
