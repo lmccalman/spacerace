@@ -42,7 +42,7 @@ your creations (particularly `clients`, `frontend` and `maps`).
 .
 +--clients
 |  +--python        Example players/clients in python
-+--fontend          Front end (node.js)
++--frontend          Front end (node.js)
 +--mapbuilder       Python script for building maps from bitmaps
 +--maps             A few example maps (png, svg etc)
 +--physics          Prototype implementation of the game physics in python
@@ -369,11 +369,7 @@ purposes. With docker simply run:
     docker build -t spacerace .
     docker run -it --rm -p 5556-5559:5556-5559 -p 8000:8000 spacerace 
 
-However, don't forget about the internet constraints! (ie this uses an Ubuntu
-base image that you'd better have on your machine already)
+However, don't forget to build the maps first.
 
 Alternatively, use cmake. You need boost-devel and boost-static and
 zeromq-devel and zeromq libraries installed. 
-
-We should be running at least 1 server at all times during the day so probably
-best to connect to this unless you're really trying something pathological.
