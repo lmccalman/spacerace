@@ -25,7 +25,7 @@ def buildmap(image, mapname, settingsfile, visualise):
         settings = json.load(f)
 
     # Read in map
-    print("Reading and processing map image...")
+    print("Reading and processing map image '{0}'...".format(image))
     mapim = imread(image)
     if mapim.ndim < 3:
         print("The bitmaps need to be 3 layers!")
