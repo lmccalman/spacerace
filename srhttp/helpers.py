@@ -16,6 +16,7 @@ import zmq
 
 
 # Helper functions
+make_control_str = lambda *args: ','.join(args)
 make_random_name = lambda length=10: ''.join(random.choice(string.ascii_letters) for _ in range(length))
 make_address = 'tcp://{0}:{1}'.format
 
