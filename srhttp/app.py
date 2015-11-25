@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from helpers import (make_random_name, make_context, make_address,
                      make_control_str)
 
+import json
 import zmq
 
 app = Flask(__name__)
@@ -20,6 +21,12 @@ lobby_sock.connect(make_address(app.config.get('SPACERACE_SERVER'),
 control_sock = context.socket(zmq.PUSH)
 control_sock.connect(make_address(app.config.get('SPACERACE_SERVER'),
                                   app.config.get('SPACERACE_CONTROL_PORT')))
+
+
+state_sock = context.socket(zmq.SUB)
+state_sock.setsockopt_string(zmq.SUBSCRIBE, u'')
+state_sock.connect(make_address(app.config.get('SPACERACE_SERVER'),
+                                app.config.get('SPACERACE_STATE_PORT')))
 
 
 @app.route('/')
@@ -43,6 +50,15 @@ def lobby():
     return jsonify(response)
 
 
+@app.route('/state')
+def state():
+
+    _, msg_b = state_sock.recv_multipart()
+    current_state = json.loads(msg_b.decode())
+
+    return jsonify(current_state)
+
+
 # TODO: Currently is GET method. Should instead be PUT or maybe POST.
 @app.route('/control')
 @app.route('/control/<string:secret>')
@@ -60,7 +76,7 @@ def control(secret=None):
     control_sock.send_string(control_str)
 
     # Response message and HTTP_202_ACCEPTED code
-    # TODO: May need to send empty response to avoid confusion
+    # TODO: May just send empty response to avoid confusion
     return 'Sent control message "{0}"'.format(control_str), 202
 
 if __name__ == '__main__':
