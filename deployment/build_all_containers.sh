@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 docker build -t spacerace:base ..
 

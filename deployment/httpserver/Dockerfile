@@ -1,7 +1,7 @@
 FROM spacerace:base
 MAINTAINER Lachlan McCalman <lachlan.mccalman@nicta.com.au>
 
-COPY uwsgi_entrypoint.py uwsgi.ini /root/
+COPY uwsgi.ini /root/
 
 WORKDIR /root
 

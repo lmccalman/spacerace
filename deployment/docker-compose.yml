@@ -1,37 +1,24 @@
-backendserver:
-  image: lmccalman/statbadger:backend_server
-  links:
-    - redis
-
-nginxserver:
-  image: lmccalman/statbadger:nginx_server
+server:
+  image: spacerace:server
   ports:
-    - "31113:31113"
+    - "5556-5559"
+
+frontend:
+  image: spacerace:frontend
   links:
-    - backendserver
-
-redis:
-  image: lmccalman/statbadger:redis
-  volumes:
-    - ../storage:/mnt/storage
-
-workerserver:
-  image: lmccalman/statbadger:worker_server
-  links:
-    - redis
-    - nginxdatastore
-
-backenddatastore:
-  image: lmccalman/statbadger:backend_datastore
-  links:
-    - redis
-  volumes:
-    - ../storage:/mnt/storage
-
-nginxdatastore:
-  image: lmccalman/statbadger:nginx_datastore
+    - server
   ports:
-    - "31114:31114"
+    - "8000:8000"
+
+nginx:
+  image: spacerace:nginx
+  ports:
+    - "5001:5001"
   links:
-    - backenddatastore
+    - httpserver
+
+httpserver:
+  image: spacerace:httpserver
+  links:
+    - server
 
