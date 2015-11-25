@@ -14,7 +14,7 @@ import zmq
 # ioloop.install()
 import logging
 logger = logging.getLogger(__name__)
-lock = threading.Lock()
+state_lock = threading.Lock()
 
 DEFAULTS = {
     'hostname': 'localhost',
@@ -38,7 +38,7 @@ def main():
                         default=DEFAULTS['lobby_port'])
     args = parser.parse_args()
     logger.debug(args)
-    game_state = [None]
+    game_state = [{'state': 'finished'}]
     t = threading.Thread(target=state_client,
                          args=(args.hostname, args.state_port, game_state))
     t.daemon = True  # die with main thread
@@ -47,12 +47,9 @@ def main():
     # Now do our own "Game Loop"
     print("Original thread game loop:")
     while True:
-        with lock:
+        with state_lock:
             state = game_state[0]
-        if state:
-            print(state)
-        else:
-            print("Not ready")
+        print(state)
         time.sleep(1)
 
 
@@ -69,12 +66,18 @@ def state_client(hostname, state_port, game_state):
     print("Connect")
     state_sock.connect(state_address)
     print("Recv Loop init.")
-    # note: messages will always be multipart, even if length 1
 
     while True:
         msg_filter_b, state_b = state_sock.recv_multipart()
-        with lock:
-            game_state[0] = json.loads(state_b.decode())
+        new_game_state = game_state[0]
+
+        try:
+            new_game_state = json.loads(state_b.decode())
+        except:
+            continue
+
+        with state_lock:
+            game_state[0] = new_game_state
 
     return
 
