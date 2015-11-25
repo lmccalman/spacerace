@@ -1,0 +1,37 @@
+backendserver:
+  image: lmccalman/statbadger:backend_server
+  links:
+    - redis
+
+nginxserver:
+  image: lmccalman/statbadger:nginx_server
+  ports:
+    - "31113:31113"
+  links:
+    - backendserver
+
+redis:
+  image: lmccalman/statbadger:redis
+  volumes:
+    - ../storage:/mnt/storage
+
+workerserver:
+  image: lmccalman/statbadger:worker_server
+  links:
+    - redis
+    - nginxdatastore
+
+backenddatastore:
+  image: lmccalman/statbadger:backend_datastore
+  links:
+    - redis
+  volumes:
+    - ../storage:/mnt/storage
+
+nginxdatastore:
+  image: lmccalman/statbadger:nginx_datastore
+  ports:
+    - "31114:31114"
+  links:
+    - backenddatastore
+
