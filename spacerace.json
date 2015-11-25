@@ -3,13 +3,13 @@
   "gameTime": 30,
   "maxPlayers": 200,
   "mapPath": "./maps",
-  "maps": ["data61", "spacerace-river2", "spacerace-world", "SuperHard1", "northside",
-           "spacerace-sydney", "patho", "dilemma", "fire", "fishcatcher",
-           "nautilus", "starmap", "swish", "switchbacks"],
+  "maps": ["data61", "spacerace-river2", "spacerace-world", "SuperHard1",
+           "northside", "spacerace-sydney", "patho", "dilemma", "fire", 
+           "fishcatcher", "nautilus", "starmap", "swish", "switchbacks"],
 
   "simulation": {
     "timeStep": 0.004,
-    "targetFPS": 20,
+    "targetFPS": 30,
     "ship": {
       "linearThrust" : 60.0,
       "friction" : 0.1,
