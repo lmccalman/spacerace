@@ -10,15 +10,15 @@ frontend:
   ports:
     - "8000:8000"
 
+httpserver:
+  image: spacerace:httpserver
+  links:
+    - server
+
 nginx:
   image: spacerace:nginx
   ports:
     - "5001:5001"
   links:
     - httpserver
-
-httpserver:
-  image: spacerace:httpserver
-  links:
-    - server
 
