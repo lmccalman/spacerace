@@ -22,7 +22,6 @@ COPY . /usr/src/spacerace
 ENV PYTHONPATH=$PYTHONPATH:/usr/src/spacerace
 
 WORKDIR /spacerace
-# RUN find maps -type f -maxdepth 1 -name "*.png" -exec mapbuilder/buildmap.py --settingsfile=spacerace.json {} \;
 RUN cp -r /usr/src/spacerace/maps /spacerace/maps
 
 #Server build
