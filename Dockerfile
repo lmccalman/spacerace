@@ -18,7 +18,6 @@ RUN mkdir -p /usr/src/spacerace /spacerace
 COPY . /usr/src/spacerace
 
 WORKDIR /spacerace
-# RUN find maps -type f -maxdepth 1 -name "*.png" -exec mapbuilder/buildmap.py --settingsfile=spacerace.json {} \;
 RUN cp -r /usr/src/spacerace/maps /spacerace/maps
 RUN cmake /usr/src/spacerace && make
 
