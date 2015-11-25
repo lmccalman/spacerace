@@ -9,41 +9,15 @@
 # Created by Louis Tiao on 28/07/2015.
 #
 
-import logging
 import string
 import random
 import json
 import zmq
 
-# from zmq.eventloop.ioloop import ZMQIOLoop
-# from zmq.eventloop.zmqstream import ZMQStream
-
-# from threading import Thread
-# from queue import Queue
-
-DEFAULTS = {
-    'hostname': 'localhost',
-    'state_port': 5556,
-    'control_port': 5557,
-    'lobby_port': 5558,
-}
-
-# Setup basic logging
-logger = logging.getLogger(__name__)
-
-logging.basicConfig(
-    level=logging.INFO,
-    datefmt='%H:%M:%S',
-    format='%(asctime)s,%(msecs)03d (%(threadName)s) [%(levelname)s]: %(message)s'
-)
 
 # Helper functions
-make_address = 'tcp://{}:{}'.format
-make_handshake_msg = lambda ship, team: dict(name=ship, team=team)
-make_control_str = lambda secret, linear, rotational: ','.join \
-    ([secret, repr(linear), repr(rotational)])
-make_random_name = lambda length: ''.join(random.choice(string.ascii_letters) \
-    for _ in range(length))
+make_random_name = lambda length=10: ''.join(random.choice(string.ascii_letters) for _ in range(length))
+make_address = 'tcp://{0}:{1}'.format
 
 
 def make_context():

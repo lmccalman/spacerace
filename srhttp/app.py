@@ -1,11 +1,16 @@
 from flask import Flask, jsonify, request
+from helpers import make_random_name, make_context, make_address
 
-from string import ascii_letters
-from random import choice
+import zmq
 
 app = Flask(__name__)
+app.config.from_object('settings')
 
-make_random_name = lambda length=10: ''.join(choice(ascii_letters) for _ in range(length))
+
+# TODO: context and sockets are never closed
+context = make_context()
+lobby_sock = context.socket(zmq.REQ)
+lobby_sock.connect(make_address(app.config.get('SPACERACE_SERVER'), app.config.get('SPACERACE_LOBBY_PORT')))
 
 
 @app.route('/')
@@ -17,8 +22,16 @@ def hello_world():
 def lobby():
     name = request.args.get('name', default=make_random_name())
     team = request.args.get('team', default=make_random_name())
-    return jsonify(msg='Hello welcome to the lobby! Name {0} | Team {1}'.format(name, team))
+
+    app.logger.debug('Registering ship "{0}" under team "{1}"'.format(name, team))
+    lobby_sock.send_json(dict(name=name, team=team))
+
+    app.logger.debug('Awaiting response from lobby...')
+    response = lobby_sock.recv_json()
+
+    return jsonify(response)
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
+    lobby_sock.close()
