@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
   libzmq3-dev\
   uwsgi \
   uwsgi-plugin-python3 \
+  python3-flask \
   nodejs \
   npm  &&\
   ln -s /usr/bin/nodejs /usr/bin/node && \
