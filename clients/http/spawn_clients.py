@@ -10,7 +10,6 @@ import urlparse
 from collections import defaultdict
 from argparse import ArgumentParser
 from functools import partial
-from itertools import count
 
 DEFAULTS = {
     'server': 'http://127.0.0.1:5001',
@@ -69,12 +68,12 @@ if __name__ == '__main__':
             game_state = r_state.json()
             logger.debug('Current state "{}"'.format(game_state))
 
-            if game_state['state'] == 'finished':
-                break
+            # if game_state['state'] == 'finished':
+            #     break
 
             for secret in secrets[game]:
 
                 linear, rotation = make_random_control()
                 control_data = dict(secret=secret, linear=linear, rotation=rotation)
                 logger.debug('Sending control data "{}"'.format(control_data))
-                r_control = requests.post(control_addr, data=control_data)
+                requests.post(control_addr, json=control_data)
