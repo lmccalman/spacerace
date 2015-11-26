@@ -19,6 +19,8 @@ import logging
 import pprint
 import string
 import random
+from time import time, sleep
+
 
 DEFAULTS = {
     'server': 'http://127.0.0.1:5000',  #'192.168.1.110', #'localhost',
@@ -85,6 +87,11 @@ class Client:
     def press(self, event):
         self.pressed.add(event.key)
         self.update_control()
+        
+        if event.key == "u":
+            state = client.recv_state()
+            print(state)
+
 
     def release(self, event):
         self.pressed.discard(event.key)
@@ -116,5 +123,5 @@ if __name__ == '__main__':
 
     fig.canvas.mpl_connect('key_press_event', client.press)
     fig.canvas.mpl_connect('key_release_event', client.release)
-
     plt.show()
+
