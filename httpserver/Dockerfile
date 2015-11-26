@@ -15,4 +15,4 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 EXPOSE 5001
 
-CMD ["gunicorn3", "—workers", "5", "—bind", "0.0.0.0:5001", "app"]
+CMD ["gunicorn3", "--workers", "5", "--bind", "0.0.0.0:5001", "app:app"]
