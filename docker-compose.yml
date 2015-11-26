@@ -1,7 +1,10 @@
 server:
   build: server
   ports:
-    - "5556-5559"
+    - "5556:5556"
+    - "5557:5557"
+    - "5558:5558"
+    - "5559:5559"
   volumes:
     - ./config:/spacerace/config
     - ./maps:/spacerace/maps
