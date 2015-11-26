@@ -70,11 +70,11 @@ class Client:
         return r.json()
 
     def send_control(self, linear, rotation):
-        url = '/'.join((self.addr, 'control', self.secret))
+        url = '/'.join((self.addr, 'control'))
         params = dict(linear=linear, rotation=rotation)
         logger.info('Connecting to {} with params {}'.format(url, params))
         r = requests.post(url, json=params)
-        return r.status_code
+        return r.json()
 
     def update_control(self):
         linear = int('up' in self.pressed)

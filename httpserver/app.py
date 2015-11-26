@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from helpers import (make_random_name, make_context, make_address,
-                     make_control_str)
+                     make_control_str, InvalidUsage)
 
 import json
 import zmq
@@ -29,9 +29,16 @@ state_sock.connect(make_address(app.config.get('SPACERACE_SERVER'),
                                 app.config.get('SPACERACE_STATE_PORT')))
 
 
+@app.errorhandler(InvalidUsage)
+def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
+
+
 @app.route('/')
-def hello_world():
-    return jsonify(msg='Hello World!')
+def greeting():
+    return jsonify(msg='Welcome to spacerace!')
 
 
 @app.route('/lobby')
@@ -63,11 +70,16 @@ def state():
 @app.route('/control', methods=['POST', 'PUT'])
 def control(secret=None):
 
-    if secret is None:
-        secret = request.json.get('secret')
+    try:
 
-    linear = str(request.json.get('linear'))
-    rotation = str(request.json.get('rotation'))
+        if secret is None:
+            secret = request.json['secret']
+
+        linear = str(request.json['linear'])
+        rotation = str(request.json['rotation'])
+
+    except KeyError:
+        raise InvalidUsage('One or more required arguments not provided.')
 
     control_str = make_control_str(secret, linear, rotation)
 
@@ -75,7 +87,6 @@ def control(secret=None):
     control_sock.send_string(control_str)
 
     # Response message and HTTP_202_ACCEPTED code
-    # TODO: May just send empty response to avoid confusion
     return 'Sent control message "{0}"'.format(control_str), 202
 
 if __name__ == '__main__':
