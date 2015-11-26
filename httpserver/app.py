@@ -87,7 +87,7 @@ def control(secret=None):
     control_sock.send_string(control_str)
 
     # Response message and HTTP_202_ACCEPTED code
-    return 'Sent control message "{0}"'.format(control_str), 202
+    return jsonify(message='Sent control message "{0}"'.format(control_str))
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -64,6 +64,178 @@ screen, the coordinate system is described below:
 
 ## General Instructions for Building a Client
 
+### HTTP
+
+There are three API endpoints a client must interact with:
+
+1. *Lobby* (`GET /lobby`): register to participate in the next game.
+2. *Game state* (`GET /state`): request the current game state.
+3. *Control*  (`POST /control`): send control instructions.
+
+#### Lobby endpoint
+
++ `/lobby`
+    - `GET`
+        + name (optional): player name
+        + team (optional): team name
+
+The lobby endpoint is used by players to join a game. The server starts and
+begins to accept new players into the first game lobby. Some time later, when
+the first game starts, the server creates the lobby for the second game. This
+means that a player trying to join during a game will simply be placed in the
+lobby for the next game.
+
+To register to participate in the next game, a client must make a `GET` request
+to the `/lobby` endpoint with parameters `name` and `team`. If these are not 
+specified, your name and team will be a randomly generated string.
+
+The name will be reflected in the state sent out by the server, and the
+visualisation of your ship. The team is used to collate the scores of multiple
+related AIs. Feel free to choose any alphanumeric values for both your name and
+your team name.
+
+Example:
+
+Register 'Giovanni' under 'Team Rocket':
+
+```
+$ curl http://127.0.0.1:5000/lobby?name=Giovanni&team=Team%20Rocket
+{
+  "game": "game772", 
+  "map": "spacerace-world", 
+  "name": "Giovanni", 
+  "secret": "ce6989bc-50fb"
+}
+```
+You will receive a JSON response with fields `name`, `game`, `map` and `secret`.
+
+The name should be the name you gave the server. The game name is an important
+variable required by the state endpoint, to make sure you're actually receiving
+state for a game you're playing in. The map name will be the name of the map 
+you'll be playing, and you will need to have pulled down these maps from the 
+map server beforehand.
+
+The secret key is used in your control messages. Because the server does not
+care where control messages come from, using this secret key prevents other
+people controlling your ship!
+
+Once this you have received a , you're ready to play the game.
+You'll know a game has started when you start receiving state over your state
+socket.
+
+#### State endpoint
+
++ `/state`
+    - `GET`
+        + game: game name
+
+The state endpoint gives the game state. The game state is the position, 
+velocity, and control inputs of every ship currently playing. Note that other 
+ship's state may be useful for collision avoidance!
+
+To get the current game state, a client must make a `GET` request
+to the `/state` endpoint with parameter `game` which is the name of the game 
+you registered in.
+
+The server updates the state periodically. At the moment this happens at 60Hz 
+but we may move this number around on the day depending on the status of the 
+network.
+
+Example:
+
+The game state shows that game `game772` is currently running and `Giovanni` is
+currently the only participant:
+
+```
+$ curl http://127.0.0.1:5000/state?game=game772
+{
+  "data": [
+    {
+      "Tl": 0, 
+      "Tr": 0, 
+      "id": "Giovanni", 
+      "omega": 0, 
+      "theta": 4.39718961715698, 
+      "vx": 0, 
+      "vy": 0, 
+      "x": 1580.22705078125, 
+      "y": 680.318725585938
+    }
+  ], 
+  "state": "running"
+}
+```
+
+The state message is a json object of the following form:
+
+```
+    {
+        "state": "running",
+        "data": [list_of_players]
+    }
+```
+
+The state variable will be "running" while the game is running, and "finished"
+when someone wins the game or it times out. Make sure you check the status
+before you try to access the data member, because it isn't in the final
+"finished" message
+
+In the data array, each player has the following attributes:
+
+```
+    {
+        "id": "ship_name",
+        "x": <xposition in float>
+        "y": <yposition in float>
+        "vx": <x velocity in float>
+        "vy": <y velocity in float>
+        "theta": <heading in float>
+        "omega": <angular velocity in float> 
+        "Tl": <0 or 1 for linear thrust off/on>
+        "Tr": <-1, 0 or 1 for angular thrust clockwise/off/ counter-clockwise>
+    }
+```
+
+Note the the units of `x`, `y`, `theta` and `omega` all relate to pixels in the 
+map. So an `x` position of 0.5 is half way into the first map pixel in the `x`
+direction.
+
+#### Control endpoint
+
++ `/control`
+    - `POST`
+        + secret: your secret key
+        + rotation: rotational thrust
+        + linear: linear thrust
+
+The control endpoint is used to send control commands for your ship during a
+game. Commands are sent to `/control` via a `POST` method with JSON data 
+containing fields `secret`, `rotation`, `linear`. If you send control commands 
+to a game you're not in, or while no game is running, they will be ignored.
+
+A client can send control messages whenever they would like and as frequently
+or infrequently as they would like, but the server will only process the last
+message it received each timestep. So if you send 100 control inputs between
+the server updating its state message, only the last one will actually be used
+to control your ship.
+
+Example:
+
+The secret key we got for `Giovanni` was `ce6989bc-50fb`. We can then send 
+rotational thrust in the anti-clockwise direction (rotation=-1) with no linear 
+thrust (linear=0) with a `POST` request:
+
+```
+$ curl -H "Content-Type: application/json" -X POST -d '{"secret":"ce6989bc-50fb","rotation":-1,"linear":0}' http://127.0.0.1:5000/control
+```
+
+- `<yoursecretkey>` is the string you were given by the lobby upon connection
+- `<main_engine>` is either a 0 or a 1, for the main engine being off or on
+- `<rotation>` is either a -1, 0 or 1. 1 is for +ve (anti-clockwise) rotation
+thrust, -1 is for -ve (clockwise) rotation thrust, and 0 is no rotation thrust
+
+### ZeroMQ
+
 A minimal client has three [ZeroMQ](http://zeromq.org/) sockets:
 
 1. *Lobby*: a request socket, asks for a connection to the next game, receives 
@@ -78,7 +250,7 @@ status messages to debug clients.
 
 The pseudo-code of a very simple single-threaded client is given below:
 
-### Pseudo code
+#### Pseudo code
 
     while(true) // loop that connects and plays in every round of the game
         send a connection message over the lobby socket
@@ -94,7 +266,7 @@ Each of these sockets, and the message formats they send and expect to receive,
 are outlined in the following sections.
 
 
-### Ports
+#### Ports
 
 These are the ports for the various sockets:
 
@@ -104,7 +276,7 @@ These are the ports for the various sockets:
 - Info: 5559
 
 
-### Lobby socket
+#### Lobby socket
 
 The lobby socket is used by players to join a game. The server starts and
 begins to accept new players into the first game lobby. Some time later, when
@@ -156,7 +328,7 @@ Once this request/reply sequence has completed, you're ready to play the game.
 You'll know a game has started when you start receiving state over your state
 socket.
 
-### State Socket
+#### State Socket
 
 The state socket is a ZMQ "SUB" (subscribe) socket that is receive-only. It is
 the socket over which the server broadcasts the game state. In this case, the
@@ -209,7 +381,7 @@ Note the the units of x y, theta and omega all relate to pixels in the map.
 So an x position of 0.5 is half way into the first map pixel in the x
 direction.
 
-### Control Socket
+#### Control Socket
 
 The control socket is used to send control commands for your ship during a
 game. It is a ZMQ PUSH socket that is send-only. If you send control commands
@@ -234,7 +406,7 @@ It is a simple CSV format in a single short string, of the following form:
 thrust, -1 is for -ve (clockwise) rotation thrust, and 0 is no rotation thrust
 
 
-### Info Socket
+#### Info Socket
 
 This is an additional socket that is essentially just a way for the server to 
 send messages to all players that are not game-state critical. This includes
