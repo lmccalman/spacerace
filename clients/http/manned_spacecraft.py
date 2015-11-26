@@ -22,7 +22,7 @@ import random
 
 
 DEFAULTS = {
-    'server': 'http://127.0.0.1:5001',  #'192.168.1.110', #'localhost',
+    'server': 'http://127.0.0.1:5001',
 }
 
 # Setup basic logging
@@ -34,10 +34,10 @@ logging.basicConfig(
     format='%(asctime)s [%(levelname)s]: %(message)s'
 )
 
+
 # Helper functions
-make_address = 'tcp://{}:{}'.format
-make_random_name = lambda length: ''.join(random.choice(string.ascii_letters) \
-    for _ in range(length))
+make_random_name = lambda length: ''.join(random.choice(string.ascii_letters)
+                                          for _ in range(length))
 
 
 class Client:
