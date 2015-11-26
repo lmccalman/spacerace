@@ -1,0 +1,24 @@
+server:
+  build: server
+  ports:
+    - "5556-5559"
+
+frontend:
+  build: frontend
+  links:
+    - server
+  ports:
+    - "8000:8000"
+
+httpserver:
+  build: httpserver
+  links:
+    - server
+
+nginx:
+  build: nginx
+  ports:
+    - "5001:5001"
+  links:
+    - httpserver
+
