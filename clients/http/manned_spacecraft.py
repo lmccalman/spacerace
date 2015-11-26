@@ -14,7 +14,6 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 import argparse
-import urlparse
 import requests
 import logging
 import pprint
@@ -47,7 +46,7 @@ class Client:
         self.pressed = set()
         self.addr = addr
 
-        url = urlparse.urljoin(self.addr, 'lobby')
+        url = '/'.join((self.addr, 'lobby'))
         params = dict(name=ship_name, team=team_name)
 
         logger.info('Connecting to {} with params {}'.format(url, params))
@@ -67,14 +66,14 @@ class Client:
 
     def recv_state(self):
         logger.info('Awaiting message from state endpoint...')
-        r = requests.get(urlparse.urljoin(self.addr, 'state'))
+        r = requests.get('/'.join((self.addr, 'state')))
         return r.json()
 
     def send_control(self, linear, rotation):
-        url = urlparse.urljoin(self.addr, 'control')
-        params = dict(secret=self.secret, linear=linear, rotation=rotation)
+        url = '/'.join((self.addr, 'control', self.secret))
+        params = dict(linear=linear, rotation=rotation)
         logger.info('Connecting to {} with params {}'.format(url, params))
-        r = requests.get(url, params=params)
+        r = requests.post(url, json=params)
         return r.status_code
 
     def update_control(self):

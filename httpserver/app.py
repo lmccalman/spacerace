@@ -59,16 +59,15 @@ def state():
     return jsonify(current_state)
 
 
-# TODO: Currently is GET method. Should instead be PUT or maybe POST.
-@app.route('/control')
-@app.route('/control/<string:secret>')
+@app.route('/control/<string:secret>', methods=['POST', 'PUT'])
+@app.route('/control', methods=['POST', 'PUT'])
 def control(secret=None):
 
     if secret is None:
-        secret = request.args.get('secret')
+        secret = request.json.get('secret')
 
-    linear = request.args.get('linear')
-    rotation = request.args.get('rotation')
+    linear = str(request.json.get('linear'))
+    rotation = str(request.json.get('rotation'))
 
     control_str = make_control_str(secret, linear, rotation)
 
