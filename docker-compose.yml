@@ -2,6 +2,9 @@ server:
   build: server
   ports:
     - "5556-5559"
+  volumes:
+    - ./config:/spacerace/config
+    - ./maps:/spacerace/maps
 
 frontend:
   build: frontend
@@ -9,6 +12,9 @@ frontend:
     - server
   ports:
     - "8000:8000"
+  volumes:
+    - ./config:/spacerace/config
+    - ./maps:/spacerace/maps
 
 httpserver:
   build: httpserver

@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
   libboost-filesystem1.55.0\
   libzmq3\
   libzmq3-dev \
-  && mkdir -p /usr/src/spacerace/server /spacerace
+  && mkdir -p /usr/src/spacerace/server /spacerace/config /spacerace/maps
 
 COPY . /usr/src/spacerace/server
 
@@ -23,5 +23,5 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 EXPOSE 5556 5557 5558 5559
 
-CMD ['/spacerace/spacerace-server', '-s', '/usr/src/spacerace/spacerace.json']
+CMD ["/spacerace/spacerace-server", "-s", "/spacerace/config/spacerace.json"]
 

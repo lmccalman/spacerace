@@ -1,6 +1,7 @@
 FROM ubuntu:15.04
 MAINTAINER Lachlan McCalman <lachlan.mccalman@nicta.com.au>
 RUN apt-get update && apt-get install -y \
+  libzmq3\
   nodejs \
   npm  &&\
   ln -s /usr/bin/nodejs /usr/bin/node && \
@@ -18,5 +19,5 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 EXPOSE 8000
 
-CMD ['node', 'server.js', 'server']
+CMD ["node", "server.js", "server"]
 

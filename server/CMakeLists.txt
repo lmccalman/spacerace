@@ -1,10 +1,47 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+PROJECT(SPACERACE)
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
 
-ADD_EXECUTABLE (spacerace-server main.cpp)
+# Use folders
+SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 
-SET_TARGET_PROPERTIES(spacerace-server PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${SPACERACE_BINARY_DIR})
+SET(CMAKE_VERBOSE_MAKEFILE ON)
 
-TARGET_LINK_LIBRARIES(spacerace-server ${ZMQ_LIBRARY}
-                                       ${Boost_SYSTEM_LIBRARY_RELEASE}
-                                       ${Boost_PROGRAM_OPTIONS_LIBRARY_RELEASE})
+# Build type defaults
+IF(NOT CMAKE_BUILD_TYPE)
+  MESSAGE(STATUS "Build Type: Unset, assuming Release")
+  SET(CMAKE_BUILD_TYPE "Release")
+ELSE(NOT CMAKE_BUILD_TYPE)
+    MESSAGE(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+ENDIF(NOT CMAKE_BUILD_TYPE)
 
+    
+IF(CMAKE_COMPILER_IS_GNUCXX)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wfatal-errors -Wall -Wno-unused-local-typedefs -ggdb -g  -D_GLIBCXX_USE_NANOSLEEP -fPIC -fopenmp -Wextra -pedantic -pthread")
+  SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-std=c++11 -Wall -Wno-unused-local-typedefs -ggdb -g -D_GLIBCXX_USE_NANOSLEEP -DNDEBUG -O2 -fopenmp -pthread")
+  SET(CMAKE_CXX_FLAGS_RELEASE "-std=c++11 -D_GLIBCXX_USE_NANOSLEEP -DNDEBUG -O2 -fopenmp -pthread")
+ELSE(CMAKE_COMPILER_IS_GNUCXX)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -Wall -ggdb -g  -D_GLIBCXX_USE_NANOSLEEP")
+  SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-std=c++11 -stdlib=libc++ -Wall -ggdb -g -D_GLIBCXX_USE_NANOSLEEP -DNDEBUG -O2")
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
+# Boost
+
+SET(DESIRED_BOOST_VERSION "1_58_0")
+SET(Boost_USE_STATIC_LIBS ON)
+SET(Boost_USE_STATIC_RUNTIME ON)
+
+FIND_PACKAGE(Boost REQUIRED COMPONENTS program_options
+                                       system
+                                       filesystem)
+
+# ZeroMQ
+FIND_PACKAGE(ZMQ REQUIRED)
+
+INCLUDE_DIRECTORIES(${ZMQ_INCLUDE_DIR}
+					${Boost_INCLUDE_DIR})
+
+ADD_SUBDIRECTORY(src)
+
+#CONFIGURE_FILE(dummy_client.py "${SPACERACE_BINARY_DIR}/dummy_client.py" COPYONLY)
+#CONFIGURE_FILE(server/spacerace.json "${SPACERACE_BINARY_DIR}/spacerace.json" COPYONLY)
