@@ -18,9 +18,10 @@ var updates = 0;
 var draws = 0;
 var fpsqueue = [];
 var playerNames = [];
+var playerColors = {}; // map from name to color
 
 var playerDiv = d3.select("#leaderboard");
-var playerContainer = playerDiv.append("div");
+var playerContainer = playerDiv.append("ol");
 
 function checkStarted(data){
     if(nextMap === false){
@@ -92,28 +93,42 @@ socket.on('Log', function (msg) {
                     .selectAll("li")
                     .data(teamScores);
 
+
                 teamScore.exit().remove();
                 teamScore.enter().append("li").text(function(d, i){
-                    return d.name + " - " + d.score.toFixed(2);
+                    return d.name;
+                });
+
+                teamScore.on("click", function(d, i){
+                    console.log("Selecting team " + d.name);
+                    console.log(d);
+
+                    // TODO
+
                 })
             }
 
             if (d.state == 'running') {
                 // Update the players rankings
                 // d.ranking is a map of player name -> score
-                var playerScore = playerContainer.selectAll(".score")
-                    .data(playerNames);
 
+
+                var players = d3.selectAll(".playerIndivdualScore");
 
                 // It appears ranking won't always be here
                 if(d.ranking) {
-                    playerScore.text(function (id, i) {
-                        var rank = d.ranking[id] + 1;
-                        return rank;
-                    });
-                } else {
-                    playerScore.text("");
+
+                    players.sort(function(p1, p2) {
+                        //return p1.id - p2.id; // Sort by name for now
+                        return parseFloat(d.ranking[p1.id]) - parseFloat(d.ranking[p2.id]);
+                    })
+                    .transition().duration(5);
+
+                    updateCurrentGameScoreBoard(d.ranking);
                 }
+
+
+
             }
         } else {
             console.log("unknown subject");
@@ -264,6 +279,39 @@ var selectedShip;
 
 var fps = d3.select("#fps span");
 
+var updateCurrentGameScoreBoard = function(ranking) {
+
+    var players = playerContainer.selectAll(".playerIndivdualScore")
+        .data(gameState, function(d){return d.id;});
+
+    players.exit().remove();
+
+    var d = players
+        .enter()
+        .append("li")
+        .attr("class", "playerIndivdualScore")
+        .attr("title", function(d){return d.id;})
+        .style("color", function(d, i){
+            return playerColors[d.id];
+        })
+        .on("click", function(d, i){
+            console.log("Selecting ship for player " + d.id);
+            selectedShip = i;
+        });
+
+    d.append("span")
+        .attr("class", "playerName")
+        .text(function(shipState, i){
+            return shipState.id;
+        });
+
+    var rank = d.append("strong")
+        .attr('class', 'score')
+        .attr("title", "Player's rank");
+
+
+};
+
 // Runs once per game
 var setupGame = function () {
 
@@ -281,8 +329,8 @@ var setupGame = function () {
 
     console.log("Ship size will be " + SHIPSIZE);
 
-    initState.map(function(d){
-        d.color = "hsl(" + Math.random() * 360 + ",75%, 50%)";
+    initState.forEach(function(d, i){
+        playerColors[d.id] = "hsl(" + Math.random() * 360 + ",75%, 50%)";
     });
 
     // Show each player
@@ -290,35 +338,7 @@ var setupGame = function () {
     playerNames = initState.map(function(d){return d.id;});
     console.log(playerNames);
 
-
-    //playerContainer.selectAll()
-    var players = playerContainer.selectAll(".playerIndivdualScore")
-        .data(initState, function(d){return d.id;});
-
-    players.exit().remove();
-    var d = players
-        .enter()
-        .append("div")
-        .attr("class", "playerIndivdualScore")
-        .attr("title", "Click to select")
-        .on("click", function(d, i){
-            console.log("Selecting ship for player " + d.id);
-            selectedShip = i;
-        })
-        .style("color", function(d, i){
-            return d.color;
-        });
-
-    d.append("span")
-        .attr("class", "playerName")
-        .text(function(shipState, i){
-            return shipState.id + " - ";
-        });
-
-    d.append("strong")
-        .attr('class', 'score')
-        .attr("title", "Player's score")
-        .text(0);
+    updateCurrentGameScoreBoard();
 
     ships = shipGroup
         .selectAll('.ship')
@@ -336,7 +356,7 @@ var setupGame = function () {
         .attr("xlink:href", "#ship")
 
         .attr('fill', function (d) {
-            return d.color;
+            return playerColors[d.id];
         });
 
     // Trigger the first full draw
