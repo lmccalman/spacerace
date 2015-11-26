@@ -109,12 +109,7 @@ socket.on('Log', function (msg) {
                 if(d.ranking) {
                     playerScore.text(function (id, i) {
                         var rank = d.ranking[id] + 1;
-                        if(rank == 1){
-                            return "WINNING";
-                        } else {
-                            return rank;
-                        }
-
+                        return rank;
                     });
                 } else {
                     playerScore.text("");
