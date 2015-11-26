@@ -9,7 +9,7 @@
 # Created by Louis Tiao on 26/11/2015.
 #
 import matplotlib
-matplotlib.use('TkAgg')
+#matplotlib.use('TkAgg')
 
 import matplotlib.pyplot as plt
 
@@ -23,7 +23,7 @@ from time import time, sleep
 
 
 DEFAULTS = {
-    'server': 'http://127.0.0.1:5000',  #'192.168.1.110', #'localhost',
+    'server': 'http://127.0.0.1:5001',  #'192.168.1.110', #'localhost',
 }
 
 # Setup basic logging
@@ -55,6 +55,7 @@ class Client:
         r = requests.get(url, params=params)
 
         logger.info('Awaiting confirmation from lobby endpoint...')
+        print(r.text)
         lobby_response_data = r.json()
 
         logging.debug(pprint.pformat(lobby_response_data))

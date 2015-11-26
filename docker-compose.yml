@@ -6,15 +6,15 @@ server:
     - ./config:/spacerace/config
     - ./maps:/spacerace/maps
 
-frontend:
-  build: frontend
-  links:
-    - server
-  ports:
-    - "8000:8000"
-  volumes:
-    - ./config:/spacerace/config
-    - ./maps:/spacerace/maps
+# frontend:
+#   build: frontend
+#   links:
+#     - server
+#   ports:
+#     - "8000:8000"
+#   volumes:
+#     - ./config:/spacerace/config
+#     - ./maps:/spacerace/maps
 
 httpserver:
   build: httpserver

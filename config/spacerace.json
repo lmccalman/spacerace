@@ -3,9 +3,7 @@
   "gameTime": 60,
   "maxPlayers": 200,
   "mapPath": "./maps",
-  "maps": ["bt-circle1", "data61", "dilemma", "fire", "fishcatcher",
-           "nautilus", "patho", "patho_skin", "starmap", "SuperHard1",
-           "swish", "switchbacks"],
+  "maps": ["bt-circle1"],
   "simulation": {
     "timeStep": 0.004,
     "targetFPS": 30,

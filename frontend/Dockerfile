@@ -1,12 +1,15 @@
 FROM ubuntu:15.04
 MAINTAINER Lachlan McCalman <lachlan.mccalman@nicta.com.au>
 RUN apt-get update && apt-get install -y \
-  libzmq3\
-  nodejs \
-  npm  &&\
-  ln -s /usr/bin/nodejs /usr/bin/node && \
-  npm install -g webpack && \
-  mkdir -p /spacerace/frontend
+  build-essential \
+  cmake \
+  libzmq3 \
+  libzmq3-dev \
+  && mkdir -p /spacerace/frontend
+
+RUN apt-get install -y nodejs npm && \
+    ln -s /usr/bin/nodejs /usr/bin/node && \
+    npm install -g webpack
 
 COPY . /spacerace/frontend
 
