@@ -1,8 +1,7 @@
-FROM ubuntu:15.04
+FROM ubuntu:15.10
 MAINTAINER Lachlan McCalman <lachlan.mccalman@nicta.com.au>
 RUN apt-get update && apt-get install -y \
-  uwsgi \
-  uwsgi-plugin-python3 \
+  gunicorn3 \
   python3-flask \
   python3-zmq \
   && mkdir -p /spacerace/httpserver
@@ -14,6 +13,6 @@ WORKDIR /spacerace/httpserver
 # Clean up APT when done
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-EXPOSE 8080
+EXPOSE 5001
 
-CMD ["uwsgi", "uwsgi.ini"]
+CMD ["gunicorn3", "—workers", "5", "—bind", "0.0.0.0:5001", "app"]
