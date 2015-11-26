@@ -16,10 +16,7 @@ import json
 import zmq
 
 DEFAULTS = {
-    'hostname': 'localhost',
-    'state_port': 5556,
-    'control_port': 5557,
-    'lobby_port': 5558,
+    'server': 'http://127.0.0.1:5000',
 }
 
 # Setup basic logging
@@ -32,7 +29,6 @@ logging.basicConfig(
 )
 
 # Helper functions
-make_address = 'tcp://{}:{}'.format
 make_handshake_msg = lambda ship, team: dict(name=ship, team=team)
 make_control_str = lambda secret, linear, rotational: ','.join \
     ([secret, repr(linear), repr(rotational)])
@@ -55,12 +51,7 @@ class Bunch(dict):
 
 class Client:
 
-    def __init__(self, hostname):
-
-        if context is None:
-            self.context = make_context()
-        else:
-            self.context = context
+    def __init__(self, addr):
 
         self.lobby = LobbyClient(hostname, lobby_port, self.context)
         self.control = ControlClient(hostname, control_port, self.context)
@@ -95,7 +86,7 @@ class BaseClient:
 class LobbyClient(BaseClient):
 
     def make_socket(self):
-        return self.context.socket(zmq.REQ) 
+        return self.context.socket(zmq.REQ)
 
     def register(self, ship_name, team_name):
 

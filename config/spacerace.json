@@ -1,0 +1,53 @@
+{
+  "lobbyWait": 10,
+  "gameTime": 60,
+  "maxPlayers": 200,
+  "mapPath": "./maps",
+  "maps": ["bt-circle1", "data61", "dilemma", "fire", "fishcatcher",
+           "nautilus", "patho", "patho_skin", "starmap", "SuperHard1",
+           "swish", "switchbacks"],
+  "simulation": {
+    "timeStep": 0.004,
+    "targetFPS": 30,
+    "ship": {
+      "linearThrust" : 60.0,
+      "friction" : 0.1,
+      "restitution" : 0.5,
+      "rotationalThrust": 6.0,
+      "radius": 1.0,
+      "defaultDensity": 1.0,
+      "minimumDensity": 0.5,
+      "maximumDensity": 4.0},
+    
+    "world": {
+      "mapScale": 10.0,
+      "linearDrag": 0.25,
+      "restitution": 0.5,
+      "rotationalDrag": 1.5,
+      "friction": 0.025,
+      "elasticity": 4000.0}},
+
+  "stateSocket": {
+    "port": 5556,
+    "linger": 0,
+    "timeout": 500},
+
+  "controlSocket" : {
+    "port": 5557,
+    "linger":0,
+    "timeout": 500},
+
+  "lobbySocket": {
+    "port": 5558,
+    "linger": 0,
+    "timeout": 500},
+  
+  "infoSocket": {
+    "port": 5559,
+    "linger": 0,
+    "timeout": 500},
+
+  "mapbuilder": {
+    "normalBlur": 5.0,
+    "padPixels": 5}
+}

@@ -3,10 +3,10 @@
 
 #
 # manned_spacecraft.py
-# Game client for 2015 ETD Winter retreat
+# HTTP client for 2015 Summer Scholars Hackathon
 # https://github.com/lmccalman/spacerace
 #
-# Created by Louis Tiao on 28/07/2015.
+# Created by Louis Tiao on 26/11/2015.
 #
 import matplotlib
 matplotlib.use('TkAgg')
@@ -14,12 +14,13 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 import argparse
-import urlparse
 import requests
 import logging
 import pprint
 import string
 import random
+from time import time, sleep
+
 
 DEFAULTS = {
     'server': 'http://127.0.0.1:5000',  #'192.168.1.110', #'localhost',
@@ -47,10 +48,11 @@ class Client:
         self.pressed = set()
         self.addr = addr
 
-        print urlparse.urljoin(self.addr, 'lobby')
+        url = '/'.join((self.addr, 'lobby'))
+        params = dict(name=ship_name, team=team_name)
 
-        r = requests.get(urlparse.urljoin(self.addr, 'lobby'),
-                         params=dict(name=ship_name, team=team_name))
+        logger.info('Connecting to {} with params {}'.format(url, params))
+        r = requests.get(url, params=params)
 
         logger.info('Awaiting confirmation from lobby endpoint...')
         lobby_response_data = r.json()
@@ -66,16 +68,14 @@ class Client:
 
     def recv_state(self):
         logger.info('Awaiting message from state endpoint...')
-        r = requests.get(urlparse.urljoin(self.addr, 'state'))
+        r = requests.get('/'.join((self.addr, 'state')))
         return r.json()
 
     def send_control(self, linear, rotation):
-        print 'sending ', dict(secret=self.secret, linear=linear,
-                               rotation=rotation)
-        r = requests.get(urlparse.urljoin(self.addr, 'control'),
-                         params=dict(secret=self.secret, linear=linear,
-                                     rotation=rotation))
-        return r.status_code
+        url = '/'.join((self.addr, 'control'))
+        params = dict(secret=self.secret, linear=linear, rotation=rotation)
+        logger.info('Connecting to {} with params {}'.format(url, params))
+        requests.post(url, json=params)
 
     def update_control(self):
         linear = int('up' in self.pressed)
@@ -87,6 +87,11 @@ class Client:
     def press(self, event):
         self.pressed.add(event.key)
         self.update_control()
+        
+        if event.key == "u":
+            state = client.recv_state()
+            print(state)
+
 
     def release(self, event):
         self.pressed.discard(event.key)
@@ -118,5 +123,5 @@ if __name__ == '__main__':
 
     fig.canvas.mpl_connect('key_press_event', client.press)
     fig.canvas.mpl_connect('key_release_event', client.release)
-
     plt.show()
+
