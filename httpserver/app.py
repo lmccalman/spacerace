@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask.ext.cors import CORS
 from helpers import (make_random_name, make_context, make_address,
                      make_control_str, InvalidUsage)
 import threading
@@ -6,6 +7,8 @@ import json
 import zmq
 
 app = Flask(__name__)
+CORS(app)
+
 app.config.from_object('settings')
 
 # TODO: context and sockets are never closed. Need to determine the best place
