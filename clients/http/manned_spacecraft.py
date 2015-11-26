@@ -9,7 +9,10 @@
 # Created by Louis Tiao on 26/11/2015.
 #
 import matplotlib
-matplotlib.use('TkAgg')
+import sys
+
+if sys.platform.startswith('darwin'):
+    matplotlib.use('TkAgg')
 
 import matplotlib.pyplot as plt
 
