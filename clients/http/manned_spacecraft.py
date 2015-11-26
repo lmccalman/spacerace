@@ -3,10 +3,10 @@
 
 #
 # manned_spacecraft.py
-# Game client for 2015 ETD Winter retreat
+# HTTP client for 2015 Summer Scholars Hackathon
 # https://github.com/lmccalman/spacerace
 #
-# Created by Louis Tiao on 28/07/2015.
+# Created by Louis Tiao on 26/11/2015.
 #
 import matplotlib
 matplotlib.use('TkAgg')
@@ -47,10 +47,11 @@ class Client:
         self.pressed = set()
         self.addr = addr
 
-        print urlparse.urljoin(self.addr, 'lobby')
+        url = urlparse.urljoin(self.addr, 'lobby')
+        params = dict(name=ship_name, team=team_name)
 
-        r = requests.get(urlparse.urljoin(self.addr, 'lobby'),
-                         params=dict(name=ship_name, team=team_name))
+        logger.info('Connecting to {} with params {}'.format(url, params))
+        r = requests.get(url, params=params)
 
         logger.info('Awaiting confirmation from lobby endpoint...')
         lobby_response_data = r.json()
@@ -70,11 +71,10 @@ class Client:
         return r.json()
 
     def send_control(self, linear, rotation):
-        print 'sending ', dict(secret=self.secret, linear=linear,
-                               rotation=rotation)
-        r = requests.get(urlparse.urljoin(self.addr, 'control'),
-                         params=dict(secret=self.secret, linear=linear,
-                                     rotation=rotation))
+        url = urlparse.urljoin(self.addr, 'control')
+        params = dict(secret=self.secret, linear=linear, rotation=rotation)
+        logger.info('Connecting to {} with params {}'.format(url, params))
+        r = requests.get(url, params=params)
         return r.status_code
 
     def update_control(self):
