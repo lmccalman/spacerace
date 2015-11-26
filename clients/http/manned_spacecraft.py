@@ -71,10 +71,9 @@ class Client:
 
     def send_control(self, linear, rotation):
         url = '/'.join((self.addr, 'control'))
-        params = dict(linear=linear, rotation=rotation)
+        params = dict(secret=self.secret, linear=linear, rotation=rotation)
         logger.info('Connecting to {} with params {}'.format(url, params))
-        r = requests.post(url, json=params)
-        return r.json()
+        requests.post(url, json=params)
 
     def update_control(self):
         linear = int('up' in self.pressed)
