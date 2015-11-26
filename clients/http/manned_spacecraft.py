@@ -9,7 +9,7 @@
 # Created by Louis Tiao on 26/11/2015.
 #
 import matplotlib
-#matplotlib.use('TkAgg')
+matplotlib.use('TkAgg')
 
 import matplotlib.pyplot as plt
 
@@ -19,7 +19,6 @@ import logging
 import pprint
 import string
 import random
-from time import time, sleep
 
 
 DEFAULTS = {
@@ -88,11 +87,10 @@ class Client:
     def press(self, event):
         self.pressed.add(event.key)
         self.update_control()
-        
+
         if event.key == "u":
             state = client.recv_state()
             print(state)
-
 
     def release(self, event):
         self.pressed.discard(event.key)
@@ -118,11 +116,11 @@ if __name__ == '__main__':
 
     logger.debug(args)
 
-    client = Client(args.server, args.ship_name, args.team_name)
+    while True:
+        client = Client(args.server, args.ship_name, args.team_name)
 
-    fig, ax = plt.subplots()
+        fig, ax = plt.subplots()
 
-    fig.canvas.mpl_connect('key_press_event', client.press)
-    fig.canvas.mpl_connect('key_release_event', client.release)
-    plt.show()
-
+        fig.canvas.mpl_connect('key_press_event', client.press)
+        fig.canvas.mpl_connect('key_release_event', client.release)
+        plt.show()

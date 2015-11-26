@@ -7,7 +7,6 @@ import zmq
 
 app = Flask(__name__)
 app.config.from_object('settings')
-state_lock = threading.Lock()
 
 # TODO: context and sockets are never closed. Need to determine the best place
 # TODO: these should actually be initialized on a per-request basis. question
@@ -24,11 +23,12 @@ control_sock.connect(make_address(app.config.get('SPACERACE_SERVER'),
 
 
 state_sock = context.socket(zmq.SUB)
-state_sock.setsockopt_string(zmq.SUBSCRIBE, u'')
+state_sock.setsockopt_string(zmq.SUBSCRIBE, '')
 state_sock.connect(make_address(app.config.get('SPACERACE_SERVER'),
                                 app.config.get('SPACERACE_STATE_PORT')))
 
 # This state gets written to in the main loop
+state_lock = threading.Lock()
 game_state = [{'state': 'finished'}]
 
 
@@ -40,20 +40,16 @@ def state_watcher():
         try:
             new_game_state = json.loads(state_b.decode())
         except:
+            app.logger.debug('Could not parse game state "{}"'.format(state_b.decode()))
             continue
 
         with state_lock:
             game_state[0] = new_game_state
 
-    return
-
-
-@app.route('/state')
-def state():
-    with state_lock:
-        current_state = game_state[0]
-
-    return jsonify(current_state)
+# Start state monitoring thread
+t = threading.Thread(target=state_watcher)
+t.daemon = True  # die with main thread
+t.start()
 
 
 @app.errorhandler(InvalidUsage)
@@ -84,6 +80,14 @@ def lobby():
     return jsonify(response)
 
 
+@app.route('/state')
+def state():
+    with state_lock:
+        current_state = game_state[0]
+
+    return jsonify(current_state)
+
+
 @app.route('/control/<string:secret>', methods=['POST', 'PUT'])
 @app.route('/control', methods=['POST', 'PUT'])
 def control(secret=None):
@@ -104,19 +108,9 @@ def control(secret=None):
     app.logger.debug('Sending control message "{0}"'.format(control_str))
     control_sock.send_string(control_str)
 
-    # Response message and HTTP_202_ACCEPTED code
     return jsonify(message='Sent control message "{0}"'.format(control_str))
 
 
 if __name__ == '__main__':
-
-    # Start state monitoring thread
-    t = threading.Thread(target=state_watcher)
-    t.daemon = True  # die with main thread
-    t.start()
-   
     # Start server
     app.run(debug=True)
-
-
-
