@@ -1,0 +1,1 @@
+/spacerace/spacerace-server -s /usr/src/spacerace/spacerace.json & cd /spacerace/frontend && node server.js

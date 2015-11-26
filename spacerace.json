@@ -1,12 +1,12 @@
 {
   "lobbyWait": 10,
-  "gameTime": 30,
+  "gameTime": 3000,
   "maxPlayers": 200,
-  "mapPath": "./maps",
-  "maps": ["data61", "spacerace-river2", "spacerace-world", "SuperHard1",
+  "mapPath": "/mnt/maps",
+  "maps": ["switchbacks"],
+  "oldmaps": ["data61", "spacerace-river2", "spacerace-world", "SuperHard1",
            "northside", "spacerace-sydney", "patho", "dilemma", "fire", 
            "fishcatcher", "nautilus", "starmap", "swish", "switchbacks"],
-
   "simulation": {
     "timeStep": 0.004,
     "targetFPS": 30,
@@ -22,9 +22,9 @@
     
     "world": {
       "mapScale": 10.0,
-      "linearDrag": 0.25,
+      "linearDrag": 0.35,
       "restitution": 0.5,
-      "rotationalDrag": 1.5,
+      "rotationalDrag": 2.0,
       "friction": 0.025,
       "elasticity": 4000.0}},
 

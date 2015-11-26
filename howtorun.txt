@@ -1,0 +1,2 @@
+
+docker run --rm -it --net=host -v /home/areid/code/spacerace/maps:/mnt/maps -v /home/areid/code/spacerace/maps:/spacerace/maps spacerace2 /bin/bash /usr/src/spacerace/runspacerace

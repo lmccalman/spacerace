@@ -13,7 +13,7 @@ import zmq
 # install PyZMQ's IOLoop
 # ioloop.install()
 import logging
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 state_lock = threading.Lock()
 
 DEFAULTS = {
@@ -28,6 +28,7 @@ make_address = 'tcp://{}:{}'.format
 
 
 def main():
+    log.setLevel(logging.INFO)
     parser = argparse.ArgumentParser(
         description='Spacerace: Manned Spacecraft')
     parser.add_argument('--hostname', type=str, help='Server hostname',
@@ -37,7 +38,7 @@ def main():
     parser.add_argument('--lobby_port', type=int, help='Lobby port',
                         default=DEFAULTS['lobby_port'])
     args = parser.parse_args()
-    logger.debug(args)
+    log.debug(args)
     game_state = [{'state': 'finished'}]
     t = threading.Thread(target=state_client,
                          args=(args.hostname, args.state_port, game_state))
@@ -45,11 +46,11 @@ def main():
     t.start()
 
     # Now do our own "Game Loop"
-    print("Original thread game loop:")
+    log.info("Original thread game loop:")
     while True:
         with state_lock:
             state = game_state[0]
-        print(state)
+        log.info(state)
         time.sleep(1)
 
 
@@ -58,14 +59,14 @@ def state_client(hostname, state_port, game_state):
     context.linger = 0
     state_address = make_address(hostname, state_port)
     # Using State socket
-    print('Connecting to state socket at [{0}]...'.format(state_address))
+    log.info('Connecting to state socket at [{0}]...'.format(state_address))
     game_name = ""  # I'm hoping this applies to all games
     state_sock = context.socket(zmq.SUB)
-    print("Subscribe")
+    log.info("Subscribe")
     state_sock.setsockopt_string(zmq.SUBSCRIBE, game_name)
-    print("Connect")
+    log.info("Connect")
     state_sock.connect(state_address)
-    print("Recv Loop init.")
+    log.info("Recv Loop init.")
 
     while True:
         msg_filter_b, state_b = state_sock.recv_multipart()

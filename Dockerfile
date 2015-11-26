@@ -22,7 +22,7 @@ COPY . /usr/src/spacerace
 ENV PYTHONPATH=$PYTHONPATH:/usr/src/spacerace
 
 WORKDIR /spacerace
-RUN cp -r /usr/src/spacerace/maps /spacerace/maps
+#RUN cp -r /usr/src/spacerace/maps /spacerace/maps
 
 #Server build
 RUN cmake /usr/src/spacerace && make
