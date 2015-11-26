@@ -3,10 +3,9 @@
   "gameTime": 30,
   "maxPlayers": 200,
   "mapPath": "./maps",
-  "maps": ["data61", "spacerace-river2", "spacerace-world", "SuperHard1",
-           "northside", "spacerace-sydney", "patho", "dilemma", "fire", 
-           "fishcatcher", "nautilus", "starmap", "swish", "switchbacks"],
-
+  "maps": ["bt-circle1", "data61", "dilemma", "fire", "fishcatcher",
+           "nautilus", "patho", "patho_skin", "starmap", "SuperHard1",
+           "swish", "switchbacks"],
   "simulation": {
     "timeStep": 0.004,
     "targetFPS": 30,
