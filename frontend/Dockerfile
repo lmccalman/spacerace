@@ -5,9 +5,10 @@ RUN apt-get update && apt-get install -y \
   cmake \
   libzmq3 \
   libzmq3-dev \
+  pkg-config \
   && mkdir -p /spacerace/frontend
 
-RUN apt-get install -y nodejs npm && \
+RUN ldconfig && apt-get install -y nodejs npm && \
     ln -s /usr/bin/nodejs /usr/bin/node && \
     npm install -g webpack
 
