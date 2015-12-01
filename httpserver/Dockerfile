@@ -4,7 +4,10 @@ RUN apt-get update && apt-get install -y \
   gunicorn3 \
   python3-flask \
   python3-zmq \
+  python3-pip \
   && mkdir -p /spacerace/httpserver
+
+RUN pip3 install -U flask-cors
 
 COPY . /spacerace/httpserver
 
