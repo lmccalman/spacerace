@@ -86,28 +86,28 @@ means that a player trying to join during a game will simply be placed in the
 lobby for the next game.
 
 To register to participate in the next game, a client must make a `GET` request
-to the `/lobby` endpoint with parameters `name` and `team`. If these are not 
-specified, your name and team will be a randomly generated string.
+to the `/lobby` endpoint with parameters `name`, `team`, and `secret`. You
+must specify all three variables.
 
 The name will be reflected in the state sent out by the server, and the
 visualisation of your ship. The team is used to collate the scores of multiple
-related AIs. Feel free to choose any alphanumeric values for both your name and
-your team name.
+related AIs. The secret is used to validate your control inputs. Don't share
+your secret unless you want others to take control of your ship!  Feel free
+to choose any alphanumeric values for `name`, `team`, and `secret` variables.
 
 Example:
 
 Register 'Giovanni' under 'Team Rocket':
 
 ```
-$ curl http://127.0.0.1:5000/lobby?name=Giovanni&team=Team%20Rocket
+$ curl http://127.0.0.1:5000/lobby?name=Giovanni&team=Team%20Rocket&secret=spacexrules
 {
   "game": "game772", 
   "map": "spacerace-world", 
   "name": "Giovanni", 
-  "secret": "ce6989bc-50fb"
 }
 ```
-You will receive a JSON response with fields `name`, `game`, `map` and `secret`.
+You will receive a JSON response with fields `name`, `game`, and `map`.
 
 The name should be the name you gave the server. The game name is an important
 variable required by the state endpoint, to make sure you're actually receiving
@@ -115,13 +115,9 @@ state for a game you're playing in. The map name will be the name of the map
 you'll be playing, and you will need to have pulled down these maps from the 
 map server beforehand.
 
-The secret key is used in your control messages. Because the server does not
-care where control messages come from, using this secret key prevents other
-people controlling your ship!
-
-Once this you have received a , you're ready to play the game.
-You'll know a game has started when you start receiving state over your state
-socket.
+Once this you have received this response, you're ready to play the game. You
+can now poll the appropriate state endpoint for your game ready for when the
+game starts!
 
 #### State endpoint
 
@@ -137,9 +133,10 @@ To get the current game state, a client must make a `GET` request
 to the `/state` endpoint with parameter `game` which is the name of the game 
 you registered in.
 
-The server updates the state periodically. At the moment this happens at 60Hz 
-but we may move this number around on the day depending on the status of the 
-network.
+The server updates the state periodically. The frequency of this update is set
+on the server. Typical values are between 20Hz and 60Hz depending on the status
+of the network.
+
 
 Example:
 
@@ -229,7 +226,7 @@ thrust (linear=0) with a `POST` request:
 $ curl -H "Content-Type: application/json" -X POST -d '{"secret":"ce6989bc-50fb","rotation":-1,"linear":0}' http://127.0.0.1:5000/control
 ```
 
-- `<yoursecretkey>` is the string you were given by the lobby upon connection
+- `<yoursecretkey>` is the string you gave the lobby upon connection
 - `<main_engine>` is either a 0 or a 1, for the main engine being off or on
 - `<rotation>` is either a -1, 0 or 1. 1 is for +ve (anti-clockwise) rotation
 thrust, -1 is for -ve (clockwise) rotation thrust, and 0 is no rotation thrust
@@ -293,14 +290,16 @@ Then, send the following json message:
 ```
     { 
         "name": "yournamehere",
-        "team": "yourteam"
+        "team": "yourteam",
+        "secret": "yoursecretkey"
     }
 ```
 
 The name will be reflected in the state sent out by the server, and the
 visualisation of your ship. The team is used to collate the scores of multiple
-related AIs. Feel free to choose any alphanumeric values for both your name and
-your team name.
+related AIs. The secret is used to validate your control inputs. Don't share
+your secret unless you want others to take control of your ship!  Feel free
+to choose any alphanumeric values for `name`, `team`, and `secret` variables.
 
 After sending your message, call receive on your lobby socket. The server
 should send you a json message of the following form:
@@ -310,7 +309,6 @@ should send you a json message of the following form:
         "name": "yournamehere",
         "game": "gamename",
         "map": "mapname",
-        "secret": "yoursecretkey"
     }
 ```
 
@@ -319,10 +317,6 @@ variable used by the state socket, to make sure you're actually receiving state
 for a game you're playing in. The map name will be the name of the map you'll
 be playing, and you will need to have pulled down these maps from the map
 server beforehand.
-
-The secret key is used in your control messages. Because the server does not
-care where control messages come from, using this secret key prevents other
-people controlling your ship!
 
 Once this request/reply sequence has completed, you're ready to play the game.
 You'll know a game has started when you start receiving state over your state
