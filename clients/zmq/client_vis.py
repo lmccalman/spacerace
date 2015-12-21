@@ -21,7 +21,6 @@ import logging
 import pprint
 import string
 import random
-import zmq
 
 from matplotlib.patches import Wedge
 from argparse import ArgumentParser
@@ -38,34 +37,27 @@ DEFAULTS = {
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(
-    level = logging.INFO,
-    datefmt = '%I:%M:%S %p',
-    format = '%(asctime)s [%(levelname)s]: %(message)s'
+    level=logging.INFO,
+    datefmt='%I:%M:%S %p',
+    format='%(asctime)s [%(levelname)s]: %(message)s'
 )
 
 # Helper functions
-make_random_name = lambda length: ''.join(random.choice(string.ascii_letters) \
-    for _ in range(length))
+make_random_name = lambda length: ''.join(random.choice(string.ascii_letters)
+                                          for _ in range(length))
 
 
-class MPLController:
+class HumanAgent:
 
-    def __init__(self, ship_name, team_name, fig, ax, client=None, *args, **kwargs):
+    def __init__(self, ship_name, team_name, ax, client=None, *args, **kwargs):
 
         if client is None:
             client = Client(*args, **kwargs)
 
         self.client = client
-        self.keys = set()
+        self.ax = ax
 
-        fig.canvas.mpl_connect('key_press_event', self.press)
-        fig.canvas.mpl_connect('key_release_event', self.release)
-
-        self.text = ax.text(0.25, 0.25, 'Hello!')
-
-        anim = animation.FuncAnimation(fig, self.anim, frames=self.state_gen(),
-                                       init_func=self.init_anim, interval=25,
-                                       blit=True, repeat=False)
+        self.pressed = set()
 
         response = self.client.lobby.register(ship_name, team_name)
 
@@ -91,42 +83,60 @@ class MPLController:
         self.update_control()
 
     def init_anim(self):
-        self.text.set_text('')
+        self.text = self.ax.text(0.25, 0.25, 'Hello!')
         return self.text,
 
     def anim(self, state):
+        print state
         self.text.set_text(pprint.pformat(state))
         return self.text,
 
     def state_gen(self):
         return self.client.state.state_gen()
 
+
+def main(args):
+
+    client = Client(args.hostname, args.lobby_port, args.control_port,
+                    args.state_port)
+
+    fig, ax = plt.subplots()
+
+    agent = HumanAgent(args.ship_name, args.team_name, ax, client)
+
+    fig.canvas.mpl_connect('key_press_event', agent.press)
+    fig.canvas.mpl_connect('key_release_event', agent.release)
+
+    anim = animation.FuncAnimation(fig, agent.anim, frames=agent.state_gen,
+                                   init_func=agent.init_anim, interval=25,
+                                   blit=True, repeat=False)
+
+    plt.show()
+
+    return 0
+
 if __name__ == '__main__':
 
     parser = ArgumentParser(
         description='Spacerace: Manned Spacecraft'
     )
-
-    parser.add_argument('--hostname', type=str, help='Server hostname', default=DEFAULTS['hostname'])
-    parser.add_argument('--state_port', type=int, help='State port', default=DEFAULTS['state_port'])
-    parser.add_argument('--control_port', type=int, help='Control port', default=DEFAULTS['control_port'])
-    parser.add_argument('--lobby_port', type=int, help='Lobby port', default=DEFAULTS['lobby_port'])
-
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 
-    parser.add_argument('--ship_name', '-n', type=str,
+    parser.add_argument('--hostname', type=str, help='Server hostname',
+                        default=DEFAULTS['hostname'])
+    parser.add_argument('--state-port', type=int, help='State port',
+                        default=DEFAULTS['state_port'])
+    parser.add_argument('--control-port', type=int, help='Control port',
+                        default=DEFAULTS['control_port'])
+    parser.add_argument('--lobby-port', type=int, help='Lobby port',
+                        default=DEFAULTS['lobby_port'])
+
+    parser.add_argument('--ship-name', '-n', type=str,
                         default=make_random_name(10), help='Ship Name')
-    parser.add_argument('--team_name', '-t', type=str,
-                        default=make_random_name(10), help='Ship Name')
+    parser.add_argument('--team-name', '-t', type=str,
+                        default=make_random_name(10), help='Team Name')
 
     args = parser.parse_args()
-
     logger.debug(args)
 
-    fig, ax = plt.subplots()
-
-    client = Client(args.hostname, args.lobby_port, args.control_port, args.state_port)
-    
-    c = MPLController(args.ship_name, args.team_name, fig, ax, client)
-
-    plt.show()
+    exit(main(args))
