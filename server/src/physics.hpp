@@ -296,6 +296,15 @@ void rk4TimeStep(StateMatrix& s, const ControlMatrix& c, const
   
   s += (k1 + 2.*k2 + 2.*k3 + k4) * dt/6.;
 
+  // Force theta to be between 0 and 2PI
+  for (int i=0; i<n; i++)
+  {
+    float oldtheta = s(i,4);
+    float newtheta = fmod(oldtheta, 2.0*M_PI);
+    if (newtheta < 0.0)
+      newtheta += 2.0*M_PI;
+    s(i,4) = newtheta;
+  }
 }
 
 SimulationParameters readParams(const json& j)

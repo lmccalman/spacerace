@@ -61,7 +61,7 @@ void initialiseState(StateMatrix& state, const Map& map,
     state(i, 1) = (float(coords.first) + dist(gen)) / params.mapScale;
     state(i, 2) = 0.0;
     state(i, 3) = 0.0;
-    state(i, 4) = dist(gen) * 2.0 * M_PI;
+    state(i, 4) = dist(gen) * 2.0 * M_PI; //ensure we're between 0 and 2PI
     state(i, 5) = 0.0;
     pixelIdx = (pixelIdx + 1) % startPixels.size();
   }
