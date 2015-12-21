@@ -25,7 +25,7 @@ import random
 
 
 DEFAULTS = {
-    'server': 'http://127.0.0.1:5001',
+    'server': 'http://localhost:5001',
 }
 
 # Setup basic logging
