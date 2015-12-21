@@ -39,7 +39,8 @@ logging.basicConfig(
 
 # Helper functions
 make_address = 'tcp://{}:{}'.format
-make_handshake_msg = lambda ship, team: dict(name=ship, team=team)
+make_handshake_msg = lambda ship, team, secret: dict(name=ship, team=team, 
+        password=secret)
 make_control_str = lambda secret, linear, rotational: ','.join \
     ([secret, repr(linear), repr(rotational)])
 make_random_name = lambda length: ''.join(random.choice(string.ascii_letters) \
@@ -103,10 +104,10 @@ class LobbyClient(BaseClient):
     def make_socket(self):
         return self.context.socket(zmq.REQ) 
 
-    def register(self, ship_name, team_name):
+    def register(self, ship_name, team_name, password):
 
         logger.debug('Registering ship "{}" under team "{}"'.format(ship_name, team_name))
-        self.sock.send_json(make_handshake_msg(ship_name, team_name))
+        self.sock.send_json(make_handshake_msg(ship_name, team_name, password))
 
         logger.debug('Awaiting response from lobby thread...')
         response = self.sock.recv_json()
