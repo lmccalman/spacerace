@@ -27,18 +27,19 @@
 
 INITIALIZE_EASYLOGGINGPP
 
-int main(int ac, char* av[])
+
+// parse the command line, set up logging and get the settings object
+
+void initialiseApp(int ac, char* av[])
 {
-  // Initialise the various subsystems
   Eigen::initParallel();
   START_EASYLOGGINGPP(ac, av);
-  LOG(INFO) << "Logging initialised";
-  LOG(INFO) << "Initialising signal handler";
   initialiseSignalHandler();
+}
 
-  LOG(INFO) << "Parsing command line";
+json getSettings(int ac, char* av[])
+{
   po::variables_map vm = commandLineArgs(ac, av);
-  LOG(INFO) << "loading setting from json";
   std::string settingsPath = vm["settings"].as<std::string>();
   if (!fileExists(settingsPath))
   {
@@ -46,7 +47,14 @@ int main(int ac, char* av[])
     exit(EXIT_FAILURE);
   }
   json settings = loadSettingsFile(settingsPath);
-  
+  return settings;
+}
+
+int main(int ac, char* av[])
+{
+  initialiseApp(ac, av);
+  json settings = getSettings(ac, av);
+
   // ZMQ initialisation
   LOG(INFO) << "Initialising ZeroMQ";
   std::unique_ptr<zmq::context_t> context(new zmq::context_t(1));
@@ -65,12 +73,16 @@ int main(int ac, char* av[])
   // initialise map 0 as the "next" map
   uint gameNumber = 0;
   mapData.currentMap = mapData.maps.size() - 1; 
+
   PlayerSet nextPlayers;
-  PlayerSet currentPlayers;
-  ControlData control;
-  GameState currentGameState;
   GameState nextGameState;
+
+  PlayerSet currentPlayers;
+  GameState currentGameState;
+
+  ControlData control;
   GameStats stats;
+
   nextGameState.name = gameName(gameNumber);
   SimulationParameters params = readParams(settings);
    
@@ -166,7 +178,7 @@ int main(int ac, char* av[])
     currentGameState.running = true;
     runGame(currentPlayers, control, currentGameState,
         mapData.maps[mapData.currentMap], params, stats, stateSocket, settings, 
-        logger);
+        logger, nextGameState.name);
     currentGameState.running = false;
     LOG(INFO) << "Game Over";
     gameNumber++;
