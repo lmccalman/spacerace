@@ -1,0 +1,12 @@
+sudo: required
+
+services:
+  - docker
+
+install:
+  - docker-compose build
+
+script:
+  - docker-compose start 
+  - docker-compose ps
+  - docker-compose stop 

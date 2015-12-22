@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from flask.ext.cors import CORS
 from helpers import (make_random_name, make_context, make_address,
                      make_control_str, InvalidUsage)
+
 import threading
 import json
 import zmq
@@ -17,18 +18,23 @@ app.config.from_object('settings')
 context = make_context()
 
 lobby_sock = context.socket(zmq.REQ)
-lobby_sock.connect(make_address(app.config.get('SPACERACE_SERVER'),
-                                app.config.get('SPACERACE_LOBBY_PORT')))
+addr = make_address(app.config.get('SPACERACE_SERVER'),
+                    app.config.get('SPACERACE_LOBBY_PORT'))
+app.logger.info('Connecting to lobby "{}"...'.format(addr))
+lobby_sock.connect(addr)
 
 control_sock = context.socket(zmq.PUSH)
-control_sock.connect(make_address(app.config.get('SPACERACE_SERVER'),
-                                  app.config.get('SPACERACE_CONTROL_PORT')))
-
+addr = make_address(app.config.get('SPACERACE_SERVER'),
+                    app.config.get('SPACERACE_CONTROL_PORT'))
+app.logger.info('Connecting to control "{}"...'.format(addr))
+control_sock.connect(addr)
 
 state_sock = context.socket(zmq.SUB)
 state_sock.setsockopt_string(zmq.SUBSCRIBE, '')
-state_sock.connect(make_address(app.config.get('SPACERACE_SERVER'),
-                                app.config.get('SPACERACE_STATE_PORT')))
+addr = make_address(app.config.get('SPACERACE_SERVER'),
+                    app.config.get('SPACERACE_STATE_PORT'))
+app.logger.info('Connecting to state "{}"...'.format(addr))
+state_sock.connect(addr)
 
 # This state gets written to in the main loop
 state_lock = threading.Lock()
@@ -43,7 +49,8 @@ def state_watcher():
         try:
             new_game_state = json.loads(state_b.decode())
         except:
-            app.logger.debug('Could not parse game state "{}"'.format(state_b.decode()))
+            app.logger.warning('Could not parse game state "{}"'
+                               .format(state_b.decode()))
             continue
 
         with state_lock:
