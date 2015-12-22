@@ -60,15 +60,19 @@ if __name__ == '__main__':
         default=make_random_name(10), help='Ship Name')
     parser.add_argument('--team_name', '-t', type=str,
         default=make_random_name(10), help='Team Name')
+    parser.add_argument('--password', '-p', type=str,
+        default=make_random_name(12), help='Password')
 
     args = parser.parse_args()
     logger.debug(args)
 
     with make_context() as context:
-        client = Client(args.hostname, args.lobby_port, args.control_port, args.state_port, context)
+        client = Client(args.hostname, args.lobby_port, args.control_port, 
+                args.state_port, context)
 
         while True:
-            response = client.lobby.register(args.ship_name, args.team_name)
+            response = client.lobby.register(args.ship_name, args.team_name, 
+                    args.password)
             client.state.subscribe(response.game)
 
             for state_data in client.state.state_gen():

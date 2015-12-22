@@ -84,6 +84,8 @@ int main(int ac, char* av[])
   std::future<void> lobbyThread = std::async(std::launch::async, runLobbyThread, 
       std::ref(*context), 
       std::ref(mapData),
+      std::ref(currentPlayers),
+      std::ref(currentGameState),
       std::ref(nextPlayers),
       std::ref(nextGameState),
       std::cref(settings));
