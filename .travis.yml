@@ -9,5 +9,4 @@ before_install:
 script:
   - docker-compose start 
   - docker-compose ps
-  - docker-compose logs
   - docker-compose stop 
