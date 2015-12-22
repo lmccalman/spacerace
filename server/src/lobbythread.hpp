@@ -12,9 +12,9 @@
 // Note that the mutex is intended to lock both the mapData and the ids
 
 std::string formulateResponse(const std::string& shipName, const std::string& shipTeam,
-    const std::string& secretCode, const std::string& gameName, const Map& map)
+      const std::string& gameName, const Map& map)
 {
-  json j {{"name", shipName},{"team", shipTeam}, {"password", secretCode}, {"game", gameName}, {"map",map.name}};
+  json j {{"name", shipName},{"team", shipTeam}, {"game", gameName}, {"map",map.name}};
   return j.dump();
 }
 
@@ -105,7 +105,7 @@ void addPlayerToNextGame(const Player& p, const std::string& zmqAddress,
               {"game", gameState.name}};
     logger("lobby", "status", r);
 
-    std::string response = formulateResponse(p.id, p.team, p.secretKey,
+    std::string response = formulateResponse(p.id, p.team,
         gameState.name, map);
     LOG(INFO) << "lobby sending response: " << response;
     send(socket, {zmqAddress, "", response}); 
@@ -124,7 +124,7 @@ void addPlayer(const Player& p, const std::string& zmqAddress,
   {
     // already in a game, just resend the response
     uint map = mapData.currentMap;
-    std::string response = formulateResponse(p.id, p.team, p.secretKey, 
+    std::string response = formulateResponse(p.id, p.team, 
         currentGameState.name, mapData.maps[mapData.currentMap]);
     LOG(INFO) << "lobby sending response: " << response;
     send(socket, {zmqAddress, "", response}); 
