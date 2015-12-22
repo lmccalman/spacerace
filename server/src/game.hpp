@@ -17,7 +17,7 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state,
   json j; 
   j["name"] = gameState.name;
   j["state"] = "running";
-  j["data"] = json::array();
+  j["data"] = json::object();
   float mapScale = params.mapScale;
   for (auto const& p : players.fromId)
   {
@@ -30,8 +30,7 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state,
     float omega = state(idx, 5);
     float Tl = control.inputs(idx, 0);
     float Tr = control.inputs(idx, 1);
-    j["data"].push_back({
-        {"id",p.first},
+    j["data"][p.first] = {
         {"x", x},
         {"y", y},
         {"vx", vx},
@@ -40,7 +39,7 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state,
         {"omega", omega},
         {"Tl", Tl},
         {"Tr", Tr}
-        });
+        };
   }
   send(socket, {gameState.name, j.dump()});
 }
