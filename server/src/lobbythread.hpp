@@ -146,6 +146,9 @@ void runLobbyThread(zmq::context_t& context, MapData& mapData,
       }
       catch(Error e)
       {
+        const std::string& zmqAddress = rawMsg[0];
+        json j = {{"status","error"}, {"message",e.data["message"]}};
+        send(socket, {zmqAddress, "", j.dump()}); 
         logger(e.category, e.subject, e.data);
       }
     }
