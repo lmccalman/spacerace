@@ -75,6 +75,7 @@ coverage.xml
 .mr.developer.cfg
 .project
 .pydevproject
+.DS_Store
 
 # Rope
 .ropeproject
