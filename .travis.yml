@@ -5,3 +5,7 @@ services:
 
 before_install:
   - docker-compose build
+
+script:
+  - docker-compose up -d spacerace 
+  - docker ps
