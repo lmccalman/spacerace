@@ -85,7 +85,6 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
-maps
 frontend/node_modules
 frontend/bundle.js
 
