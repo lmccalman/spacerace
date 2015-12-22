@@ -49,7 +49,8 @@ def state_watcher():
         try:
             new_game_state = json.loads(state_b.decode())
         except:
-            app.logger.debug('Could not parse game state "{}"'.format(state_b.decode()))
+            app.logger.warning('Could not parse game state "{}"'
+                               .format(state_b.decode()))
             continue
 
         with state_lock:
