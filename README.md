@@ -1,5 +1,7 @@
 # spacerace
 
+[![Build Status](https://travis-ci.org/lmccalman/spacerace.svg)](https://travis-ci.org/lmccalman/spacerace)
+
 Spacerace is a multiplayer Asteroids-like racing game for the 2015 ETD winter
 retreat.
 
