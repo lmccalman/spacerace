@@ -91,7 +91,8 @@ void addPlayer(const Player& p, const std::string& zmqAddress,
   std::lock_guard<std::mutex> currentLock(currentPlayers.mutex);
   std::lock_guard<std::mutex> nextLock(nextPlayers.mutex);
   std::lock_guard<std::mutex> mapLock(mapData.mutex);
-  if (currentPlayers.fromId.count(p.id))
+  std::lock_guard<std::mutex> gameStateLock(currentGameState.mutex);
+  if (currentPlayers.fromId.count(p.id) && currentGameState.running)
   {
     // already in a game, just resend the response
     uint map = mapData.currentMap;

@@ -11,11 +11,12 @@ std::string gameName(uint n)
 }
 
 void broadcastState(const PlayerSet& players, const StateMatrix& state, 
-    const GameState& gameState, const ControlData& control, const SimulationParameters& params,
-    zmq::socket_t& socket)
+    const GameState& gameState, const ControlData& control, 
+    const SimulationParameters& params, const std::string& mapName, zmq::socket_t& socket)
 {
   json j; 
   j["name"] = gameState.name;
+  j["map"] = mapName;
   j["state"] = "running";
   j["data"] = json::array();
   float mapScale = params.mapScale;
@@ -45,10 +46,11 @@ void broadcastState(const PlayerSet& players, const StateMatrix& state,
   send(socket, {gameState.name, j.dump()});
 }
 
-void broadcastNextState(const std::string& gameName, zmq::socket_t& socket)
+void broadcastNextState(const std::string& gameName, const std::string& mapName, zmq::socket_t& socket)
 {
   json j; 
   j["name"] = gameName;
+  j["map"] = mapName;
   j["state"] = "queued";
   send(socket, {gameName, j.dump()});
 }
@@ -171,7 +173,8 @@ void runGame(PlayerSet& players,
              zmq::socket_t& stateSocket, 
              const json& settings, 
              InfoLogger& logger,
-             const std::string& nextGameName)
+             const std::string& nextGameName,
+             const std::string& nextMapName)
 {
   
   uint targetFPS = settings["simulation"]["targetFPS"];
@@ -223,10 +226,10 @@ void runGame(PlayerSet& players,
     running = (!timeout) && (!raceWon);
 
     // get control inputs from control thread
-    broadcastState(players, state, gameState, control, params, stateSocket);
+    broadcastState(players, state, gameState, control, params, map.name, stateSocket);
 
     // Make sure the people in the lobby know whats going on
-    broadcastNextState(nextGameName, stateSocket);
+    broadcastNextState(nextGameName, nextMapName, stateSocket);
 
     // make sure we target a particular frame rate
     waitPreciseInterval(frameStart, targetMicroseconds);

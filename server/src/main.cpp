@@ -73,6 +73,7 @@ int main(int ac, char* av[])
   // initialise map 0 as the "next" map
   uint gameNumber = 0;
   mapData.currentMap = mapData.maps.size() - 1; 
+  uint nextMap = 0;
 
   PlayerSet nextPlayers;
   GameState nextGameState;
@@ -131,8 +132,8 @@ int main(int ac, char* av[])
       std::lock_guard<std::mutex> nextPlayerLock(nextPlayers.mutex);
       std::lock_guard<std::mutex> currentPlayerLock(currentPlayers.mutex);
       std::lock_guard<std::mutex> controlLock(control.mutex);
-      std::lock_guard<std::mutex> nextGameStateLock(currentGameState.mutex);
-      std::lock_guard<std::mutex> currentGameStateLock(nextGameState.mutex);
+      std::lock_guard<std::mutex> nextGameStateLock(nextGameState.mutex);
+      std::lock_guard<std::mutex> currentGameStateLock(currentGameState.mutex);
 
       // Update the game states
       currentGameState.name = gameName(gameNumber);
@@ -163,6 +164,7 @@ int main(int ac, char* av[])
       
       // Update the map
       mapData.currentMap = (mapData.currentMap + 1) % mapData.maps.size();
+      nextMap = (mapData.currentMap + 1) % mapData.maps.size();
       LOG(INFO) << "Beginning game on map " << mapData.currentMap;
         
     }
@@ -175,11 +177,17 @@ int main(int ac, char* av[])
       continue; 
     }
     
-    currentGameState.running = true;
+    {
+      std::lock_guard<std::mutex> currentGameStateLock(currentGameState.mutex);
+      currentGameState.running = true;
+    }
     runGame(currentPlayers, control, currentGameState,
         mapData.maps[mapData.currentMap], params, stats, stateSocket, settings, 
-        logger, nextGameState.name);
-    currentGameState.running = false;
+        logger, nextGameState.name, mapData.maps[nextMap].name);
+    {
+      std::lock_guard<std::mutex> currentGameStateLock(currentGameState.mutex);
+      currentGameState.running = false;
+    }
     LOG(INFO) << "Game Over";
     gameNumber++;
   }
