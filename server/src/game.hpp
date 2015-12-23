@@ -193,8 +193,6 @@ void runGame(PlayerSet& players,
   unsigned int fpscounter = 0;
   
   auto gameStart = hrclock::now();
-  logger("game", "status",
-        {{"state","running"},{"map",map.name}, {"game",gameState.name}}); 
   while (running && !interruptedBySignal)
   {
     auto frameStart = hrclock::now();
