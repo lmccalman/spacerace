@@ -15,11 +15,6 @@ import random
 import json
 import zmq
 
-# from zmq.eventloop.ioloop import ZMQIOLoop
-# from zmq.eventloop.zmqstream import ZMQStream
-
-# from threading import Thread
-# from queue import Queue
 
 DEFAULTS = {
     'hostname': 'localhost',
@@ -31,18 +26,12 @@ DEFAULTS = {
 # Setup basic logging
 logger = logging.getLogger(__name__)
 
-logging.basicConfig(
-    level=logging.INFO,
-    datefmt='%H:%M:%S',
-    format='%(asctime)s,%(msecs)03d (%(threadName)s) [%(levelname)s]: %(message)s'
-)
 
 # Helper functions
 make_address = 'tcp://{}:{}'.format
-make_handshake_msg = lambda ship, team, secret: dict(name=ship, team=team, 
-        password=secret)
-make_control_str = lambda secret, linear, rotational: ','.join \
-    ([secret, repr(linear), repr(rotational)])
+make_handshake_msg = lambda ship, team, secret: dict(name=ship, team=team,
+                                                     password=secret)
+make_control_str = lambda secret, linear, rotational: ','.join([secret, repr(linear), repr(rotational)])
 make_random_name = lambda length: ''.join(random.choice(string.ascii_letters) \
     for _ in range(length))
 
@@ -102,7 +91,7 @@ class BaseClient:
 class LobbyClient(BaseClient):
 
     def make_socket(self):
-        return self.context.socket(zmq.REQ) 
+        return self.context.socket(zmq.REQ)
 
     def register(self, ship_name, team_name, password):
 

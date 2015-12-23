@@ -1,13 +1,18 @@
 #! /usr/bin/env python3
 """ Turn a bitmap of appropriate format into a map for the spacerace game. """
 
-
 import sys
+import matplotlib
+
+if sys.platform.startswith('darwin'):
+    matplotlib.use('TkAgg')
+
 import click
 import json
 import skfmm
 import numpy as np
 import matplotlib.pyplot as pl
+
 from scipy.misc import imread, imsave
 from scipy.ndimage.filters import gaussian_filter
 
@@ -16,7 +21,7 @@ from scipy.ndimage.filters import gaussian_filter
 @click.argument('image')
 @click.option('--mapname', default=None, help='Output map file name, same as '
                                               'IMAGE.npy unless specified.')
-@click.option('--settingsfile', default='../spacerace.json',
+@click.option('--settingsfile', default='config/spacerace.json',
               help='Location of the spacerace settings JSON file.')
 @click.option('--visualise', is_flag=True, help='Visualise the output?')
 def buildmap(image, mapname, settingsfile, visualise):
