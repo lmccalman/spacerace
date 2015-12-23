@@ -211,8 +211,8 @@ void runGame(PlayerSet& players,
     if (fpscounter >= targetFPS)
     {
         fpscounter = 0;
-        uint elapsedTime = ch::duration_cast<ch::seconds>(hrclock::now() - gameStart).count();
-        uint timeRemaining = totalGameTimeSeconds - elapsedTime;
+        int elapsedTime = ch::duration_cast<ch::seconds>(hrclock::now() - gameStart).count();
+        int timeRemaining = std::max((int)totalGameTimeSeconds - elapsedTime, 0);
         playerScore(state, control, map, params, gameStats);
         logger("game", "status",
             {{"state","running"},{"map",map.name}, {"game",gameState.name},
