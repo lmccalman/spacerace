@@ -67,8 +67,9 @@ if __name__ == '__main__':
 
         secrets = defaultdict(list)
         for i in range(args.num_ships):
-            instance = client.lobby.register("g{}team{}".format(game_num, i), "g{}player{}".format(game_num,i))
-            secrets[instance.game].append(instance.secret)
+            password = 'password-{}'.format(i)
+            instance = client.lobby.register("g{}team{}".format(game_num, i), "g{}player{}".format(game_num,i), password)
+            secrets[instance.game].append(password)
 
         for game in secrets:
 
