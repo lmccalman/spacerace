@@ -68,8 +68,12 @@ socket.on('Log', function (msg) {
             //console.log(d);
             d3.select("#statusMessage").text(d.game + ' on ' + d.map + ' is ' + d.state);
 
-            if (d.state === 'finished'){
-                console.log("Stopping animation");
+            if(d.state === 'queued') {
+                console.log("Ignoring message for queued game");
+                console.log(d);
+            }
+
+            if (d.state === 'finished') {
                 console.log("Updating score board");
                 console.log(d);
 
@@ -115,10 +119,9 @@ socket.on('Log', function (msg) {
                 })
             }
 
-            if (d.state == 'running') {
+            if (d.state === 'running') {
                 // Update the players rankings
-                // d.ranking is a map of player name -> score
-
+                // d.ranking is a map of player ID -> score
 
                 var players = d3.selectAll(".playerIndivdualScore");
 
@@ -133,7 +136,6 @@ socket.on('Log', function (msg) {
 
                 // Show time remaining
                 timeRemaining.text(d.time_remaining);
-
 
             }
         } else {
