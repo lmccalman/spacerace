@@ -24,6 +24,12 @@ DEFAULTS = {
     'lobby_port': 5558,
 }
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    datefmt='%I:%M:%S %p',
+    format='%(asctime)s [%(levelname)s]: %(message)s'
+)
+
 # Setup basic logging
 logger = logging.getLogger(__name__)
 
@@ -56,30 +62,22 @@ if __name__ == '__main__':
     parser.add_argument('--lobby_port', type=int, help='Lobby port',
                         default=DEFAULTS['lobby_port'])
 
-    parser.add_argument('--ship_name', '-s', type=str,
-                        default=make_random_name(10), help='Ship Name')
-    parser.add_argument('--team_name', '-t', type=str,
-                        default=make_random_name(10), help='Team Name')
+    parser.add_argument('--name', '-n', type=str,
+                        default=make_random_name(10), help='Ship name')
+    parser.add_argument('--team', '-t', type=str,
+                        default=make_random_name(10), help='Team name')
     parser.add_argument('--password', '-p', type=str,
                         default=make_random_name(12), help='Password')
 
     args = parser.parse_args()
-    logger.info(args)
+    logger.debug(args)
 
     context = make_context()
-    lobby_socket = context.socket(zmq.REQ)
-    lobby_socket.send_json(dict(name=args.ship_name, team=args.team_name, password=args.password))
-    print(lobby_socket.recv_json())
-
-    exit(1)
-
     client = Client(args.hostname, args.lobby_port, args.control_port,
                     args.state_port, context)
 
     while True:
-        response = client.lobby.register(args.ship_name, args.team_name,
-                                         args.password)
-        logger.info(response.game)
+        response = client.lobby.register(args.name, args.team, args.password)
         client.state.subscribe(response.game)
 
         for state_data in client.state.state_gen():

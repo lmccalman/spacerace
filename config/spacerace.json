@@ -2,8 +2,8 @@
   "lobbyWait": 10,
   "gameTime": 60,
   "maxPlayers": 200,
-  "mapPath": "./maps/etd-winter-retreat-2015",
-  "maps": ["bt-circle1"],
+  "mapPath": "maps/",
+  "maps": ["etd-winter-retreat-2015/bt-circle1"],
   "simulation": {
     "timeStep": 0.004,
     "targetFPS": 30,
