@@ -39,14 +39,8 @@ logSocket.subscribe("");
 gameStateSocket.subscribe("");
 // On receiving a message from the game server
 // Note the `msg` is a string or buffer, not JSON
-lobbySocket.connect('tcp://' + server + ':5558');
 lobbySocket.on('message', function (msg) {
     console.log('[LOBBY] Received: %s', msg.toString());
-    // Assume game start message?
-    var data = JSON.parse(msg);
-    var gameName = data.game;
-    var gameMap = data.map;
-    console.log("[LOBBY] Next game " + gameName + " will be on " + gameMap);
 });
 logSocket.on('message', function (msg) {
     // Note the `msg` is a string, not JSON
@@ -58,6 +52,7 @@ gameStateSocket.on('message', function (topic, msg) {
     //console.log('[GAME] State: %s', msg.toString());
     io.emit('GameState', msg.toString());
 });
-gameStateSocket.connect('tcp://' + server + ':5556');
+lobbySocket.connect('tcp://' + server + ':5558');
 logSocket.connect('tcp://' + server + ':5559');
+gameStateSocket.connect('tcp://' + server + ':5556');
 //# sourceMappingURL=server.js.map

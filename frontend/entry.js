@@ -122,18 +122,17 @@ socket.on('Log', function (msg) {
 
                 var players = d3.selectAll(".playerIndivdualScore");
 
-                // It appears ranking won't always be here
-                if(d.ranking) {
+                // Note ranking will always be here
+                players.sort(function(p1, p2) {
+                    //return p1.id - p2.id; // Sort by name for now
+                    return parseFloat(d.ranking[p1.id]) - parseFloat(d.ranking[p2.id]);
+                })
+                .transition().duration(5);
 
-                    players.sort(function(p1, p2) {
-                        //return p1.id - p2.id; // Sort by name for now
-                        return parseFloat(d.ranking[p1.id]) - parseFloat(d.ranking[p2.id]);
-                    })
-                    .transition().duration(5);
+                updateCurrentGameScoreBoard(d.ranking);
 
-                    updateCurrentGameScoreBoard(d.ranking);
-                }
-
+                // Show time remaining
+                timeRemaining.text(d.time_remaining);
 
 
             }
@@ -291,6 +290,7 @@ function loadMap(cb) {
 var selectedShip;
 
 var fps = d3.select("#fps span");
+var timeRemaining = d3.select("#timeRemaining span");
 
 var updateCurrentGameScoreBoard = function(ranking) {
 
