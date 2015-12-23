@@ -125,7 +125,7 @@ socket.on('Log', function (msg) {
                 // Note ranking will always be here
                 players.sort(function(p1, p2) {
                     //return p1.id - p2.id; // Sort by name for now
-                    return parseFloat(d.ranking[p1.id]) - parseFloat(d.ranking[p2.id]);
+                    return parseFloat(d.ranking[p1]) - parseFloat(d.ranking[p2]);
                 })
                 .transition().duration(5);
 
