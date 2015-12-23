@@ -214,10 +214,15 @@ void runGame(PlayerSet& players,
     if (fpscounter >= targetFPS)
     {
         fpscounter = 0;
+        uint elapsedTime = ch::duration_cast<ch::seconds>(hrclock::now() - gameStart).count();
+        uint timeRemaining = totalGameTimeSeconds - elapsedTime;
         playerScore(state, control, map, params, gameStats);
         logger("game", "status",
             {{"state","running"},{"map",map.name}, {"game",gameState.name},
+            {"time_remaining", timeRemaining},
              {"ranking", gameStats.playerRanks}}); 
+        // Make sure the people in the lobby know whats going on
+        broadcastNextState(nextGameName, nextMapName, stateSocket);
     }
     
     //check we don't need to end the game
@@ -228,8 +233,6 @@ void runGame(PlayerSet& players,
     // get control inputs from control thread
     broadcastState(players, state, gameState, control, params, map.name, stateSocket);
 
-    // Make sure the people in the lobby know whats going on
-    broadcastNextState(nextGameName, nextMapName, stateSocket);
 
     // make sure we target a particular frame rate
     waitPreciseInterval(frameStart, targetMicroseconds);
