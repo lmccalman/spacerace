@@ -15,25 +15,23 @@ import random
 import json
 import zmq
 
-
-DEFAULTS = {
-    'hostname': 'localhost',
-    'state_port': 5556,
-    'control_port': 5557,
-    'lobby_port': 5558,
-}
+from six.moves import map, range
 
 # Setup basic logging
-logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    datefmt='%I:%M:%S %p',
+    format='%(asctime)s [%(levelname)s]: %(message)s'
+)
 
+logger = logging.getLogger(__name__)
 
 # Helper functions
 make_address = 'tcp://{}:{}'.format
-make_handshake_msg = lambda ship, team, secret: dict(name=ship, team=team,
-                                                     password=secret)
-make_control_str = lambda secret, linear, rotational: ','.join([secret, repr(linear), repr(rotational)])
-make_random_name = lambda length: ''.join(random.choice(string.ascii_letters) \
-    for _ in range(length))
+make_handshake_msg = lambda name, team, password: locals()
+make_control_str = lambda *args: ','.join(map(str, args))
+make_random_name = lambda length: ''.join(random.choice(string.ascii_letters)
+                                          for _ in range(length))
 
 
 def make_context():
@@ -44,9 +42,9 @@ def make_context():
 
 class Bunch(dict):
 
-    def __init__(self, **kw):
-        dict.__init__(self, kw)
-        self.__dict__.update(kw)
+    def __init__(self, **kwargs):
+        dict.__init__(self, kwargs)
+        self.__dict__.update(kwargs)
 
 
 class Client:
@@ -93,10 +91,10 @@ class LobbyClient(BaseClient):
     def make_socket(self):
         return self.context.socket(zmq.REQ)
 
-    def register(self, ship_name, team_name, password):
+    def register(self, name, team, password):
 
-        logger.debug('Registering ship "{}" under team "{}"'.format(ship_name, team_name))
-        self.sock.send_json(make_handshake_msg(ship_name, team_name, password))
+        logger.debug('Registering ship "{}" under team "{}"'.format(name, team))
+        self.sock.send_json(make_handshake_msg(name, team, password))
 
         logger.debug('Awaiting response from lobby thread...')
         response = self.sock.recv_json()
@@ -110,9 +108,10 @@ class ControlClient(BaseClient):
     def make_socket(self):
         return self.context.socket(zmq.PUSH)
 
-    def send(self, secret_key, linear, rotational):
-        logger.debug('Sending control "{},{},{}"'.format(secret_key, linear, rotational))
-        self.sock.send_string(make_control_str(secret_key, linear, rotational))
+    def send(self, password, linear, rotational):
+        logger.debug('Sending control "{}"'.format(
+                     make_control_str(password, linear, rotational)))
+        self.sock.send_string(make_control_str(password, linear, rotational))
 
 
 class StateClient(BaseClient):
@@ -124,13 +123,19 @@ class StateClient(BaseClient):
         self.sock.setsockopt_string(zmq.SUBSCRIBE, game_name)
         return self
 
-    def recv(self):
-        msg_filter_b, msg_b = self.sock.recv_multipart()
+    def recv(self, *recv_args, **recv_kwargs):
+        logger.debug('Receiving state data...')
+        _, msg_b = self.sock.recv_multipart(*recv_args, **recv_kwargs)
         return json.loads(msg_b.decode())
 
-    def state_gen(self):
-        while True:
-            state_data = self.recv()
-            if state_data['state'] == 'finished':
-                break
-            yield state_data
+
+class InfoClient(BaseClient):
+
+    def make_socket(self):
+        sock = self.context.socket(zmq.SUB)
+        sock.setsockopt_string(zmq.SUBSCRIBE, "")
+        return sock
+
+    def recv(self, *recv_args, **recv_kwargs):
+        logger.debug('Receiving log info...')
+        return self.sock.recv_json(*recv_args, **recv_kwargs)

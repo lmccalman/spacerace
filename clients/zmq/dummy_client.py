@@ -10,12 +10,11 @@
 #
 
 import logging
-import string
 import random
-import zmq
 
-from client import Client
+from client import Client, make_random_name, make_context
 from argparse import ArgumentParser
+from pprint import pformat
 
 DEFAULTS = {
     'hostname': 'localhost',
@@ -24,26 +23,18 @@ DEFAULTS = {
     'lobby_port': 5558,
 }
 
+# Setup basic logging
 logging.basicConfig(
     level=logging.DEBUG,
     datefmt='%I:%M:%S %p',
     format='%(asctime)s [%(levelname)s]: %(message)s'
 )
 
-# Setup basic logging
 logger = logging.getLogger(__name__)
 
 # Helper functions
-make_random_name = lambda length: ''.join(random.choice(string.ascii_letters)
-                                          for _ in range(length))
 make_random_control = lambda: (random.choice([1, 1, 1, 1, 0]),
-                               random.choice([-1, -1, 1, 1, 0, 0, 0, 0, 0, 0, 0]))
-
-
-def make_context():
-    context = zmq.Context()
-    context.linger = 0
-    return context
+                               random.choice([-1, 1, 0, 0, 0, 0, 0]))
 
 if __name__ == '__main__':
 
@@ -72,17 +63,19 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logger.debug(args)
 
-    context = make_context()
-    client = Client(args.hostname, args.lobby_port, args.control_port,
-                    args.state_port, context)
+    with make_context() as context:
+        client = Client(args.hostname, args.lobby_port, args.control_port,
+                        args.state_port, context)
 
-    while True:
-        response = client.lobby.register(args.name, args.team, args.password)
-        client.state.subscribe(response.game)
+        while True:
+            response = client.lobby.register(args.name, args.team, args.password)
+            client.state.subscribe(response.game)
 
-        for state_data in client.state.state_gen():
-            logger.debug(state_data)
-            client.control.send(args.password, *make_random_control())
+            while True:
+                state_data = client.state.recv()
+                if state_data['state'] == 'finished':
+                    break
+                logger.info('Current State: {}'.format(pformat(state_data)))
+                client.control.send(args.password, *make_random_control())
 
-    client.close()
-    context.destroy()
+        client.close()
