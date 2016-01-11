@@ -46,11 +46,11 @@ if __name__ == '__main__':
 
     parser.add_argument('--hostname', type=str, help='Server hostname',
                         default=DEFAULTS['hostname'])
-    parser.add_argument('--state_port', type=int, help='State port',
+    parser.add_argument('--state-port', type=int, help='State port',
                         default=DEFAULTS['state_port'])
-    parser.add_argument('--control_port', type=int, help='Control port',
+    parser.add_argument('--control-port', type=int, help='Control port',
                         default=DEFAULTS['control_port'])
-    parser.add_argument('--lobby_port', type=int, help='Lobby port',
+    parser.add_argument('--lobby-port', type=int, help='Lobby port',
                         default=DEFAULTS['lobby_port'])
 
     parser.add_argument('--name', '-n', type=str,
