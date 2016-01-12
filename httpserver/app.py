@@ -39,23 +39,22 @@ state_sock.connect(addr)
 
 # This state gets written to in the main loop
 state_lock = threading.Lock()
-game_state = [{'state': 'finished'}]
+states_dict = {}
 
 
 def state_watcher():
     while True:
-        _, state_b = state_sock.recv_multipart()
-        new_game_state = game_state[0]
+        game_name_b, state_b = state_sock.recv_multipart()
+        game_name = game_name_b.decode()
 
         try:
-            new_game_state = json.loads(state_b.decode())
+            latest_state = json.loads(state_b.decode())
+            with state_lock:
+                states_dict[game_name] = latest_state
         except:
             app.logger.warning('Could not parse game state "{}"'
                                .format(state_b.decode()))
             continue
-
-        with state_lock:
-            game_state[0] = new_game_state
 
 # Start state monitoring thread
 t = threading.Thread(target=state_watcher)
@@ -108,11 +107,10 @@ def state(game=None):
         raise InvalidUsage('Game not specified.')
 
     with state_lock:
-        current_state = game_state[0]
-
-    if current_state.get('state') == 'running':
-        if not game == current_state.get('name'):
-            raise InvalidUsage('Game {} is not currently running'.format(game))
+        try:
+            current_state = states_dict[game]
+        except KeyError:
+            raise InvalidUsage("Game '{}' does not exist!".format(game))
 
     return jsonify(current_state)
 
