@@ -74,13 +74,19 @@ def greeting():
     return jsonify(msg='Welcome to spacerace!')
 
 
-@app.route('/lobby')
+@app.route('/lobby', methods=['POST'])
 def lobby():
-    name = request.args.get('name', default=make_random_name())
-    team = request.args.get('team', default=make_random_name())
+
+    name = request.json.get('name', make_random_name())
+    team = request.json.get('team', make_random_name())
+
+    try:
+        password = request.json['password']
+    except KeyError:
+        raise InvalidUsage('Password required')
 
     app.logger.debug('Registering "{}" under team "{}"'.format(name, team))
-    lobby_sock.send_json(dict(name=name, team=team))
+    lobby_sock.send_json(dict(name=name, team=team, password=password))
 
     app.logger.debug('Awaiting response from lobby...')
     # TODO: Need to set timeout for ZMQ socket here so the HTTP API server
@@ -91,29 +97,25 @@ def lobby():
 
 
 @app.route('/state')
-def state():
+def state(game=None):
+
     with state_lock:
         current_state = game_state[0]
 
     return jsonify(current_state)
 
 
-@app.route('/control/<string:secret>', methods=['POST', 'PUT'])
 @app.route('/control', methods=['POST', 'PUT'])
-def control(secret=None):
+def control():
 
     try:
-
-        if secret is None:
-            secret = request.json['secret']
-
+        password = str(request.json['password'])
         linear = str(request.json['linear'])
         rotation = str(request.json['rotation'])
-
     except KeyError:
         raise InvalidUsage('One or more required arguments not provided.')
 
-    control_str = make_control_str(secret, linear, rotation)
+    control_str = make_control_str(password, linear, rotation)
 
     app.logger.debug('Sending control message "{0}"'.format(control_str))
     control_sock.send_string(control_str)
