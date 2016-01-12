@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, request
-from flask.ext.cors import CORS
 from helpers import (make_random_name, make_context, make_address,
                      make_control_str, InvalidUsage)
+from flask.ext.cors import CORS
+from pprint import pformat
 
 import threading
 import json
@@ -97,10 +98,21 @@ def lobby():
 
 
 @app.route('/state')
+@app.route('/state/<string:game>')
 def state(game=None):
+
+    try:
+        if game is None:
+            game = request.args['game']
+    except KeyError:
+        raise InvalidUsage('Game not specified.')
 
     with state_lock:
         current_state = game_state[0]
+
+    if current_state.get('state') == 'running':
+        if not game == current_state.get('name'):
+            raise InvalidUsage('Game {} is not currently running'.format(game))
 
     return jsonify(current_state)
 
@@ -125,4 +137,4 @@ def control():
 
 if __name__ == '__main__':
     # Start server
-    app.run(debug=True)
+    app.run()
