@@ -18,9 +18,10 @@ from six.moves.urllib.parse import urljoin
 from argparse import ArgumentParser
 from functools import partial
 from pprint import pformat
+from time import sleep
 
 DEFAULTS = {
-    'server': 'http://localhost:5001',
+    'address': 'http://localhost:5001',
 }
 
 # Setup basic logging
@@ -47,8 +48,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 
-    parser.add_argument('--server', type=str, help='Server address',
-                        default=DEFAULTS['server'])
+    parser.add_argument('--address', '-a', type=str, help='Server address',
+                        default=DEFAULTS['address'])
 
     parser.add_argument('--name', '-n', type=str,
                         default=make_random_name(10), help='Ship name')
@@ -60,7 +61,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logger.debug(args)
 
-    make_addr = partial(urljoin, args.server)
+    make_addr = partial(urljoin, args.address)
 
     lobby_addr = make_addr('lobby')
     state_addr = make_addr('state')
@@ -72,13 +73,20 @@ if __name__ == '__main__':
     r_lobby.raise_for_status()
 
     lobby_response = r_lobby.json()
-    logger.debug(pformat(lobby_response))
+    logger.debug('Registered to participate "{}"'
+                 .format(pformat(lobby_response)))
+    sleep(1)  # Wait a sec for the game to be queued
 
     while True:
-        r_state = requests.get(state_addr)
+        r_state = requests.get(state_addr,
+                               params=dict(game=lobby_response['game']))
         r_state.raise_for_status()
         game_state = r_state.json()
         logger.debug('Current state "{}"'.format(pformat(game_state)))
+        if game_state['state'] == 'finished':
+            break
+        if game_state['state'] == 'queued':
+            continue
         linear, rotation = make_random_control()
         control_data = dict(password=args.password,
                             linear=linear,
