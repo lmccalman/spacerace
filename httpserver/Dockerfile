@@ -21,4 +21,4 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 EXPOSE 5001
 
-CMD ["gunicorn", "--workers", "5", "--bind", "0.0.0.0:5001", "--access-logfile", "-", "app:app"]
+CMD ["gunicorn", "--workers", "5", "--bind", "0.0.0.0:5001", "app:app"]

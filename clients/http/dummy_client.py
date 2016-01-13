@@ -91,8 +91,7 @@ if __name__ == '__main__':
                                    params=dict(game=lobby_response['game']))
             r_state.raise_for_status()
         except requests.exceptions.HTTPError:
-            if r_state.status_code == 400:
-                if r_state.json().get('message').endswith('does not exist!'):
+            if r_state.status_code == 400 and r_state.json().get('message').endswith('does not exist!'):
                     logger.warning('Game {} does not exist yet! '
                                    'Trying again...'
                                    .format(lobby_response['game']))
