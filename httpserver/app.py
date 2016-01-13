@@ -96,6 +96,15 @@ def lobby():
     return jsonify(response)
 
 
+@app.route('/games')
+def games():
+
+    with state_lock:
+        statuses = {game: states_dict[game]['state'] for game in states_dict}
+
+    return jsonify(statuses)
+
+
 @app.route('/state')
 @app.route('/state/<string:game>')
 def state(game=None):

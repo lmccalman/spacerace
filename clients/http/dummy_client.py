@@ -40,6 +40,15 @@ make_random_control = lambda: (random.choice([1, 1, 1, 1, 0]),
                                random.choice([-1, -1, -1, 0, 1]))
 
 
+########
+# TODO #
+########
+def agent_action(game_state):
+    # Decide on sensible control instructions to send in the form of a pair
+    # of integers (linear, rotation) given game state information.
+    return make_random_control()
+
+
 if __name__ == '__main__':
 
     parser = ArgumentParser(
@@ -84,7 +93,9 @@ if __name__ == '__main__':
         except requests.exceptions.HTTPError:
             if r_state.status_code == 400:
                 if r_state.json().get('message').endswith('does not exist!'):
-                    logger.warning('Game does not exist yet! Trying again...')
+                    logger.warning('Game {} does not exist yet! '
+                                   'Trying again...'
+                                   .format(lobby_response['game']))
                     sleep(1)  # wait a sec so we're not slamming the server
                     continue
             else:
@@ -105,8 +116,9 @@ if __name__ == '__main__':
         logger.debug('Current state "{}"'.format(pformat(game_state)))
         status = game_state.get('state')
         if status == 'queued':
+            sleep(1)  # wait a sec so we're not slamming the server
             continue
-        linear, rotation = make_random_control()
+        linear, rotation = agent_action(game_state)
         control_data = dict(password=args.password,
                             linear=linear,
                             rotation=rotation)
