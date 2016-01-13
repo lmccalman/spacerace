@@ -81,21 +81,30 @@ if __name__ == '__main__':
             r_state = requests.get(state_addr,
                                    params=dict(game=lobby_response['game']))
             r_state.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            print(e)
-            continue
+        except requests.exceptions.HTTPError:
+            if r_state.status_code == 400:
+                if r_state.json().get('message').endswith('does not exist!'):
+                    logger.warning('Game does not exist yet! Trying again...')
+                    sleep(1)  # wait a sec so we're not slamming the server
+                    continue
+            else:
+                # Some other unexpected HTTPError so we re-raise
+                raise
         else:
+            # No HTTPError so we know the game at least exists and is either
+            # queued, running or finished
             break
 
-    while True:
+    status = r_state.json().get('state')
+
+    while status != 'finished':
         r_state = requests.get(state_addr,
                                params=dict(game=lobby_response['game']))
         r_state.raise_for_status()
         game_state = r_state.json()
         logger.debug('Current state "{}"'.format(pformat(game_state)))
-        if game_state['state'] == 'finished':
-            break
-        if game_state['state'] == 'queued':
+        status = game_state.get('state')
+        if status == 'queued':
             continue
         linear, rotation = make_random_control()
         control_data = dict(password=args.password,
