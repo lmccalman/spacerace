@@ -75,7 +75,17 @@ if __name__ == '__main__':
     lobby_response = r_lobby.json()
     logger.debug('Registered to participate "{}"'
                  .format(pformat(lobby_response)))
-    sleep(1)  # Wait a sec for the game to be queued
+
+    while True:
+        try:
+            r_state = requests.get(state_addr,
+                                   params=dict(game=lobby_response['game']))
+            r_state.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            print(e)
+            continue
+        else:
+            break
 
     while True:
         r_state = requests.get(state_addr,
