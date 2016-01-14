@@ -1,0 +1,3 @@
+[submodule "docker-wait"]
+	path = docker-wait
+	url = https://github.com/aanand/docker-wait
