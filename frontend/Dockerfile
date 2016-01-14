@@ -23,5 +23,4 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 EXPOSE 8000
 
-CMD ["node", "server.js", "server"]
-
+CMD sleep 10s && node server.js server

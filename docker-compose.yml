@@ -9,11 +9,6 @@ server:
     - ./config:/spacerace/config
     - ./maps:/spacerace/maps
 
-wait:
-  build: docker-wait
-  links:
-    - server
-
 frontend:
   build: frontend
   links:
