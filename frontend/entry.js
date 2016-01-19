@@ -107,7 +107,7 @@ socket.on('Log', function (msg) {
 
                 teamScore.exit().remove();
                 teamScore.enter().append("li").text(function(d, i){
-                    return d.name + " - " + d.score;
+                    return d.name + " - " + d.score.toFixed(0);
                 });
 
                 teamScore.on("click", function(d, i){
@@ -120,6 +120,11 @@ socket.on('Log', function (msg) {
             }
 
             if (d.state === 'running') {
+                if(!nextMap) {
+                    console.log("Setting next map");
+                    nextMap = d.map;
+                }
+
                 // Update the players rankings
                 // d.ranking is a map of player ID -> score
 
@@ -127,10 +132,10 @@ socket.on('Log', function (msg) {
 
                 // Note ranking will always be here
                 players.sort(function(p1, p2) {
-                    //return p1.id - p2.id; // Sort by name for now
+                    // Sort by ranking from the server
                     return parseFloat(d.ranking[p1]) - parseFloat(d.ranking[p2]);
-                })
-                .transition().duration(5);
+                }).transition().duration(5);
+
 
                 updateCurrentGameScoreBoard(d.ranking);
 
@@ -296,38 +301,50 @@ var timeRemaining = d3.select("#timeRemaining span");
 
 var updateCurrentGameScoreBoard = function(ranking) {
 
+    // An array of the player IDs
     var playerIDs = d3.keys(gameState);
 
+    // Player id's that were already present
     var players = playerContainer.selectAll(".playerIndivdualScore")
         .data(playerIDs);
 
+    // Any players who aren't present in the game state should be removed
+    // from the current game's scoreboard
     players.exit().remove();
 
-    var d = players
-        .enter()
+    // New players in the game state, that don't exist in the DOM
+    players.enter()
         .append("li")
         .attr("class", "playerIndivdualScore")
+        .append("span")
+        .attr("class", "playerName");
+
+    players.attr("title", function(d){return d;})
+        .style("color", function(d, i){
+            return playerColors[d];
+        })
         .on("click", function(d, i){
             console.log("Selecting ship for player " + d);
             selectedShip = i;
         });
 
-    d
-        .attr("title", function(d){return d;})
-        .style("color", function(d, i){
-            return playerColors[d];
-        });
 
+    // Now update the names
+    var playerNames = players.select("span");
 
-    d.append("span")
-        .attr("class", "playerName")
+    playerNames
         .text(function(d, i){
+            console.log(d, i);
             return d;
         });
 
-    var rank = d.append("strong")
-        .attr('class', 'score')
-        .attr("title", "Player's rank");
+    //var rank = players.selectAll("strong").data(playerIDs);
+    //
+    //rank.enter()
+    //    .append("strong")
+    //    .attr('class', 'score');
+    //
+    //rank.attr("title", "Player's rank");
 
 
 };
@@ -345,16 +362,16 @@ var setupGame = function () {
 
     for (var playerID in initState) {
         if(playerColors.hasOwnProperty(playerID)){
-            // This player already has a color
+            console.debug("Player " + playerID + " already has a color");
         } else {
             playerColors[playerID] = "hsl(" + Math.random() * 360 + ",75%, 50%)";
         }
     }
 
     // Show each player
-    console.log(initState);
+    //console.log(initState);
     playerNames = d3.keys(initState);
-    console.log(playerNames);
+    //console.log(playerNames);
 
     updateCurrentGameScoreBoard();
 
@@ -368,11 +385,12 @@ var setupGame = function () {
         .enter()
         .append('use')
         .attr("class", "ship")
+        .attr("xlink:href", "#ship");
+
+    ships
         .attr("id", function (d, i) {
             return "ship" + i;
         })
-        .attr("xlink:href", "#ship")
-
         .attr('fill', function (d) {
             return playerColors[d];
         });
