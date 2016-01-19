@@ -34,3 +34,7 @@ use {
 #leaderboard {
     font-size: larger;
 }
+#GlobalLeaderboard {
+    height: 500px;
+    overflow-y: scroll;
+}

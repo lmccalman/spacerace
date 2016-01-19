@@ -106,9 +106,14 @@ socket.on('Log', function (msg) {
 
 
                 teamScore.exit().remove();
-                teamScore.enter().append("li").text(function(d, i){
-                    return d.name + " - " + d.score.toFixed(0);
-                });
+                teamScore.enter().append("li");
+
+                teamScore
+                    .text(function(d, i){
+                        return d.name + " - " + d.score.toFixed(0);
+                    }).sort(function(a, b){
+                       return b.score - a.score;
+                    });
 
                 teamScore.on("click", function(d, i){
                     console.log("Selecting team " + d.name);
