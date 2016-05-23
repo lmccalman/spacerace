@@ -40,23 +40,21 @@ game.
 You may find some of the code in the following folders great inspiration for
 your creations (particularly `clients`, `frontend` and `maps`).
 
+``` console
+spacerace
+├── clients             # Example starter ZMQ and HTTP clients in Python
+├── frontend            # Front end (node.js)
+├── httpserver          # HTTP Server that exposes a RESTful API and communicates to the server with ZMQ, so you don't have to
+├── mapbuilder          # Python script for building maps from bitmaps
+├── maps                # A few example maps (`png`, `svg`, etc.)
+├── physics             # Prototype implementation of the game physics in Python
+└── server              # Server in C++, including physics engine, game management logic, etc.
 ```
-.
-+--clients
-|  +--python        Example players/clients in python
-+--frontend          Front end (node.js)
-+--mapbuilder       Python script for building maps from bitmaps
-+--maps             A few example maps (png, svg etc)
-+--physics          Prototype implementation of the game physics in python
-+--server           This is all of the C++ server code, physics engine, and
-                    other good stuff.
-```
-
 
 ## Coordinate System
 
-We use "mathematical" co-ordinate conventions. These may be different from the
-conventions used in computer graphics. One unit in the coordinate frame is
+We use the conventional Cartesian coordinate system (as opposed to the coordinate 
+systems used in computer graphics). One unit in the coordinate frame is
 equivalent to one pixel in the map of the current round. With respect to your
 screen, the coordinate system is described below:
 
@@ -493,7 +491,7 @@ specifications:
 Also, we haven't put a constraint on the size, but I recommend less than 
 1500px X 1500px. Here is an example:
 
-![Example map](maps/swish.png)
+![Example map](maps/etd-winter-retreat-2015/swish.png)
 
 To then make this map readable by the game engine, you need to run the
 `buildmap.py` script in the `mapbuilder` directory. Here is an example (from
@@ -510,7 +508,7 @@ Finally, you can optionally provide a skin for you map to make it look pretty!
 Just make sure it is the same size as your original map and has the suffix
 `_skin`, e.g.
 
-![Example map skin](maps/swish_skin.png)
+![Example map skin](maps/etd-winter-retreat-2015/swish_skin.png)
 
 Now just upload all of the generated files to the location we will specify!
 
