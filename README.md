@@ -556,7 +556,7 @@ Starting spacerace_frontend_1
 Starting spacerace_httpserver_1
 ```
 
-You can see how the containers and how the ports have been forwaded with the `ps`
+You can see how the containers and how the ports have been forwarded with the `ps`
 subcommand:
 
 ``` console
@@ -585,7 +585,7 @@ $ docker-machine ip default
 
 You should be able to see the frontend at http://192.168.99.100:8000/
 
-You can view the logs with the `logs` subcommand
+You can view the logs with the `logs` subcommand:
 
 ``` console
 $ docker-compose logs
