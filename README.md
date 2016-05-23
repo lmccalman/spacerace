@@ -526,16 +526,78 @@ connecting to the *State* and *Info* zeroMQ sockets, or by using `socket.io`
 websockets.
 
 
+# Building Your Own Server
 
-# Building the Server
+You may wish to build the server on your local machine to ease debugging and not
+be subject to network outages. The Spacerace server and related services such as
+the frontend and HTTP server are all deployed with Docker and Docker Compose. We
+use [version 2](https://docs.docker.com/compose/compose-file/#versioning) of the 
+Compose file format, so all you require are:
 
-You may wish to build the server so as to run a local copy for debugging
-purposes. With docker simply run:
+- Docker Engine (version 1.10.0+)
+- Compose 1.6.0+
 
-    docker build -t spacerace .
-    docker run -it --rm -p 5556-5559:5556-5559 -p 8000:8000 spacerace 
+Once these are installed, to automatically build and start the server:
 
-However, don't forget to build the maps first.
+``` console
+$ docker-compose up
+Starting spacerace_server_1
+Starting spacerace_frontend_1
+Starting spacerace_httpserver_1
+[...] # very verbose logging that won't fit here
+```
 
-Alternatively, use cmake. You need boost-devel and boost-static and
-zeromq-devel and zeromq libraries installed. 
+You can also use the `-d` flag to start it in detached mode:
+
+``` console
+$ docker-compose up -d
+Starting spacerace_server_1
+Starting spacerace_frontend_1
+Starting spacerace_httpserver_1
+```
+
+You can see how the containers and how the ports have been forwaded with the `ps`
+subcommand:
+
+``` console
+$ docker-compose ps
+             Name                           Command                           State                            Ports
+---------------------------------------------------------------------------------------------------------------------------------
+spacerace_frontend_1             /bin/sh -c sleep 10s && no ...   Up                               0.0.0.0:8000->8000/tcp
+spacerace_httpserver_1           gunicorn --workers 5 --bin ...   Up                               0.0.0.0:5001->5001/tcp
+spacerace_server_1               /spacerace/spacerace-serve ...   Up                               0.0.0.0:5556->5556/tcp,
+                                                                                                   0.0.0.0:5557->5557/tcp,
+                                                                                                   0.0.0.0:5558->5558/tcp,
+                                                                                                   0.0.0.0:5559->5559/tcp
+```
+
+Now you should be able to see the frontend at http://0.0.0.0:8000, the HTTP server
+at http://0.0.0.0:5001, and communicate with the various ZMQ sockets at the listed
+ports. 
+
+If you are using Docker Machine (Mac and Windows users), the address will be 
+`$(docker-machine ip default)` instead of `0.0.0.0`/`localhost`. E.g. if
+
+``` console
+$ docker-machine ip default
+192.168.99.100
+```
+
+You should be able to see the frontend at http://192.168.99.100:8000/
+
+You can view the logs with the `logs` subcommand
+
+``` console
+$ docker-compose logs
+[...] # very verbose logging that won't fit here
+```
+
+Finally, to stop all the containers:
+
+``` console
+$ docker-compose stop
+Stopping spacerace_httpserver_1 ... done
+Stopping spacerace_frontend_1 ... done
+Stopping spacerace_server_1 ... done
+```
+
