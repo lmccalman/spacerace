@@ -20,6 +20,6 @@ install:
   - docker-compose build
 
 script:
-  - docker-compose start 
+  - docker-compose up -d 
   - docker-compose ps
   - docker-compose stop 

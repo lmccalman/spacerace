@@ -1,12 +1,12 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import logging
 import string
 import random
 import requests
-import urlparse
 
+from six.moves.urllib.parse import urljoin
 from collections import defaultdict
 from argparse import ArgumentParser
 from functools import partial
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logger.debug(args)
 
-    make_addr = partial(urlparse.urljoin, args.server)
+    make_addr = partial(urljoin, args.server)
 
     lobby_addr = make_addr('lobby')
     state_addr = make_addr('state')
