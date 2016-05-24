@@ -3,6 +3,7 @@ version: '2'
 services:
 
   server:
+    image: terriajs/spacerace-server:latest
     build: server
     ports:
       - "5556:5556"
@@ -14,6 +15,7 @@ services:
       - ./maps:/spacerace/maps
 
   frontend:
+    image: terriajs/spacerace-frontend:latest
     build: frontend
     links:
       - server
@@ -26,6 +28,7 @@ services:
       - ./maps:/spacerace/maps
 
   httpserver:
+    image: terriajs/spacerace-httpserver:latest
     build: httpserver
     links:
       - server
