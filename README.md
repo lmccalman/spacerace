@@ -494,15 +494,40 @@ Also, we haven't put a constraint on the size, but I recommend less than
 ![Example map](maps/etd-winter-retreat-2015/swish.png)
 
 To then make this map readable by the game engine, you need to run the
-`buildmap.py` script in the `mapbuilder` directory. Here is an example (from
-where you cloned this repo),
+`buildmap.py` script in the `mapbuilder` directory. We have already built a
+Docker image that installs all the dependencies and pushed it to Docker Hub.
 
-    $ cd mapbuilder
-    $ ./buildmap pathto/yourmapname.png --visualise
+``` console
+$ docker run -it -v <spacerace-root>/config:/usr/src/app/config 
+>                -v <spacerace-root>/maps:/usr/src/app/maps 
+>                terriajs/spacerace-mapbuilder:latest maps/etd-winter-retreat-2015/bt-circle1.png
+Reading and processing map image 'maps/etd-winter-retreat-2015/bt-circle1.png'...
+Calculating distance to walls...
+Calculating flow field to end...
+Calculating wall normals...
+Saving results...
+  - padded image
+  - binary layers
+  - csv layers
+Done!
+```
 
 This will then output all of the necessary files into the same directory as
-your map. You can call `./buildmap.py --help` for more info. Also, have a look
-at `mapbuilder/requirements.txt` for all of the required python packages.
+your map. 
+
+For additional information, use the `--help` flag:
+
+``` console
+$ docker run -it terriajs/spacerace-mapbuilder:latest --help
+Usage: buildmap.py [OPTIONS] IMAGE
+
+Options:
+  --mapname TEXT       Output map file name, same as IMAGE.npy unless
+                       specified.
+  --settingsfile TEXT  Location of the spacerace settings JSON file.
+  --visualise          Visualise the output?
+  --help               Show this message and exit.
+```
 
 Finally, you can optionally provide a skin for you map to make it look pretty!
 Just make sure it is the same size as your original map and has the suffix
