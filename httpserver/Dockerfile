@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:15.10
 MAINTAINER Lachlan McCalman <lachlan.mccalman@nicta.com.au>
 
 RUN apt-get update && apt-get install -y \
