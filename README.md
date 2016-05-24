@@ -586,7 +586,7 @@ spacerace project root.
 $ aws s3 sync s3://spacerace-artifacts/maps maps
 ```
 
-Once the maps are in pace, you can build and start the server:
+Once the maps are in place, you can build and start the server:
 
 ``` console
 $ docker-compose up
