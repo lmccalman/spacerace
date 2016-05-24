@@ -578,12 +578,13 @@ First you should obtain the maps. The bitmaps are stored on Git LFS (Large File
 Storage) so you can fetch them and build them yourself (instructions above), but
 this can be time consuming. We have prebuilt all the maps and stored the generated
 files (flow fields, occupancy maps, etc.) in an S3 bucket: 
-https://s3-ap-southeast-2.amazonaws.com/spacerace-artifacts/. We recommend you 
-download all the maps and associated files to the `maps/` directory in the 
-spacerace project root.
+https://s3-ap-southeast-2.amazonaws.com/spacerace-artifacts/maps.tar.gz. We 
+recommend you download and extract all the maps and associated files to the 
+`maps/` directory in the spacerace project root.
 
 ``` console
-$ aws s3 sync s3://spacerace-artifacts/maps maps
+$ wget https://s3-ap-southeast-2.amazonaws.com/spacerace-artifacts/maps.tar.gz
+$ tar xvzf maps.tar.gz
 ```
 
 Once the maps are in place, you can build and start the server:
