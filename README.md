@@ -498,8 +498,8 @@ To then make this map readable by the game engine, you need to run the
 Docker image that installs all the dependencies and pushed it to Docker Hub.
 
 ``` console
-$ docker run -it -v <spacerace-root>/config:/usr/src/app/config 
->                -v <spacerace-root>/maps:/usr/src/app/maps 
+$ docker run -it -v <spacerace-root>/config:/usr/src/app/config \
+>                -v <spacerace-root>/maps:/usr/src/app/maps \
 >                terriajs/spacerace-mapbuilder:latest maps/etd-winter-retreat-2015/bt-circle1.png
 Reading and processing map image 'maps/etd-winter-retreat-2015/bt-circle1.png'...
 Calculating distance to walls...
@@ -537,6 +537,18 @@ Just make sure it is the same size as your original map and has the suffix
 
 Now just upload all of the generated files to the location we will specify!
 
+#### Recipes
+
+From the spacerace project root, build all maps (files ending in `.png` but not
+`_skin.png` or `_padded.png`) in the `maps/` directory:
+
+``` console
+$ find maps -maxdepth 2 -type f -name "*.png" \
+>           -not -name "*_padded.png" \
+>           -not -name "*_skin.png" \
+>           -exec mapbuilder/buildmap.py {} \;
+```
+
 # Frontend
 
 The server runs a simple html visualization on port `8000`. This includes
@@ -562,7 +574,19 @@ Compose file format, so all you require are:
 - Docker Engine (version 1.10.0+)
 - Compose 1.6.0+
 
-Once these are installed, to automatically build and start the server:
+First you should obtain the maps. The bitmaps are stored on Git LFS (Large File
+Storage) so you can fetch them and build them yourself (instructions above), but
+this can be time consuming. We have prebuilt all the maps and stored the generated
+files (flow fields, occupancy maps, etc.) in an S3 bucket: 
+https://s3-ap-southeast-2.amazonaws.com/spacerace-artifacts/. We recommend you 
+download all the maps and associated files to the `maps/` directory in the 
+spacerace project root.
+
+``` console
+$ aws s3 sync s3://spacerace-artifacts/maps maps
+```
+
+Once the maps are in pace, you can build and start the server:
 
 ``` console
 $ docker-compose up
