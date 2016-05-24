@@ -1,0 +1,7 @@
+six
+
+# http client
+requests
+
+# zmq client
+zmq
