@@ -1,4 +1,4 @@
-FROM ubuntu:15.04
+FROM ubuntu:xenial
 MAINTAINER Lachlan McCalman <lachlan.mccalman@nicta.com.au>
 RUN apt-get update && apt-get install -y \
   build-essential \

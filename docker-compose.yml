@@ -17,6 +17,8 @@ services:
     build: frontend
     links:
       - server
+    depends_on:
+      - server
     ports:
       - "8000:8000"
     volumes:
@@ -26,6 +28,8 @@ services:
   httpserver:
     build: httpserver
     links:
+      - server
+    depends_on:
       - server
     ports:
       - "5001:5001"
