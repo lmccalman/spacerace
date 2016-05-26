@@ -30,7 +30,7 @@ def main(args):
 
     # load the map:
     mapname = response['map']
-    map_path = '/home/areid/code/spacerace/maps/'
+    map_path = '../../maps/'
     maps = map_path+mapname
     # load the flow field
     # you may also want + '_wnormx' + '_wnormy' + '_flowx' + '_flowy'
