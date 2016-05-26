@@ -58,7 +58,6 @@ def main(args):
             continue
         if go:
             go = False
-            print('Have a head start...!')
             timeStart = time.time()
             continue
 
