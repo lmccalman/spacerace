@@ -75,9 +75,10 @@ There are three API endpoints a client must interact with:
 #### Lobby endpoint
 
 + `/lobby`
-    - `GET`
+    - `POST`
         + name (optional): player name
         + team (optional): team name
+        + password (required): password
 
 The lobby endpoint is used by players to join a game. The server starts and
 begins to accept new players into the first game lobby. Some time later, when
@@ -85,28 +86,24 @@ the first game starts, the server creates the lobby for the second game. This
 means that a player trying to join during a game will simply be placed in the
 lobby for the next game.
 
-To register to participate in the next game, a client must make a `GET` request
-to the `/lobby` endpoint with parameters `name`, `team`, and `secret`. You
+To register to participate in the next game, a client must make a `POST` request
+to the `/lobby` endpoint with parameters `name`, `team`, and `password`. You
 must specify all three variables.
 
 The name will be reflected in the state sent out by the server, and the
-visualisation of your ship. The team is used to collate the scores of multiple
-related AIs. The secret is used to validate your control inputs. Don't share
-your secret unless you want others to take control of your ship!  Feel free
-to choose any alphanumeric values for `name`, `team`, and `secret` variables.
+visualisation of your ship. The team is used to aggregate the scores of multiple
+related AIs. The password is used to validate your control inputs. Don't share
+your password unless you want others to take control of your ship!  Feel free
+to choose any alphanumeric values for `name`, `team`, and `password` variables.
 
 Example:
 
 Register 'Giovanni' under 'Team Rocket':
 
 ```
-$ curl http://127.0.0.1:5000/lobby?name=Giovanni&team=Team%20Rocket&secret=spacexrules
-{
-  "game": "game772", 
-  "map": "spacerace-world", 
-  "name": "Giovanni", 
-}
+$ curl -H "Content-Type: application/json" -X POST -d '{"name":"Giovanni","team":"Team Rocket","password":"spacexrules"}' http://127.0.0.1:5000/control
 ```
+
 You will receive a JSON response with fields `name`, `game`, and `map`.
 
 The name should be the name you gave the server. The game name is an important
@@ -168,7 +165,15 @@ The state message is a json object of the following form:
 ```
     {
         "state": "running",
-        "data": [list_of_players]
+        "data": {
+            "name1": {
+              [...]
+            },
+            "name2": {
+              [...]
+            },
+            [...]
+        }
     }
 ```
 
@@ -177,7 +182,7 @@ when someone wins the game or it times out. Make sure you check the status
 before you try to access the data member, because it isn't in the final
 "finished" message
 
-In the data array, each player has the following attributes:
+In the nested dictionary, each player has the following attributes:
 
 ```
     {
@@ -201,13 +206,13 @@ direction.
 
 + `/control`
     - `POST`
-        + secret: your secret key
+        + password: your password
         + rotation: rotational thrust
         + linear: linear thrust
 
 The control endpoint is used to send control commands for your ship during a
 game. Commands are sent to `/control` via a `POST` method with JSON data 
-containing fields `secret`, `rotation`, `linear`. If you send control commands 
+containing fields `password`, `rotation`, `linear`. If you send control commands 
 to a game you're not in, or while no game is running, they will be ignored.
 
 A client can send control messages whenever they would like and as frequently
@@ -218,16 +223,16 @@ to control your ship.
 
 Example:
 
-The secret key we got for `Giovanni` was `ce6989bc-50fb`. We can then send 
+The password we made for `Giovanni` was `spacexrules`. We can then send 
 rotational thrust in the anti-clockwise direction (rotation=-1) with no linear 
 thrust (linear=0) with a `POST` request:
 
 ```
-$ curl -H "Content-Type: application/json" -X POST -d '{"secret":"ce6989bc-50fb","rotation":-1,"linear":0}' http://127.0.0.1:5000/control
+$ curl -H "Content-Type: application/json" -X POST -d '{"password":"spacexrules","rotation":-1,"linear":0}' http://127.0.0.1:5000/control
 ```
 
-- `<yoursecretkey>` is the string you gave the lobby upon connection
-- `<main_engine>` is either a 0 or a 1, for the main engine being off or on
+- `<password>` is the password you gave the lobby upon connection
+- `<linear>` is either a 0 or a 1, for the main engine being off or on
 - `<rotation>` is either a -1, 0 or 1. 1 is for +ve (anti-clockwise) rotation
 thrust, -1 is for -ve (clockwise) rotation thrust, and 0 is no rotation thrust
 
@@ -578,12 +583,13 @@ First you should obtain the maps. The bitmaps are stored on Git LFS (Large File
 Storage) so you can fetch them and build them yourself (instructions above), but
 this can be time consuming. We have prebuilt all the maps and stored the generated
 files (flow fields, occupancy maps, etc.) in an S3 bucket: 
-https://s3-ap-southeast-2.amazonaws.com/spacerace-artifacts/. We recommend you 
-download all the maps and associated files to the `maps/` directory in the 
-spacerace project root.
+https://s3-ap-southeast-2.amazonaws.com/spacerace-artifacts/maps.tar.gz. We 
+recommend you download and extract all the maps and associated files to the 
+`maps/` directory in the spacerace project root.
 
 ``` console
-$ aws s3 sync s3://spacerace-artifacts/maps maps
+$ wget https://s3-ap-southeast-2.amazonaws.com/spacerace-artifacts/maps.tar.gz
+$ tar xvzf maps.tar.gz
 ```
 
 Once the maps are in place, you can build and start the server:
